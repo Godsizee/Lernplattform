@@ -29,6 +29,7 @@ export class Dashboard {
     }
 
     createSubjectCard(subject, percentage) {
+        const base = window.APP_BASE || '/files/lernplattform/public/';
         const card = document.createElement('div');
         card.className = 'subject-card';
         card.style.setProperty('--subject-color', subject.color);
@@ -43,10 +44,10 @@ export class Dashboard {
                 'ph-coffee': 'java.png'
             };
             if (iconMap[subject.icon]) {
-                iconHtml = `<img src="assets/img/icons/${iconMap[subject.icon]}" class="subject-icon-img" alt="${subject.title}">`;
+                iconHtml = `<img src="${base}assets/img/icons/${iconMap[subject.icon]}" class="subject-icon-img" alt="${subject.title}">`;
             }
         } else if (subject.icon.endsWith('.png') || subject.icon.endsWith('.svg')) {
-            iconHtml = `<img src="assets/img/icons/${subject.icon}" class="subject-icon-img" alt="${subject.title}">`;
+            iconHtml = `<img src="${base}assets/img/icons/${subject.icon}" class="subject-icon-img" alt="${subject.title}">`;
         }
 
         card.innerHTML = `
@@ -62,7 +63,7 @@ export class Dashboard {
 
         card.addEventListener('click', () => {
             localStorage.setItem('active_subject', subject.id);
-            window.location.href = 'learning.php';
+            window.location.href = base + 'lernen';
         });
 
         return card;

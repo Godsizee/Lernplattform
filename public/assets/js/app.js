@@ -22,6 +22,8 @@ window.fetch = async function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    const base = window.APP_BASE || '/files/lernplattform/public/';
+
     // Theme Toggle
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
     if (themeToggleBtn) {
@@ -81,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await fetch('../api/auth.php?action=logout');
                 localStorage.removeItem('csrf_token');
-                window.location.href = 'login.php';
+                window.location.href = base + 'login';
             } catch (e) {
                 console.error('Logout error', e);
             }

@@ -1,10 +1,7 @@
 import { Learning } from '../modules/Learning.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const learning = new Learning({
-        container: document.getElementById('view-container')
-    });
-
+    const learning = new Learning();
     await learning.loadData();
 
     // Event Delegation für Tabs und Lektionen

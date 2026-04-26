@@ -1,20 +1,7 @@
 import { Dashboard } from '../modules/Dashboard.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const dashboard = new Dashboard({
-        // Mock the app object so Dashboard can work standalone
-        container: document.getElementById('view-container'),
-        router: () => window.location.href = 'learning.php',
-        learning: {
-            switchTab: (subjectId) => {
-                // When clicking a subject on dashboard, go to learning.php?subject=...
-                // (Since we are MPA now, we can pass query params, or save to localStorage)
-                localStorage.setItem('active_subject', subjectId);
-                window.location.href = 'learning.php';
-            }
-        }
-    });
-
+    const dashboard = new Dashboard();
     await dashboard.loadData();
 
     // Log the view
