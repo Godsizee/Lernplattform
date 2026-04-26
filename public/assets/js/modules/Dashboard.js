@@ -1,7 +1,5 @@
 export class Dashboard {
-    constructor(app) {
-        this.app = app;
-    }
+    constructor() {}
 
     async loadData() {
         try {
@@ -9,7 +7,8 @@ export class Dashboard {
             if (!res.ok) return;
             const data = await res.json();
             
-            this.app.ui.updateStreak(data.streak);
+            const streakCounter = document.getElementById('streak-counter');
+            if (streakCounter) streakCounter.textContent = data.streak + ' Tage Streak!';
             
             const container = document.getElementById('dashboard-subjects-container');
             if (!container) return;
@@ -64,9 +63,8 @@ export class Dashboard {
         `;
 
         card.addEventListener('click', () => {
-            window.activeSubjectRequest = subject.id;
-            window.history.pushState({}, '', 'learning');
-            this.app.router();
+            localStorage.setItem('active_subject', subject.id);
+            window.location.href = 'learning.php';
         });
 
         return card;

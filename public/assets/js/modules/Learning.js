@@ -1,185 +1,178 @@
 export class Learning {
-    constructor(app) {
-        this.app = app;
-        this.lessonsData = [];
-        this.subjectsData = [];
-        this.activeSubjectId = null;
-    }
+    constructor() {}
 
     async loadData() {
         try {
-            const res = await fetch('../api/content.php?action=lessons');
+            const res = await fetch('../api/content.php?action=subjects');
             if (!res.ok) return;
-            this.lessonsData = await res.json();
+            const subjects = await res.json();
             
-            const subMap = {};
-            this.lessonsData.forEach(l => {
-                if (!subMap[l.subject_id]) {
-                    subMap[l.subject_id] = { id: l.subject_id, title: l.subject_title };
-                }
-            });
-            this.subjectsData = Object.values(subMap);
+            this.renderTabs(subjects);
             
-            this.renderTabs();
+            if (subjects.length > 0) {
+                const activeId = localStorage.getItem('active_subject') || subjects[0].id;
+                const activeTitle = subjects.find(s => s.id == activeId)?.title || subjects[0].title;
+                this.switchTab(activeId, activeTitle);
+            }
         } catch (error) {
-            console.error('Error loading learning data:', error);
+            console.error('Error loading subjects:', error);
         }
     }
 
-    renderTabs() {
+    renderTabs(subjects) {
         const tabsContainer = document.getElementById('learning-tabs-container');
         if (!tabsContainer) return;
-
-        if (this.subjectsData.length > 0) {
-            if (window.activeSubjectRequest && this.subjectsData.find(s => s.id == window.activeSubjectRequest)) {
-                this.activeSubjectId = window.activeSubjectRequest;
-                window.activeSubjectRequest = null;
-            } else if (!this.activeSubjectId || !this.subjectsData.find(s => s.id == this.activeSubjectId)) {
-                this.activeSubjectId = this.subjectsData[0].id;
-            }
-
-            tabsContainer.innerHTML = '';
-            this.subjectsData.forEach(subject => {
-                const btn = document.createElement('button');
-                btn.className = `learning-tab ${subject.id == this.activeSubjectId ? 'active' : ''}`;
-                btn.dataset.subjectId = subject.id;
-                btn.textContent = subject.title;
-                btn.addEventListener('click', () => this.switchTab(subject.id, subject.title));
-                tabsContainer.appendChild(btn);
-            });
+        
+        tabsContainer.innerHTML = '';
+        
+        subjects.forEach(subject => {
+            const btn = document.createElement('button');
+            btn.className = 'learning-tab';
+            btn.dataset.subjectId = subject.id;
+            btn.textContent = subject.title;
             
-            this.renderSubjectLessons();
-        } else {
-            document.getElementById('learning-content-container').innerHTML = '<p>Keine Lektionen vorhanden.</p>';
+            tabsContainer.appendChild(btn);
+        });
+    }
+
+    async switchTab(subjectId, titleText = '') {
+        const tabsContainer = document.getElementById('learning-tabs-container');
+        if (tabsContainer) {
+            tabsContainer.querySelectorAll('.learning-tab').forEach(t => t.classList.remove('active'));
+            const activeTab = tabsContainer.querySelector(`.learning-tab[data-subject-id="${subjectId}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                titleText = activeTab.textContent;
+            }
         }
-    }
 
-    switchTab(subjectId, subjectTitle) {
-        document.querySelectorAll('#learning-tabs-container .learning-tab').forEach(t => t.classList.remove('active'));
-        const activeTab = document.querySelector(`#learning-tabs-container .learning-tab[data-subject-id="${subjectId}"]`);
-        if (activeTab) activeTab.classList.add('active');
-
-        this.activeSubjectId = subjectId;
-        this.renderSubjectLessons();
-
-        fetch('../api/log.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'VIEW_SUBJECT', details: `Fach geöffnet: ${subjectTitle}` })
-        }).catch(() => {});
-    }
-
-    renderSubjectLessons() {
         const container = document.getElementById('learning-content-container');
         if (!container) return;
-
-        const lessons = this.lessonsData.filter(l => l.subject_id == this.activeSubjectId);
         
-        if (lessons.length === 0) {
-            container.innerHTML = '<p style="color:var(--text-secondary)">Keine Lektionen in diesem Fach.</p>'; 
-            return;
-        }
+        container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Lektionen...</div>`;
 
-        container.innerHTML = '';
-        
-        // --- Inhaltsverzeichnis (TOC) rendern ---
-        const tocWrapper = document.createElement('div');
-        tocWrapper.className = 'content-card toc-card';
-        tocWrapper.innerHTML = `<h3>Inhaltsverzeichnis</h3>`;
-        const tocList = document.createElement('ul');
-        tocList.className = 'toc-list';
-        
-        lessons.forEach((lesson, index) => {
-            const anchorId = `lesson-${lesson.id}`;
-            const li = document.createElement('li');
-            const link = document.createElement('a');
-            link.href = `#${anchorId}`;
-            link.className = 'toc-link';
-            link.textContent = `${index + 1}. ${lesson.title}`;
+        try {
+            const res = await fetch(`../api/content.php?action=lessons&subject_id=${subjectId}`);
+            const data = await res.json();
             
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = document.getElementById(anchorId);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-            
-            li.appendChild(link);
-            tocList.appendChild(li);
-        });
-        tocWrapper.appendChild(tocList);
-        container.appendChild(tocWrapper);
-        // ----------------------------------------
+            if (data.lessons.length === 0) {
+                container.innerHTML = `<div class="content-card"><p>Keine Lektionen in diesem Fach vorhanden.</p></div>`;
+                return;
+            }
 
-        lessons.forEach(lesson => {
-            const isCompleted = lesson.status === 'completed';
-            const btnClass = isCompleted ? 'btn-secondary' : 'btn-primary';
-            const btnIcon = isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check';
-            const btnText = isCompleted ? 'Fortschritt zurücksetzen' : 'Lektion abschließen';
-            const statusTarget = isCompleted ? 'pending' : 'completed';
-            
-            const lessonWrapper = document.createElement('div');
-            // Sprungmarken-ID für Inhaltsverzeichnis definieren und Padding ergänzen für Sticky Headers
-            lessonWrapper.id = `lesson-${lesson.id}`;
-            lessonWrapper.style.marginBottom = '3rem';
-            lessonWrapper.style.scrollMarginTop = '100px'; 
-            
-            lessonWrapper.innerHTML = `
-                <header class="view-header" style="margin-bottom: 1rem;">
-                    <h2 style="font-size: 1.5rem;">${lesson.title}</h2>
-                </header>
-                <article class="content-card lesson-content-article">
-                    ${lesson.content}
-                    <div class="action-bar" style="margin-top: 2rem; display: flex; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
-                        <button class="btn ${btnClass}" id="toggle-lesson-btn" data-lesson-id="${lesson.id}" data-status="${statusTarget}">
-                            <i class="ph-bold ${btnIcon}"></i> ${btnText}
-                        </button>
-                    </div>
-                </article>
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                    <h2 style="margin: 0; color: var(--color-primary); font-family: var(--font-display);">${titleText} Lektionen</h2>
+                </div>
             `;
 
-            const btn = lessonWrapper.querySelector('#toggle-lesson-btn');
-            btn.addEventListener('click', () => this.toggleLesson(btn, lesson.id, statusTarget));
+            // TOC Rendern
+            const tocWrapper = document.createElement('div');
+            tocWrapper.className = 'content-card toc-card';
+            tocWrapper.innerHTML = `<h3>Inhaltsverzeichnis</h3>`;
+            const tocList = document.createElement('ul');
+            tocList.className = 'toc-list';
+            
+            data.lessons.forEach(lesson => {
+                const isCompleted = data.progress.includes(lesson.id);
+                
+                // TOC Item
+                const li = document.createElement('li');
+                li.className = 'toc-item';
+                const link = document.createElement('a');
+                link.href = `#lesson-${lesson.id}`;
+                link.className = 'toc-link';
+                if (isCompleted) link.classList.add('completed');
+                
+                const iconHtml = isCompleted ? `<i class="ph-fill ph-check-circle toc-icon"></i>` : `<i class="ph ph-circle toc-icon"></i>`;
+                
+                link.innerHTML = `
+                    ${iconHtml}
+                    <span class="toc-text">${window.escapeHTML(lesson.title)}</span>
+                `;
+                
+                // Smooth scroll via JS
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = document.getElementById(`lesson-${lesson.id}`);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+                
+                li.appendChild(link);
+                tocList.appendChild(li);
 
-            container.appendChild(lessonWrapper);
-        });
+                // Lektion Rendern
+                const lessonWrapper = document.createElement('div');
+                lessonWrapper.className = `content-card learning-content searchable-block fade-in`;
+                lessonWrapper.id = `lesson-${lesson.id}`;
+                lessonWrapper.style.marginBottom = '3rem';
+                lessonWrapper.style.scrollMarginTop = '100px'; 
+                
+                lessonWrapper.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
+                        <h2 style="margin:0; font-family: var(--font-display);">${window.escapeHTML(lesson.title)}</h2>
+                        <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'}" 
+                                id="toggle-lesson-btn" 
+                                style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                            <i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> 
+                            ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}
+                        </button>
+                    </div>
+                    <div class="lesson-body" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-primary);">
+                        ${lesson.content}
+                    </div>
+                `;
+
+                const btn = lessonWrapper.querySelector('#toggle-lesson-btn');
+                btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
+
+                container.appendChild(lessonWrapper);
+            });
+            
+            tocWrapper.appendChild(tocList);
+            container.insertBefore(tocWrapper, container.children[1]); // Insert after the title
+
+        } catch (error) {
+            container.innerHTML = `<div class="form-error">Fehler beim Laden der Lektionen.</div>`;
+        }
     }
 
-    async toggleLesson(btn, lessonId, targetStatus) {
-        const origHtml = btn.innerHTML;
+    async toggleLesson(lessonId, markAsCompleted) {
         try {
-            btn.innerHTML = `<i class="ph ph-spinner-gap ph-spin"></i>`; 
-            btn.disabled = true;
-            
-            const res = await fetch('../api/progress.php', {
+            const res = await fetch('../api/content.php?action=progress', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lesson_id: lessonId, status: targetStatus })
+                body: JSON.stringify({ lesson_id: lessonId, completed: markAsCompleted })
             });
             
             if (res.ok) {
-                const lesson = this.lessonsData.find(x => x.id == lessonId);
-                if (lesson) {
-                    lesson.status = targetStatus;
-                    fetch('../api/log.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: targetStatus === 'completed' ? 'LESSON_COMPLETED' : 'LESSON_RESET', 
-                            details: `Lektion: ${lesson.title}`
-                        })
-                    }).catch(() => {});
+                // Log action
+                fetch('../api/log.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: markAsCompleted ? 'LESSON_COMPLETED' : 'LESSON_RESET', 
+                        details: `Lektion #${lessonId} ${markAsCompleted ? 'abgeschlossen' : 'zurückgesetzt'}.` 
+                    })
+                }).catch(() => {});
+                
+                const activeTab = document.querySelector('.learning-tab.active');
+                if (activeTab) {
+                    this.switchTab(activeTab.dataset.subjectId, activeTab.textContent);
                 }
-                this.renderSubjectLessons();
-                this.app.ui.refreshGlobalTopBar();
-            } else {
-                throw new Error('Failed to update progress');
+                
+                // Fetch progress manually to update global bar if needed
+                fetch('../api/content.php?action=dashboard').then(r=>r.json()).then(data => {
+                     const bar = document.getElementById('global-progress-bar');
+                     const txt = document.getElementById('global-progress-text');
+                     if(bar && data.global_progress) bar.style.width = data.global_progress + '%';
+                     if(txt && data.global_progress) txt.textContent = data.global_progress + '%';
+                });
             }
         } catch (error) {
-            btn.innerHTML = origHtml;
-            btn.disabled = false;
-            alert('Fehler beim Speichern des Fortschritts.');
+            console.error('Error toggling progress:', error);
         }
     }
 }

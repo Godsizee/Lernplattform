@@ -1,0 +1,130 @@
+<?php
+require_once __DIR__ . '/../../api/init.php';
+
+$currentPage = basename($_SERVER['PHP_SELF']);
+$publicPages = ['login.php', 'register.php', 'datenschutz.php'];
+$isPublicPage = in_array($currentPage, $publicPages);
+
+// Access Control
+if (!isset($_SESSION['user_id']) && !$isPublicPage) {
+    header("Location: login.php");
+    exit;
+} elseif (isset($_SESSION['user_id']) && ($currentPage === 'login.php' || $currentPage === 'register.php')) {
+    header("Location: index.php");
+    exit;
+}
+
+// User-Daten für die Anzeige laden
+$user = null;
+if (isset($_SESSION['user_id'])) {
+    $user = [
+        'name' => $_SESSION['user_name'] ?? 'Nutzer',
+        'role' => $_SESSION['user_role'] ?? 'student',
+    ];
+}
+
+$hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
+?>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code & Cash | Lernplattform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
+        const savedTheme = localStorage.getItem('lern_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        // Fallback fürs CSS
+        if(savedTheme === 'light') document.documentElement.classList.add('light-mode');
+    </script>
+</head>
+<body data-theme="dark" class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
+    <div id="app" class="app-layout">
+        
+        <?php if (!$hideSidebar): ?>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="assets/img/logo.png" alt="Code & Cash Logo" class="brand-logo-img">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.php" class="nav-item <?= $currentPage === 'index.php' ? 'active' : '' ?>">
+                    <i class="ph ph-squares-four"></i> <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="learning.php" class="nav-item <?= $currentPage === 'learning.php' ? 'active' : '' ?>">
+                    <i class="ph ph-books"></i> <span class="nav-text">Lern-Bereich</span>
+                </a>
+                <a href="profile.php" class="nav-item <?= $currentPage === 'profile.php' ? 'active' : '' ?>">
+                    <i class="ph ph-user-circle"></i> <span class="nav-text">Mein Profil</span>
+                </a>
+                <?php if ($user && $user['role'] === 'admin'): ?>
+                <a href="admin.php" class="nav-item <?= $currentPage === 'admin.php' ? 'active' : '' ?>">
+                    <i class="ph ph-shield-star"></i> <span class="nav-text">Admin-Bereich</span>
+                </a>
+                <?php endif; ?>
+            </nav>
+            
+            <div style="margin-top: auto;">
+                <button id="theme-toggle-btn" class="nav-item" style="width:100%; background:none; border:none; text-align:left; cursor:pointer; padding-top: 0.8rem; padding-bottom: 0.8rem;">
+                    <i class="ph ph-moon" id="theme-icon"></i> <span class="nav-text" id="theme-text">Dark Mode</span>
+                </button>
+                <a href="datenschutz.php" class="nav-item" style="margin-bottom:1rem; padding-top: 0.8rem; padding-bottom: 0.8rem;">
+                    <i class="ph ph-shield-check"></i> <span class="nav-text">Datenschutz</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="ph-fill ph-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name"><?= htmlspecialchars($user['name']) ?></span>
+                        <span class="user-role"><?= $user['role'] === 'admin' ? 'Administrator' : 'Student' ?></span>
+                    </div>
+                </div>
+                <button id="logout-btn" class="icon-btn" title="Logout">
+                    <i class="ph ph-sign-out"></i>
+                </button>
+            </div>
+        </aside>
+        <?php endif; ?>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <?php if (!$hideSidebar): ?>
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left" style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="sidebar-toggle" title="Sidebar einklappen/ausklappen" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;">
+                        <i class="ph ph-list" style="font-size: 1.5rem;"></i>
+                    </button>
+                    <div class="streak-badge" title="Lern-Streak">
+                        <i class="ph-fill ph-fire"></i>
+                        <span id="streak-counter">Lade Streak...</span>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="global-progress">
+                        <div class="progress-info">
+                            <span>Gesamtfortschritt</span>
+                            <strong id="global-progress-text">0%</strong>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="global-progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <?php endif; ?>
+
+            <!-- View Container -->
+            <div id="view-container" class="view-container">

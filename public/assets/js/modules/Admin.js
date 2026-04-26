@@ -1,127 +1,186 @@
 export class Admin {
-    constructor(app) {
-        this.app = app;
-    }
+    constructor() {}
 
     async loadAdminData() {
         try {
-            const res = await fetch('../api/admin.php?action=users');
-            const users = await res.json();
-            const tbody = document.getElementById('admin-users-tbody');
-            const filterSel = document.getElementById('audit-user-filter');
-            
-            if(tbody) {
-                tbody.innerHTML = users.map(u => `
-                    <tr>
-                        <td>${u.id}</td>
-                        <td>${window.escapeHTML(u.name)}</td>
-                        <td>${window.escapeHTML(u.email)}</td>
-                        <td>
-                            <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.3rem; height: auto;">
-                                <option value="student" ${u.role==='student'?'selected':''}>Student</option>
-                                <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                            </select>
-                        </td>
-                        <td>
-                            ${u.id != this.app.user.id ? `<button class="btn btn-danger admin-del-user" data-id="${u.id}" style="padding: 0.3rem 0.6rem;"><i class="ph ph-trash"></i></button>` : `<span class="badge" style="background:var(--color-primary);color:white;">Du</span>`}
-                        </td>
-                    </tr>
-                `).join('');
+            // Fächer für Select laden
+            const subRes = await fetch('../api/content.php?action=subjects');
+            if (subRes.ok) {
+                const subjects = await subRes.json();
+                const select = document.getElementById('admin-lesson-subject');
+                if (select) {
+                    select.innerHTML = '<option value="">Bitte wählen...</option>';
+                    subjects.forEach(s => {
+                        select.innerHTML += `<option value="${s.id}">${s.title}</option>`;
+                    });
+                }
             }
 
-            if(filterSel && users.length > 0 && filterSel.options.length === 1) {
-                filterSel.innerHTML = '<option value="">Alle Nutzer</option>' + users.map(u => `<option value="${u.id}">${window.escapeHTML(u.name)}</option>`).join('');
+            // Nutzer laden
+            const userRes = await fetch('../api/admin.php?action=users');
+            if (userRes.ok) {
+                const users = await userRes.json();
+                const tbody = document.getElementById('admin-users-tbody');
+                const filter = document.getElementById('audit-user-filter');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    users.forEach(u => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${u.id}</td>
+                                <td>${window.escapeHTML(u.name)}</td>
+                                <td>${window.escapeHTML(u.email)}</td>
+                                <td>
+                                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.3rem; margin:0; height:auto; background:transparent;">
+                                        <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
+                                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <!-- Delete is possible for everyone via backend check (prevents self delete), but we show the button -->
+                                    <button class="btn btn-danger admin-del-user" data-id="${u.id}" style="padding: 0.3rem 0.6rem;"><i class="ph ph-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                if (filter) {
+                    const currentFilter = filter.value;
+                    filter.innerHTML = '<option value="">Alle Nutzer</option>';
+                    users.forEach(u => {
+                        filter.innerHTML += `<option value="${u.id}">${window.escapeHTML(u.name)}</option>`;
+                    });
+                    filter.value = currentFilter;
+                }
             }
 
-            const sRes = await fetch('../api/content.php?action=dashboard');
-            const sData = await sRes.json();
-            const sel = document.getElementById('admin-lesson-subject');
-            if(sel && sData.subjects) {
-                sel.innerHTML = sData.subjects.map(s => `<option value="${s.id}">${window.escapeHTML(s.title)}</option>`).join('');
-            }
-
+            // Logs laden
             await this.loadAuditLogs();
 
-        } catch(e){}
+        } catch (error) {
+            console.error('Error loading admin data:', error);
+        }
     }
 
-    async loadAuditLogs(userId = '') {
+    async adminSetRole(userId, role) {
+        if (!confirm('Rolle wirklich ändern?')) return;
         try {
-            const tl = document.getElementById('audit-timeline');
-            if(tl) tl.innerHTML = '<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Logs...</div>';
-            
-            const res = await fetch(`../api/admin.php?action=audit&user_id=${userId}`);
-            const logs = await res.json();
-            
-            if(!tl) return;
-            
-            if(logs.length === 0 || logs.error) {
-                tl.innerHTML = '<p style="color:var(--text-secondary)">Keine Aktivitäten gefunden.</p>';
-                return;
-            }
-
-            tl.innerHTML = logs.map(l => {
-                const date = new Date(l.created_at).toLocaleString('de-DE');
-                let iconStr = '<i class="ph ph-activity"></i>';
-                if(l.action === 'LOGIN') iconStr = '<i class="ph ph-sign-in" style="color:var(--color-warning)"></i>';
-                else if(l.action === 'LESSON_COMPLETED') iconStr = '<i class="ph ph-check-circle" style="color:var(--color-success)"></i>';
-                else if(l.action === 'LESSON_RESET') iconStr = '<i class="ph ph-arrow-counter-clockwise" style="color:var(--color-danger)"></i>';
-                else if(l.action === 'VIEW_SUBJECT') iconStr = '<i class="ph ph-book-open" style="color:var(--color-primary)"></i>';
-                else if(l.action === 'VIEW_DASHBOARD') iconStr = '<i class="ph ph-squares-four" style="color:var(--color-primary)"></i>';
-                
-                return `
-                    <div class="audit-item" data-action="${l.action}">
-                        <div class="audit-meta">
-                            <span><strong>${window.escapeHTML(l.user_name)}</strong></span>
-                            <span>${date}</span>
-                        </div>
-                        <div class="audit-text">
-                            ${iconStr} ${window.escapeHTML(l.details)}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        } catch(e) {}
-    }
-
-    async adminSetRole(userId, newRole) {
-        try {
-            await fetch('../api/admin.php?action=set_role', {
-                method: 'POST', body: JSON.stringify({user_id: userId, role: newRole})
+            const res = await fetch('../api/admin.php?action=set_role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, role: role })
             });
-        } catch(e) { alert('Fehler'); }
+            const data = await res.json();
+            if (!data.success) alert(data.error || 'Fehler beim Ändern der Rolle.');
+            this.loadAuditLogs();
+        } catch (error) {
+            alert('Verbindungsfehler.');
+        }
     }
 
     async adminDeleteUser(userId) {
-        if (!confirm('Nutzer endgültig löschen?')) return;
+        if (!confirm('Nutzer und ALLE seine Daten wirklich löschen? Dies kann nicht rückgängig gemacht werden.')) return;
         try {
             const res = await fetch('../api/admin.php?action=delete_user', {
-                method: 'POST', body: JSON.stringify({user_id: userId})
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId })
             });
-            if(res.ok) this.loadAdminData();
-        } catch(e) { alert('Fehler'); }
+            const data = await res.json();
+            if (data.success) {
+                this.loadAdminData();
+            } else {
+                alert(data.error || 'Fehler beim Löschen des Nutzers.');
+            }
+        } catch (error) {
+            alert('Verbindungsfehler.');
+        }
     }
 
     async adminAddLesson(e) {
         e.preventDefault();
+        const payload = {
+            subject_id: document.getElementById('admin-lesson-subject').value,
+            title: document.getElementById('admin-lesson-title').value,
+            content: document.getElementById('admin-lesson-content').value
+        };
+
         const btn = e.target.querySelector('button');
-        const msg = document.getElementById('admin-lesson-msg');
-        const orig = btn.innerHTML; btn.innerHTML = 'Speichere...'; btn.disabled = true; msg.textContent = '';
+        const origText = btn.innerHTML;
+        const msgDiv = document.getElementById('admin-lesson-msg');
         
+        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i>';
+        btn.disabled = true;
+
         try {
             const res = await fetch('../api/admin.php?action=add_lesson', {
-                method: 'POST', body: JSON.stringify({
-                    subject_id: document.getElementById('admin-lesson-subject').value,
-                    title: document.getElementById('admin-lesson-title').value,
-                    content: document.getElementById('admin-lesson-content').value
-                })
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-            if(res.ok) {
-                msg.style.color = 'var(--brand-accent)';
-                msg.textContent = 'Lektion erfolgreich hinzugefügt!';
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                msgDiv.style.color = 'var(--color-success)';
+                msgDiv.textContent = 'Lektion erfolgreich veröffentlicht!';
                 e.target.reset();
-            } else { msg.style.color = 'var(--color-java)'; msg.textContent = 'Fehler beim Speichern.'; }
-        } catch(e) { msg.style.color = 'var(--color-java)'; msg.textContent = 'Fehler.'; }
-        finally { btn.innerHTML = orig; btn.disabled = false; }
+                this.loadAuditLogs();
+            } else {
+                msgDiv.style.color = 'var(--color-danger)';
+                msgDiv.textContent = data.error || 'Fehler beim Speichern.';
+            }
+        } catch (error) {
+            msgDiv.style.color = 'var(--color-danger)';
+            msgDiv.textContent = 'Verbindungsfehler.';
+        } finally {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            setTimeout(() => { msgDiv.textContent = ''; }, 3000);
+        }
+    }
+
+    async loadAuditLogs(userId = '') {
+        const container = document.getElementById('audit-timeline');
+        if (!container) return;
+        
+        container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Logs...</div>`;
+        
+        try {
+            const res = await fetch(`../api/admin.php?action=logs${userId ? '&user_id='+userId : ''}`);
+            if (!res.ok) return;
+            const logs = await res.json();
+            
+            container.innerHTML = '';
+            if (logs.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-secondary); margin-left: 1rem;">Keine Aktivitäten gefunden.</p>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'audit-item fade-in';
+                item.dataset.action = log.action;
+                
+                const date = new Date(log.created_at).toLocaleString('de-DE', { 
+                    day: '2-digit', month: '2-digit', year: 'numeric', 
+                    hour: '2-digit', minute: '2-digit'
+                });
+                
+                item.innerHTML = `
+                    <div class="audit-meta">
+                        <span><i class="ph ph-user"></i> ${window.escapeHTML(log.user_name)}</span>
+                        <span><i class="ph ph-clock"></i> ${date}</span>
+                    </div>
+                    <div class="audit-text">
+                        ${window.escapeHTML(log.details)}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            
+        } catch (error) {
+            container.innerHTML = '<p class="form-error">Fehler beim Laden der Logs.</p>';
+        }
     }
 }
