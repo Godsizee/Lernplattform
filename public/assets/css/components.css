@@ -330,9 +330,9 @@ body.light-mode .audit-item:hover {
 
 .auth-logo-img {
     width: auto;
-    max-width: 250px;
+    max-width: 500px;
     height: auto;
-    max-height: 80px;
+    max-height: 160px;
     margin: 0 auto 1.5rem;
     display: block;
 }

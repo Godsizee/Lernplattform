@@ -147,7 +147,7 @@ export class Admin {
         container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Logs...</div>`;
         
         try {
-            const res = await fetch(`../api/admin.php?action=logs${userId ? '&user_id='+userId : ''}`);
+            const res = await fetch(`../api/admin.php?action=audit${userId ? '&user_id='+userId : ''}`);
             if (!res.ok) return;
             const logs = await res.json();
             

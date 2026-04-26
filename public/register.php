@@ -6,7 +6,6 @@ require_once __DIR__ . '/includes/header.php';
     <div class="auth-card">
         <div class="auth-header">
             <img src="assets/img/logo.png" alt="Code & Cash Logo" class="auth-logo-img">
-            <h2>Code <span class="brand-accent">&</span> Cash</h2>
             <p id="auth-subtitle">Erstelle deinen Account!</p>
         </div>
         
