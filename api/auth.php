@@ -32,6 +32,9 @@ try {
             $_SESSION['user_name'] = $name;
             $_SESSION['user_role'] = 'student';
 
+            global $auditRepo;
+            $auditRepo->log($userId, 'REGISTER', "Hat sich neu auf der Plattform registriert.");
+
             sendJson([
                 'success' => true, 
                 'user' => ['id' => $userId, 'name' => $name, 'role' => 'student']
@@ -68,6 +71,9 @@ try {
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
+                global $auditRepo;
+                $auditRepo->log($user['id'], 'LOGIN', "Hat sich erfolgreich eingeloggt.");
+
                 sendJson([
                     'success' => true, 
                     'user' => ['id' => $user['id'], 'name' => $user['name'], 'role' => $user['role']],
@@ -76,11 +82,21 @@ try {
             } else {
                 $_SESSION['login_attempts']++;
                 $_SESSION['last_login_attempt'] = time();
+                
+                if ($user) {
+                    global $auditRepo;
+                    $auditRepo->log($user['id'], 'LOGIN_FAILED', "Fehlgeschlagener Login-Versuch (falsches Passwort).");
+                }
+                
                 sendJson(['error' => 'Falscher Benutzername/E-Mail oder Passwort.'], 401);
             }
             break;
 
         case 'logout':
+            if (isset($_SESSION['user_id'])) {
+                global $auditRepo;
+                $auditRepo->log($_SESSION['user_id'], 'LOGOUT', "Hat sich ausgeloggt.");
+            }
             session_destroy();
             sendJson(['success' => true, 'message' => 'Erfolgreich ausgeloggt.']);
             break;

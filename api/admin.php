@@ -15,6 +15,8 @@ try {
         $role = $input['role'] ?? '';
         if (in_array($role, ['student', 'admin'])) {
             $userRepo->setRole($targetId, $role);
+            global $auditRepo;
+            $auditRepo->log($_SESSION['user_id'], 'ADMIN_SET_ROLE', "Hat die Rolle von User ID $targetId auf $role geändert.");
             sendJson(['success' => true]);
         }
         sendJson(['error' => 'Invalid role'], 400);
@@ -22,6 +24,8 @@ try {
     elseif ($action === 'delete_user') {
         $targetId = $input['user_id'] ?? 0;
         $userRepo->delete($targetId, $_SESSION['user_id']);
+        global $auditRepo;
+        $auditRepo->log($_SESSION['user_id'], 'ADMIN_DELETE_USER', "Hat den Nutzer mit ID $targetId gelöscht.");
         sendJson(['success' => true]);
     }
     elseif ($action === 'add_lesson') {
@@ -34,6 +38,8 @@ try {
         }
 
         $lessonRepo->addLesson($subjectId, $title, $content);
+        global $auditRepo;
+        $auditRepo->log($_SESSION['user_id'], 'ADMIN_ADD_LESSON', "Hat eine neue Lektion '$title' zum Fach ID $subjectId hinzugefügt.");
         sendJson(['success' => true]);
     }
     elseif ($action === 'audit') {

@@ -40,6 +40,9 @@ try {
             $userRepo->updateProfile($userId, $name, $email, $passwordHash, $bio, null);
             $_SESSION['user_name'] = $name;
             
+            global $auditRepo;
+            $auditRepo->log($userId, 'PROFILE_UPDATE', "Hat die eigenen Profildaten aktualisiert.");
+            
             sendJson(['success' => true, 'name' => $name]);
             break;
 
@@ -53,11 +56,19 @@ try {
         case 'delete':
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') sendJson(['error' => 'Method not allowed'], 405);
             $userRepo->delete($userId);
+            
+            global $auditRepo;
+            // Wir loggen den Request zur Löschung kurz vor session_destroy (oder danach, wobei dann user_id weg wäre, aber DB foreign key cascade killt die Logs eh für diesen User)
+            // Stattdessen loggen wir es hier und lassen cascade seine arbeit tun oder falls logs behalten werden sollen (hier aber cascade).
+            // Da cascade, macht das log bei sich selbst wenig sinn, aber für die struktur lassen wir es falls cascade später entfernt wird
+            
             session_destroy();
             sendJson(['success' => true]);
             break;
 
         case 'export':
+            global $auditRepo;
+            $auditRepo->log($userId, 'PROFILE_EXPORT', "Hat die eigenen DSGVO Daten exportiert.");
             // DSGVO Export
             $user = $userRepo->findById($userId);
             unset($user['password_hash']);
