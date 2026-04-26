@@ -74,4 +74,10 @@ class LessonRepository {
         $stmt = $this->db->prepare("INSERT INTO lessons (subject_id, title, content) VALUES (:s_id, :title, :content)");
         $stmt->execute([':s_id' => $subjectId, ':title' => $title, ':content' => $content]);
     }
+
+    public function getLessonTitle(int $lessonId): string {
+        $stmt = $this->db->prepare("SELECT title FROM lessons WHERE id = :id");
+        $stmt->execute([':id' => $lessonId]);
+        return $stmt->fetchColumn() ?: 'Unbekannte Lektion';
+    }
 }

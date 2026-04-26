@@ -18,6 +18,14 @@ if (!$lessonId) {
 
 try {
     $lessonRepo->saveProgress($userId, $lessonId, $status);
+    
+    // Log the action
+    global $auditRepo;
+    $lessonTitle = $lessonRepo->getLessonTitle($lessonId);
+    $actionName = $completed ? 'LESSON_COMPLETED' : 'LESSON_RESET';
+    $actionDesc = $completed ? "Hat die Lektion '$lessonTitle' als abgeschlossen markiert." : "Hat die Lektion '$lessonTitle' als NICHT abgeschlossen markiert.";
+    $auditRepo->log($userId, $actionName, $actionDesc);
+
     sendJson([
         'success' => true, 
         'message' => 'Lektion erfolgreich aktualisiert.'

@@ -66,6 +66,28 @@ export class Learning {
                 </div>
             `;
 
+            // Observer für Lesetracking
+            const readLessons = new Set();
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const lId = entry.target.dataset.lessonId;
+                        const lTitle = entry.target.dataset.lessonTitle;
+                        if (!readLessons.has(lId)) {
+                            readLessons.add(lId);
+                            fetch('../api/log.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: 'LESSON_READ',
+                                    details: `Liest die Lektion '${lTitle}'.`
+                                })
+                            }).catch(() => {});
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+
             // TOC Rendern
             const tocWrapper = document.createElement('div');
             tocWrapper.className = 'content-card toc-card';
@@ -107,6 +129,8 @@ export class Learning {
                 const lessonWrapper = document.createElement('div');
                 lessonWrapper.className = `content-card learning-content searchable-block fade-in`;
                 lessonWrapper.id = `lesson-${lesson.id}`;
+                lessonWrapper.dataset.lessonId = lesson.id;
+                lessonWrapper.dataset.lessonTitle = lesson.title;
                 lessonWrapper.style.marginBottom = '3rem';
                 lessonWrapper.style.scrollMarginTop = '100px'; 
                 
@@ -129,6 +153,7 @@ export class Learning {
                 btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
 
                 container.appendChild(lessonWrapper);
+                observer.observe(lessonWrapper);
             });
             
             tocWrapper.appendChild(tocList);
@@ -141,23 +166,13 @@ export class Learning {
 
     async toggleLesson(lessonId, markAsCompleted) {
         try {
-            const res = await fetch('../api/content.php?action=progress', {
+            const res = await fetch('../api/progress.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ lesson_id: lessonId, completed: markAsCompleted })
             });
             
             if (res.ok) {
-                // Log action
-                fetch('../api/log.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: markAsCompleted ? 'LESSON_COMPLETED' : 'LESSON_RESET', 
-                        details: `Lektion #${lessonId} ${markAsCompleted ? 'abgeschlossen' : 'zurückgesetzt'}.` 
-                    })
-                }).catch(() => {});
-                
                 const activeTab = document.querySelector('.learning-tab.active');
                 if (activeTab) {
                     this.switchTab(activeTab.dataset.subjectId, activeTab.textContent);
