@@ -1,7 +1,3 @@
-<?php
-require_once __DIR__ . '/includes/header.php';
-?>
-
 <div class="view fade-in">
     <header class="view-header">
         <h1>Willkommen zurück! 👋</h1>
@@ -12,8 +8,3 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Dynamically injected via pages/dashboard.js -->
     </div>
 </div>
-
-<?php
-$pageScript = 'dashboard';
-require_once __DIR__ . '/includes/footer.php';
-?>
