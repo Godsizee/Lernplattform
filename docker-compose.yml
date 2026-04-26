@@ -1,19 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: code_cash_pg
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME:-code_and_cash}
-      POSTGRES_USER: ${DB_USER:-lern_user}
-      POSTGRES_PASSWORD: ${DB_PASS:-!!Arschmusik11}
-    ports:
-      - "5433:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-
   web:
     build: .
     container_name: code_cash_web
@@ -23,13 +10,9 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=${DB_NAME:-code_and_cash}
-      - DB_USER=${DB_USER:-lern_user}
-      - DB_PASS=${DB_PASS:-!!Arschmusik11}
-    depends_on:
-      - postgres
-
-volumes:
-  pg_data:
+      # Diese Werte werden in Portainer als Environment Variables gesetzt
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
