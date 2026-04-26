@@ -169,10 +169,10 @@ class App {
         }
 
         // Access control
-        if (!this.user && route !== 'auth') {
+        if (!this.user && route !== 'auth' && route !== 'privacy') {
             window.history.replaceState({}, '', 'auth');
             route = 'auth';
-        } else if (this.user && route === 'auth') {
+        } else if (this.user && (route === 'auth')) {
             window.history.replaceState({}, '', 'dashboard');
             route = 'dashboard';
         } else if (route === 'admin' && this.user.role !== 'admin') {
@@ -180,8 +180,8 @@ class App {
             route = 'dashboard';
         }
 
-        // Apply auth mode class if needed
-        if (route === 'auth') {
+        // Apply auth mode class if needed (auth or privacy without user)
+        if (route === 'auth' || (route === 'privacy' && !this.user)) {
             document.body.classList.add('auth-mode');
         } else {
             document.body.classList.remove('auth-mode');
