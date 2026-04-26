@@ -28,8 +28,9 @@ class Database {
             $this->connection = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
             error_log("Database Connection Error: " . $e->getMessage());
-            http_response_code(500); // WICHTIG: Damit fetch() es als Fehler erkennt!
-            die(json_encode(['error' => 'Datenbankverbindung fehlgeschlagen.']));
+            http_response_code(500); 
+            // Temporär: Exakten Fehler ausgeben zur Diagnose
+            die(json_encode(['error' => 'DB-Fehler: ' . $e->getMessage()]));
         }
     }
 
