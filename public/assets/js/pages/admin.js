@@ -1,7 +1,10 @@
 import { Admin } from '../modules/Admin.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const admin = new Admin();
+    const admin = new Admin({
+        container: document.getElementById('view-container')
+    });
+
     await admin.loadAdminData();
 
     // Tabs

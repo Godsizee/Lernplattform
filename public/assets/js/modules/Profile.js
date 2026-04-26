@@ -1,5 +1,7 @@
 export class Profile {
-    constructor() {}
+    constructor(app) {
+        this.app = app;
+    }
 
     async loadData() {
         try {
@@ -35,7 +37,7 @@ export class Profile {
                 name: document.getElementById('profile-name').value,
                 email: document.getElementById('profile-email').value,
                 password: document.getElementById('profile-password').value,
-                bio: document.getElementById('profile-bio')?.value || ''
+                bio: document.getElementById('profile-bio').value
             };
 
             const res = await fetch('../api/profile.php?action=update', {
@@ -46,6 +48,11 @@ export class Profile {
             const data = await res.json();
             
             if (res.ok && data.success) {
+                if (this.app.user) {
+                    this.app.user.name = data.name;
+                    this.app.updateUIForUser();
+                }
+                
                 document.getElementById('profile-password').value = '';
 
                 btn.innerHTML = '<i class="ph ph-check"></i> Gespeichert';
@@ -68,13 +75,10 @@ export class Profile {
     async deleteAccount() {
         if (!confirm('Achtung! Dies löscht dein Konto unwiderruflich! Bist du sicher?')) return;
         
-        const base = window.APP_BASE || '/files/lernplattform/public/';
-        
         try {
             const res = await fetch('../api/profile.php?action=delete', { method: 'POST' });
             if (res.ok) {
-                localStorage.removeItem('csrf_token');
-                window.location.href = base + 'login';
+                this.app.auth.logout();
             } else {
                 alert('Fehler beim Löschen des Accounts.');
             }

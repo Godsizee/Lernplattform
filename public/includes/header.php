@@ -1,30 +1,47 @@
 <?php
-/**
- * Header Template
- * 
- * Wird vom Front-Controller (index.php) geladen.
- * Erwartet die Variablen: $user, $hideSidebar, $currentRoute, $pageTitle, $basePath
- */
+require_once __DIR__ . '/../../api/init.php';
+
+$currentPage = basename($_SERVER['PHP_SELF']);
+$publicPages = ['login.php', 'register.php', 'datenschutz.php'];
+$isPublicPage = in_array($currentPage, $publicPages);
+
+// Access Control
+if (!isset($_SESSION['user_id']) && !$isPublicPage) {
+    header("Location: login.php");
+    exit;
+} elseif (isset($_SESSION['user_id']) && ($currentPage === 'login.php' || $currentPage === 'register.php')) {
+    header("Location: index.php");
+    exit;
+}
+
+// User-Daten für die Anzeige laden
+$user = null;
+if (isset($_SESSION['user_id'])) {
+    $user = [
+        'name' => $_SESSION['user_name'] ?? 'Nutzer',
+        'role' => $_SESSION['user_role'] ?? 'student',
+    ];
+}
+
+$hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'Lernplattform') ?> | Code &amp; Cash</title>
+    <title>Code & Cash | Lernplattform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
-    <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
     <script>
         // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        // Fallback fürs CSS
         if(savedTheme === 'light') document.documentElement.classList.add('light-mode');
-
-        // Basepath als globale JS-Variable für Module
-        window.APP_BASE = '<?= $basePath ?>';
     </script>
 </head>
 <body data-theme="dark" class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
@@ -34,24 +51,24 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                <img src="<?= $basePath ?>assets/img/logo.png" alt="Code &amp; Cash Logo" class="brand-logo-img">
+                <img src="assets/img/logo.png" alt="Code & Cash Logo" class="brand-logo-img">
                 <button id="sidebar-toggle" title="Sidebar einklappen/ausklappen" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;">
                     <i class="ph ph-list" style="font-size: 1.5rem;"></i>
                 </button>
             </div>
             
             <nav class="sidebar-nav">
-                <a href="<?= $basePath ?>" class="nav-item <?= $currentRoute === 'dashboard' ? 'active' : '' ?>">
+                <a href="index.php" class="nav-item <?= $currentPage === 'index.php' ? 'active' : '' ?>">
                     <i class="ph ph-squares-four"></i> <span class="nav-text">Dashboard</span>
                 </a>
-                <a href="<?= $basePath ?>lernen" class="nav-item <?= $currentRoute === 'lernen' ? 'active' : '' ?>">
+                <a href="learning.php" class="nav-item <?= $currentPage === 'learning.php' ? 'active' : '' ?>">
                     <i class="ph ph-books"></i> <span class="nav-text">Lern-Bereich</span>
                 </a>
-                <a href="<?= $basePath ?>profil" class="nav-item <?= $currentRoute === 'profil' ? 'active' : '' ?>">
+                <a href="profile.php" class="nav-item <?= $currentPage === 'profile.php' ? 'active' : '' ?>">
                     <i class="ph ph-user-circle"></i> <span class="nav-text">Mein Profil</span>
                 </a>
                 <?php if ($user && $user['role'] === 'admin'): ?>
-                <a href="<?= $basePath ?>admin" class="nav-item <?= $currentRoute === 'admin' ? 'active' : '' ?>">
+                <a href="admin.php" class="nav-item <?= $currentPage === 'admin.php' ? 'active' : '' ?>">
                     <i class="ph ph-shield-star"></i> <span class="nav-text">Admin-Bereich</span>
                 </a>
                 <?php endif; ?>
@@ -61,7 +78,7 @@
                 <button id="theme-toggle-btn" class="nav-item" style="width:100%; background:none; border:none; text-align:left; cursor:pointer; padding-top: 0.8rem; padding-bottom: 0.8rem;">
                     <i class="ph ph-moon" id="theme-icon"></i> <span class="nav-text" id="theme-text">Dark Mode</span>
                 </button>
-                <a href="<?= $basePath ?>datenschutz" class="nav-item" style="margin-bottom:1rem; padding-top: 0.8rem; padding-bottom: 0.8rem;">
+                <a href="datenschutz.php" class="nav-item" style="margin-bottom:1rem; padding-top: 0.8rem; padding-bottom: 0.8rem;">
                     <i class="ph ph-shield-check"></i> <span class="nav-text">Datenschutz</span>
                 </a>
             </div>

@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/includes/header.php';
+?>
+
 <div class="view fade-in">
     <header class="view-header">
         <h1>Mein Profil</h1>
@@ -13,6 +17,7 @@
             </div>
             <div class="form-group">
                 <label>E-Mail</label>
+                <!-- Email placeholder, since email isn't in session yet, we'd fetch it via JS -->
                 <input type="email" id="profile-email" class="form-control" required>
             </div>
             <div class="form-group">
@@ -33,3 +38,8 @@
         </div>
     </div>
 </div>
+
+<?php
+$pageScript = 'profile';
+require_once __DIR__ . '/includes/footer.php';
+?>

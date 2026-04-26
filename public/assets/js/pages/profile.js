@@ -1,7 +1,10 @@
 import { Profile } from '../modules/Profile.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const profile = new Profile();
+    const profile = new Profile({
+        container: document.getElementById('view-container')
+    });
+
     await profile.loadData();
 
     // Profil Aktionen
