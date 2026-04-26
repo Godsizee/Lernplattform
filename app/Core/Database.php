@@ -11,7 +11,7 @@ class Database {
     private function __construct() {
         // Fallbacks nun passend zur Produktion (falls Variablen doch mal leer sind)
         $host = getenv('DB_HOST') ?: '172.28.0.2';
-        $port = getenv('DB_PORT') ?: 5432;
+        $port = getenv('DB_PORT') ?: 5433;
         $db   = getenv('DB_NAME') ?: 'code_and_cash';
         $user = getenv('DB_USER') ?: 'lern_user';
         $pass = getenv('DB_PASS') ?: '';
