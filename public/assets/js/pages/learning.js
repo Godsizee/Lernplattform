@@ -14,12 +14,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             learning.switchTab(learnTab.dataset.subjectId, learnTab.textContent);
         }
     });
-    
-    // Aktives Tab wiederherstellen (von Dashboard Klick)
-    const activeSubj = localStorage.getItem('active_subject');
-    if (activeSubj) {
-        const tab = document.querySelector(`.learning-tab[data-subject-id="${activeSubj}"]`);
-        if (tab) tab.click();
-        localStorage.removeItem('active_subject');
-    }
 });
