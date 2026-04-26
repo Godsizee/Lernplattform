@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="view fade-in">
@@ -41,5 +41,5 @@ require_once __DIR__ . '/includes/header.php';
 
 <?php
 $pageScript = 'profile';
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/../includes/footer.php';
 ?>

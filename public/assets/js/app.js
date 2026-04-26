@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await fetch('../api/auth.php?action=logout');
                 localStorage.removeItem('csrf_token');
-                window.location.href = 'login.php';
+                window.location.href = window.BASE_URL + '/login';
             } catch (e) {
                 console.error('Logout error', e);
             }

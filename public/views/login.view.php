@@ -1,17 +1,17 @@
 <?php
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="auth-wrapper fade-in">
     <div class="auth-card">
         <div class="auth-header">
-            <img src="assets/img/logo.png" alt="Code & Cash Logo" class="auth-logo-img">
+            <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Code & Cash Logo" class="auth-logo-img">
             <p id="auth-subtitle">Willkommen zurück!</p>
         </div>
         
         <div class="auth-tabs">
-            <button class="auth-tab active" onclick="window.location.href='login.php'">Login</button>
-            <button class="auth-tab" onclick="window.location.href='register.php'">Registrieren</button>
+            <button class="auth-tab active" onclick="window.location.href='<?= BASE_URL ?>/login'">Login</button>
+            <button class="auth-tab" onclick="window.location.href='<?= BASE_URL ?>/register'">Registrieren</button>
         </div>
 
         <div class="auth-forms">
@@ -31,12 +31,12 @@ require_once __DIR__ . '/includes/header.php';
         </div>
         
         <div style="text-align: center; margin-top: 1.5rem;">
-            <a href="datenschutz.php" class="nav-item" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: underline;">Datenschutzerklärung</a>
+            <a href="<?= BASE_URL ?>/datenschutz" class="nav-item" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: underline;">Datenschutzerklärung</a>
         </div>
     </div>
 </div>
 
 <?php
 $pageScript = 'auth'; 
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/../includes/footer.php';
 ?>

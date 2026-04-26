@@ -1,16 +1,19 @@
 <?php
 require_once __DIR__ . '/../../api/init.php';
 
-$currentPage = basename($_SERVER['PHP_SELF']);
-$publicPages = ['login.php', 'register.php', 'datenschutz.php'];
-$isPublicPage = in_array($currentPage, $publicPages);
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '');
+}
+$currentRoute = $GLOBALS['currentRoute'] ?? '/';
+$publicRoutes = ['/login', '/register', '/datenschutz'];
+$isPublicPage = in_array($currentRoute, $publicRoutes);
 
 // Access Control
 if (!isset($_SESSION['user_id']) && !$isPublicPage) {
-    header("Location: login.php");
+    header("Location: " . BASE_URL . "/login");
     exit;
-} elseif (isset($_SESSION['user_id']) && ($currentPage === 'login.php' || $currentPage === 'register.php')) {
-    header("Location: index.php");
+} elseif (isset($_SESSION['user_id']) && ($currentRoute === '/login' || $currentRoute === '/register')) {
+    header("Location: " . BASE_URL . "/");
     exit;
 }
 
@@ -35,13 +38,16 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <script>
         // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         // Fallback fürs CSS
         if(savedTheme === 'light') document.documentElement.classList.add('light-mode');
+        
+        // Globale BASE_URL für JavaScript
+        window.BASE_URL = '<?= BASE_URL ?>';
     </script>
 </head>
 <body data-theme="dark" class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
@@ -51,24 +57,24 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                <img src="assets/img/logo.png" alt="Code & Cash Logo" class="brand-logo-img">
+                <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Code & Cash Logo" class="brand-logo-img">
                 <button id="sidebar-toggle" title="Sidebar einklappen/ausklappen" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;">
                     <i class="ph ph-list" style="font-size: 1.5rem;"></i>
                 </button>
             </div>
             
             <nav class="sidebar-nav">
-                <a href="index.php" class="nav-item <?= $currentPage === 'index.php' ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>/" class="nav-item <?= $currentRoute === '/' ? 'active' : '' ?>">
                     <i class="ph ph-squares-four"></i> <span class="nav-text">Dashboard</span>
                 </a>
-                <a href="learning.php" class="nav-item <?= $currentPage === 'learning.php' ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>/learning" class="nav-item <?= $currentRoute === '/learning' ? 'active' : '' ?>">
                     <i class="ph ph-books"></i> <span class="nav-text">Lern-Bereich</span>
                 </a>
-                <a href="profile.php" class="nav-item <?= $currentPage === 'profile.php' ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>/profile" class="nav-item <?= $currentRoute === '/profile' ? 'active' : '' ?>">
                     <i class="ph ph-user-circle"></i> <span class="nav-text">Mein Profil</span>
                 </a>
                 <?php if ($user && $user['role'] === 'admin'): ?>
-                <a href="admin.php" class="nav-item <?= $currentPage === 'admin.php' ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>/admin" class="nav-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
                     <i class="ph ph-shield-star"></i> <span class="nav-text">Admin-Bereich</span>
                 </a>
                 <?php endif; ?>
@@ -78,7 +84,7 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
                 <button id="theme-toggle-btn" class="nav-item" style="width:100%; background:none; border:none; text-align:left; cursor:pointer; padding-top: 0.8rem; padding-bottom: 0.8rem;">
                     <i class="ph ph-moon" id="theme-icon"></i> <span class="nav-text" id="theme-text">Dark Mode</span>
                 </button>
-                <a href="datenschutz.php" class="nav-item" style="margin-bottom:1rem; padding-top: 0.8rem; padding-bottom: 0.8rem;">
+                <a href="<?= BASE_URL ?>/datenschutz" class="nav-item" style="margin-bottom:1rem; padding-top: 0.8rem; padding-bottom: 0.8rem;">
                     <i class="ph ph-shield-check"></i> <span class="nav-text">Datenschutz</span>
                 </a>
             </div>

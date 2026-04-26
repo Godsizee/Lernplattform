@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Wir nutzen die Logik aus Auth.js, müssen aber den Redirect anpassen
             const success = await authModule.handleLogin(e);
             if (success) {
-                window.location.href = 'index.php';
+                window.location.href = window.BASE_URL + '/';
             }
         });
     }
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const success = await authModule.handleRegister(e);
             if (success) {
-                window.location.href = 'index.php';
+                window.location.href = window.BASE_URL + '/';
             }
         });
     }

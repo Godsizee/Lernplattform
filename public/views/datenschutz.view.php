@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="view fade-in">
@@ -33,14 +33,14 @@ require_once __DIR__ . '/includes/header.php';
         
         <div style="margin-top: 2rem;">
             <?php if(isset($_SESSION['user_id'])): ?>
-                <button class="btn btn-primary" onclick="window.location.href='index.php'">Zurück zum Dashboard</button>
+                <button class="btn btn-primary" onclick="window.location.href='<?= BASE_URL ?>/'">Zurück zum Dashboard</button>
             <?php else: ?>
-                <button class="btn btn-primary" onclick="window.location.href='login.php'">Zurück zum Login</button>
+                <button class="btn btn-primary" onclick="window.location.href='<?= BASE_URL ?>/login'">Zurück zum Login</button>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
 <?php
-require_once __DIR__ . '/includes/footer.php';
+require_once __DIR__ . '/../includes/footer.php';
 ?>
