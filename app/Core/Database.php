@@ -9,12 +9,11 @@ class Database {
     private PDO $connection;
 
     private function __construct() {
-        // Fallbacks nun passend zur Produktion (falls Variablen doch mal leer sind)
-        $host = getenv('DB_HOST') ?: '172.28.0.2';
+        $host = getenv('DB_HOST') ?: '127.0.0.1';
         $port = getenv('DB_PORT') ?: 5432;
         $db   = getenv('DB_NAME') ?: 'code_and_cash';
         $user = getenv('DB_USER') ?: 'lern_user';
-        $pass = getenv('DB_PASS') ?: '!!Arschmusik11';
+        $pass = getenv('DB_PASS') ?: '';
 
         $dsn = "pgsql:host=$host;port=$port;dbname=$db";
         
@@ -27,10 +26,10 @@ class Database {
         try {
             $this->connection = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
+            // Originale Fehlermeldung nur ins Log schreiben (Sicherheit)
             error_log("Database Connection Error: " . $e->getMessage());
             http_response_code(500); 
-            // Temporär: Exakten Fehler ausgeben zur Diagnose
-            die(json_encode(['error' => 'DB-Fehler: ' . $e->getMessage()]));
+            die(json_encode(['error' => 'Datenbankverbindung fehlgeschlagen.']));
         }
     }
 
