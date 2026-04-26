@@ -16,8 +16,24 @@ try {
             'streak' => $user['streak'] ?? 0
         ]);
     }
+    elseif ($action === 'subjects') {
+        sendJson($lessonRepo->getAllSubjects());
+    }
     elseif ($action === 'lessons') {
-        sendJson($lessonRepo->getLessonsWithProgress($userId));
+        $subjectId = filter_var($_GET['subject_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
+        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId);
+        
+        $completedIds = [];
+        foreach ($lessons as $l) {
+            if ($l['status'] === 'completed') {
+                $completedIds[] = $l['id'];
+            }
+        }
+        
+        sendJson([
+            'lessons' => $lessons,
+            'progress' => $completedIds
+        ]);
     } else {
         sendJson(['error' => 'Ungültige Aktion'], 400);
     }

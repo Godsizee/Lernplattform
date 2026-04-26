@@ -9,7 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $input = getJsonInput();
 $lessonId = filter_var($input['lesson_id'] ?? null, FILTER_VALIDATE_INT);
-$status = htmlspecialchars($input['status'] ?? 'completed');
+$completed = $input['completed'] ?? true;
+$status = $completed ? 'completed' : 'pending';
 
 if (!$lessonId) {
     sendJson(['error' => 'Ungültige lesson_id.'], 400);

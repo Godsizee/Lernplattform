@@ -35,15 +35,24 @@ class LessonRepository {
         return $progressMap;
     }
 
-    public function getLessonsWithProgress(int $userId): array {
-        $stmt = $this->db->prepare("
+    public function getLessonsWithProgress(int $userId, ?int $subjectId = null): array {
+        $sql = "
             SELECT l.id, l.subject_id, l.title, l.content, s.title as subject_title, s.color as subject_color, up.status
             FROM lessons l
             JOIN subjects s ON l.subject_id = s.id
             LEFT JOIN user_progress up ON l.id = up.lesson_id AND up.user_id = :user_id
-            ORDER BY s.id ASC, l.id ASC
-        ");
-        $stmt->execute([':user_id' => $userId]);
+        ";
+        $params = [':user_id' => $userId];
+        
+        if ($subjectId) {
+            $sql .= " WHERE l.subject_id = :subject_id ";
+            $params[':subject_id'] = $subjectId;
+        }
+        
+        $sql .= " ORDER BY s.id ASC, l.id ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
