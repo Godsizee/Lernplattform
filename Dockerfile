@@ -14,6 +14,9 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
 
+# Den gesamten Quellcode fest in das Image kopieren (Best Practice für Produktion)
+COPY . /var/www/html
+
 # Sicherstellen, dass Apache Überschreibungen (htaccess) erlaubt und Zugriff gewährt
 RUN echo '<Directory "/var/www/html/public">\n\
     Options Indexes FollowSymLinks\n\

@@ -5,8 +5,6 @@ services:
     build: .
     container_name: code_cash_web
     restart: unless-stopped
-    volumes:
-      - .:/var/www/html
     environment:
       # Diese Werte werden in Portainer als Environment Variables gesetzt
       - DB_HOST=${DB_HOST}
