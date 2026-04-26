@@ -13,3 +13,13 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 WORKDIR /var/www/html
+
+# Sicherstellen, dass Apache Überschreibungen (htaccess) erlaubt und Zugriff gewährt
+RUN echo '<Directory "/var/www/html/public">\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>' >> /etc/apache2/apache2.conf
+
+# Berechtigungen beim Build setzen (wird durch Volume oft überschrieben, daher ggf. manuell fixen)
+RUN chown -R www-data:www-data /var/www/html
