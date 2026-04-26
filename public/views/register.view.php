@@ -1,13 +1,17 @@
+<?php
+require_once __DIR__ . '/includes/header.php';
+?>
+
 <div class="auth-wrapper fade-in">
     <div class="auth-card">
         <div class="auth-header">
-            <img src="<?= $basePath ?>assets/img/logo.png" alt="Code &amp; Cash Logo" class="auth-logo-img">
+            <img src="<?= base_url('/assets/img/logo.png') ?>" alt="Code & Cash Logo" class="auth-logo-img">
             <p id="auth-subtitle">Erstelle deinen Account!</p>
         </div>
         
         <div class="auth-tabs">
-            <button class="auth-tab" onclick="window.location.href='<?= $basePath ?>login'">Login</button>
-            <button class="auth-tab active" onclick="window.location.href='<?= $basePath ?>registrieren'">Registrieren</button>
+            <button class="auth-tab" onclick="window.location.href='<?= base_url('/login') ?>'">Login</button>
+            <button class="auth-tab active" onclick="window.location.href='<?= base_url('/register') ?>'">Registrieren</button>
         </div>
 
         <div class="auth-forms">
@@ -22,7 +26,7 @@
                     <input type="email" id="register-email" required placeholder="name@beispiel.de" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label>Passwort (min. 8 Zeichen, inkl. Zahl &amp; Sonderzeichen)</label>
+                    <label>Passwort (min. 8 Zeichen, inkl. Zahl & Sonderzeichen)</label>
                     <input type="password" id="register-password" required minlength="8" placeholder="••••••••" class="form-control">
                 </div>
                 <div class="form-error" id="register-error"></div>
@@ -31,7 +35,12 @@
         </div>
         
         <div style="text-align: center; margin-top: 1.5rem;">
-            <a href="<?= $basePath ?>datenschutz" class="nav-item" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: underline;">Datenschutzerklärung</a>
+            <a href="<?= base_url('/datenschutz') ?>" class="nav-item" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: underline;">Datenschutzerklärung</a>
         </div>
     </div>
 </div>
+
+<?php
+$pageScript = 'auth'; 
+require_once __DIR__ . '/includes/footer.php';
+?>

@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/includes/header.php';
+?>
+
 <div class="view fade-in">
     <header class="view-header">
         <h1>Datenschutzerklärung</h1>
@@ -15,7 +19,7 @@
         <h3 style="margin-top: 1rem;">a) Server-Logfiles</h3>
         <p>Der Provider der Seiten erhebt und speichert automatisch Informationen in so genannten Server-Log-Dateien, die dein Browser automatisch übermittelt. Dies sind: Browsertyp/-version, Betriebssystem, Referrer URL, Uhrzeit der Serveranfrage und IP-Adresse. Diese Daten sind technisch erforderlich und werden nicht mit anderen Datenquellen zusammengeführt.</p>
         
-        <h3 style="margin-top: 1rem;">b) Benutzerkonten &amp; Lernfortschritt</h3>
+        <h3 style="margin-top: 1rem;">b) Benutzerkonten & Lernfortschritt</h3>
         <p>Auf dieser Plattform legst du ein Nutzerkonto an, um deinen Lernfortschritt zu speichern. Dabei speichern wir deinen Namen, deine E-Mail-Adresse und ein verschlüsseltes Passwort. Wir verarbeiten diese Daten ausschließlich, um dir den Zugang zur Plattform zu ermöglichen und deinen individuellen Lern- und Quizfortschritt in unserer Datenbank zu sichern.</p>
 
         <h2 style="margin-top: 1.5rem;">3. Lokale Speicherung (LocalStorage) statt Cookies</h2>
@@ -29,10 +33,14 @@
         
         <div style="margin-top: 2rem;">
             <?php if(isset($_SESSION['user_id'])): ?>
-                <button class="btn btn-primary" onclick="window.location.href='<?= $basePath ?>'">Zurück zum Dashboard</button>
+                <button class="btn btn-primary" onclick="window.location.href='<?= base_url('/dashboard') ?>'">Zurück zum Dashboard</button>
             <?php else: ?>
-                <button class="btn btn-primary" onclick="window.location.href='<?= $basePath ?>login'">Zurück zum Login</button>
+                <button class="btn btn-primary" onclick="window.location.href='<?= base_url('/login') ?>'">Zurück zum Login</button>
             <?php endif; ?>
         </div>
     </div>
 </div>
+
+<?php
+require_once __DIR__ . '/includes/footer.php';
+?>

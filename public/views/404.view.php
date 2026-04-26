@@ -1,18 +1,15 @@
-<div class="view fade-in">
-    <header class="view-header">
-        <h1>404 – Seite nicht gefunden</h1>
-        <p>Die angeforderte Seite existiert nicht.</p>
-    </header>
-    
-    <div class="content-card" style="max-width: 600px; text-align: center;">
-        <p style="font-size: 4rem; margin-bottom: 1rem;">🔍</p>
-        <p>Vielleicht hast du dich vertippt oder die Seite wurde verschoben.</p>
-        <div style="margin-top: 2rem;">
-            <?php if(isset($_SESSION['user_id'])): ?>
-                <a href="<?= $basePath ?>" class="btn btn-primary">Zurück zum Dashboard</a>
-            <?php else: ?>
-                <a href="<?= $basePath ?>login" class="btn btn-primary">Zum Login</a>
-            <?php endif; ?>
-        </div>
-    </div>
+<?php
+require_once __DIR__ . '/../includes/header.php';
+?>
+
+<div class="view fade-in" style="text-align: center; padding: 4rem 2rem;">
+    <h1 style="font-size: 4rem; margin-bottom: 1rem; color: var(--primary);">404</h1>
+    <h2>Seite nicht gefunden</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Die gesuchte Seite existiert nicht oder wurde verschoben.</p>
+    <a href="<?= base_url('/') ?>" class="btn btn-primary">Zurück zum Dashboard</a>
 </div>
+
+<?php
+$pageScript = '';
+require_once __DIR__ . '/../includes/footer.php';
+?>

@@ -88,3 +88,9 @@ function requireAdmin() {
         sendJson(['error' => 'Forbidden'], 403);
     }
 }
+
+function base_url($path = '') {
+    $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+    $basePath = rtrim(str_replace('\\', '/', $scriptDir), '/');
+    return $basePath . '/' . ltrim($path, '/');
+}

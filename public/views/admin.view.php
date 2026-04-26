@@ -1,3 +1,13 @@
+<?php
+require_once __DIR__ . '/includes/header.php';
+
+// Zusaetzlicher Schutz: Nur Admins
+if ($user['role'] !== 'admin') {
+    header("Location: " . base_url('/dashboard'));
+    exit;
+}
+?>
+
 <div class="view fade-in">
     <header class="view-header">
         <h1>Admin-Bereich</h1>
@@ -60,3 +70,8 @@
         </div>
     </div>
 </div>
+
+<?php
+$pageScript = 'admin';
+require_once __DIR__ . '/includes/footer.php';
+?>
