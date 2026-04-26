@@ -107,9 +107,8 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
                     <button id="sidebar-toggle" title="Sidebar einklappen/ausklappen" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;">
                         <i class="ph ph-list" style="font-size: 1.5rem;"></i>
                     </button>
-                    <div class="streak-badge" title="Lern-Streak">
-                        <i class="ph-fill ph-fire"></i>
-                        <span id="streak-counter">Lade Streak...</span>
+                    <div class="user-greeting" style="font-weight: 500; color: var(--text-secondary);">
+                        Schön dich hier zu haben, <strong style="color: var(--text-primary);"><?= htmlspecialchars($user['name']) ?></strong>!
                     </div>
                 </div>
                 <div class="topbar-right">

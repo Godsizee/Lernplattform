@@ -7,9 +7,7 @@ export class Dashboard {
             if (!res.ok) return;
             const data = await res.json();
             
-            const streakCounter = document.getElementById('streak-counter');
-            if (streakCounter) streakCounter.textContent = data.streak + ' Tage Streak!';
-            
+
             const container = document.getElementById('dashboard-subjects-container');
             if (!container) return;
             
