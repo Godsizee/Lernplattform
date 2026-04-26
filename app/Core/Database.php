@@ -9,15 +9,15 @@ class Database {
     private PDO $connection;
 
     private function __construct() {
-        $host = getenv('DB_HOST') ?: '127.0.0.1';
-        $port = getenv('DB_PORT') ?: 5433;
+        // Fallbacks nun passend zur Produktion (falls Variablen doch mal leer sind)
+        $host = getenv('DB_HOST') ?: '172.28.0.2';
+        $port = getenv('DB_PORT') ?: 5432;
         $db   = getenv('DB_NAME') ?: 'code_and_cash';
         $user = getenv('DB_USER') ?: 'lern_user';
         $pass = getenv('DB_PASS') ?: '';
 
         $dsn = "pgsql:host=$host;port=$port;dbname=$db";
         
-        // Best Practices: Exceptions werfen, assoziative Arrays zurückgeben, emulierte Prepares deaktivieren (für echte Prepared Statements)
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -27,8 +27,8 @@ class Database {
         try {
             $this->connection = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
-            // Stack Trace verbergen, nur allgemeine Fehlermeldung loggen
             error_log("Database Connection Error: " . $e->getMessage());
+            http_response_code(500); // WICHTIG: Damit fetch() es als Fehler erkennt!
             die(json_encode(['error' => 'Datenbankverbindung fehlgeschlagen.']));
         }
     }
