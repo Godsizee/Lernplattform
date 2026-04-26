@@ -100,71 +100,75 @@ body.light-mode .subject-icon-img {
 }
 
 /* Lesson Content Overrides */
-.lesson-content-article {
+.lesson-body {
     font-size: 1.05rem;
     line-height: 1.7;
     color: var(--text-primary);
 }
-.lesson-content-article h3, .lesson-content-article h4 {
+.lesson-body h3, .lesson-body h4 {
     margin-top: 2rem;
     margin-bottom: 1rem;
     color: var(--color-primary);
 }
 
 /* Dark Mode fixes for inline styles from DB */
-body:not(.light-mode) .lesson-content-article [style*="background"] {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+body:not(.light-mode) .lesson-body [style*="background"] {
+    background-color: rgba(255, 255, 255, 0.03) !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-body:not(.light-mode) .lesson-content-article [style*="color"] {
+body:not(.light-mode) .lesson-body [style*="color"] {
     color: var(--text-primary) !important;
 }
 
-/* BWL Legacy Highlight Boxes */
-body:not(.light-mode) .lesson-content-article [style*="border-left: 4px solid #3498db"] {
-    background-color: rgba(52, 152, 219, 0.1) !important; 
+/* Legacy Highlight Boxes */
+body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #3498db"] {
+    background-color: rgba(52, 152, 219, 0.08) !important; 
     border-left-color: #3498db !important;
 }
-body:not(.light-mode) .lesson-content-article [style*="border-left: 4px solid #f39c12"] {
-    background-color: rgba(243, 156, 18, 0.1) !important; 
+body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #f39c12"] {
+    background-color: rgba(243, 156, 18, 0.08) !important; 
     border-left-color: #f39c12 !important;
 }
-body:not(.light-mode) .lesson-content-article [style*="border-left: 4px solid #2ecc71"] {
-    background-color: rgba(46, 204, 113, 0.1) !important; 
+body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #2ecc71"] {
+    background-color: rgba(46, 204, 113, 0.08) !important; 
     border-left-color: #2ecc71 !important;
 }
-body:not(.light-mode) .lesson-content-article [style*="border-left: 4px solid #e74c3c"] {
-    background-color: rgba(231, 76, 60, 0.1) !important; 
+body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e74c3c"] {
+    background-color: rgba(231, 76, 60, 0.08) !important; 
     border-left-color: #e74c3c !important;
 }
 
-body:not(.light-mode) .lesson-content-article table,
-body:not(.light-mode) .lesson-content-article td, 
-body:not(.light-mode) .lesson-content-article th {
+body:not(.light-mode) .lesson-body table,
+body:not(.light-mode) .lesson-body td, 
+body:not(.light-mode) .lesson-body th {
     border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Text Colors */
-body:not(.light-mode) .lesson-content-article [style*="color: #2980b9"] { color: #60a5fa !important; }
-body:not(.light-mode) .lesson-content-article [style*="color: #d35400"] { color: #fbbf24 !important; }
-body:not(.light-mode) .lesson-content-article [style*="color: #27ae60"] { color: #34d399 !important; }
-body:not(.light-mode) .lesson-content-article [style*="color: #c0392b"] { color: #f87171 !important; }
-body:not(.light-mode) .lesson-content-article [style*="color: #555"] { color: var(--text-secondary) !important; }
-body:not(.light-mode) .lesson-content-article [style*="color: #333"] { color: var(--text-primary) !important; }
+body:not(.light-mode) .lesson-body [style*="color: #2980b9"] { color: #60a5fa !important; }
+body:not(.light-mode) .lesson-body [style*="color: #d35400"] { color: #fbbf24 !important; }
+body:not(.light-mode) .lesson-body [style*="color: #27ae60"] { color: #34d399 !important; }
+body:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !important; }
+body:not(.light-mode) .lesson-body [style*="color: #555"] { color: var(--text-secondary) !important; }
+body:not(.light-mode) .lesson-body [style*="color: #333"] { color: var(--text-primary) !important; }
 
 /* Tables */
-.lesson-content-article table {
+.lesson-body table {
     width: 100%;
     margin: 1.5rem 0;
     box-shadow: 0 4px 6px var(--shadow-color) !important;
     border-radius: var(--radius-sm);
     overflow: hidden;
 }
-.lesson-content-article td {
+.lesson-body td {
     padding: 0.75rem !important;
 }
+.lesson-body th {
+    padding: 0.75rem !important;
+    background: rgba(0,0,0,0.2) !important; /* Etwas abdunkeln im Dark Mode für Header */
+}
 
-body.light-mode .lesson-content-article [style*="background"] {
+body.light-mode .lesson-body [style*="background"] {
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
 }

@@ -1,28 +1,33 @@
 /* public/assets/css/sidebar.css */
 .sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
     background: var(--bg-surface);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: var(--border-glass);
-    padding: 1rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: var(--border-glass);
+    padding: 2rem 1.5rem;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
 }
+
+.sidebar.mobile-open {
+    left: 0;
+}
+
 
 @media (min-width: 768px) {
     .sidebar { 
-        width: 280px; 
-        height: 100vh; 
         position: sticky; 
-        top: 0; 
-        border-right: var(--border-glass); 
-        border-bottom: none; 
-        padding: 2rem 1.5rem; 
+        left: 0; 
+        box-shadow: none; 
     }
     
     .sidebar.collapsed {
