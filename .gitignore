@@ -30,3 +30,6 @@ logs/
 
 # XAMPP / Local development specific
 /files/
+
+# Agent Files
+.agents/
