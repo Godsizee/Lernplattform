@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: code_cash_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-code_and_cash}
+      POSTGRES_USER: ${DB_USER:-lern_user}
+      POSTGRES_PASSWORD: ${DB_PASS:-!!Arschmusik11}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:

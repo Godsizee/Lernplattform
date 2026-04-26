@@ -1,0 +1,71 @@
+/* public/assets/css/layout.css */
+.app-layout { 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+
+.main-content { 
+    flex: 1; 
+    padding: 1.5rem 1rem; 
+    overflow-y: auto; 
+    display: block; 
+}
+
+.auth-wrapper { 
+    width: 100%; 
+    max-width: 400px; 
+    margin: 2rem auto; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    min-height: 70vh; 
+}
+
+body.auth-mode .sidebar, 
+body.auth-mode .topbar { 
+    display: none !important; 
+}
+
+body.auth-mode .main-content { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 1rem; 
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 2rem;
+    margin-bottom: 3rem;
+    border-bottom: var(--border-glass);
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.topbar-right {
+    flex: 1;
+    max-width: 400px;
+}
+
+.view-header {
+    margin-bottom: 3rem;
+}
+
+.view-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.view-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+@media (min-width: 768px) {
+    .app-layout { flex-direction: row; }
+    .main-content { padding: 3rem; display: block; }
+}

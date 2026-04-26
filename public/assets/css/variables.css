@@ -1,0 +1,63 @@
+/* public/assets/css/variables.css */
+:root {
+    /* DARK MODE (Default) */
+    --color-primary: #a972ff;
+    --color-secondary: #f07167;
+    --color-success: #3fb950;
+    --color-danger: #f85149;
+    --color-warning: #ffbd00;
+    
+    --color-background: #0d1117;
+    --color-surface: #161b22;
+    --color-text: #e6edf3;
+    --color-text-muted: #8b949e;
+    --color-border: #30363d;
+    
+    --font-display: 'Oswald', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    
+    --icon-color: #8b5cf6; 
+
+    /* Legacy compatibility for the rest of the CSS */
+    --brand-primary: var(--color-primary);
+    --brand-accent: var(--color-success);
+    --bg-dark: var(--color-background);
+    --bg-surface: rgba(22, 27, 34, 0.7);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
+    --border-glass: 1px solid var(--color-border);
+    
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 8px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    --color-db: var(--color-primary);
+    --color-bwl: var(--color-success);
+    --color-sap: var(--color-warning);
+    --color-java: var(--color-danger);
+    
+    --shadow-color: rgba(169, 114, 255, 0.15);
+}
+
+body.light-mode {
+    --color-primary: #8b5cf6; 
+    --color-secondary: #ec4899; 
+    --color-success: #10b981; 
+    --color-danger: #ef4444; 
+    --color-warning: #f59e0b; 
+    
+    --color-background: #f8fafc; 
+    --color-surface: #ffffff;
+    --color-text: #0f172a; 
+    --color-text-muted: #64748b; 
+    --color-border: #e2e8f0; 
+
+    --bg-dark: var(--color-background);
+    --bg-surface: rgba(255, 255, 255, 0.9);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
+    --border-glass: 1px solid var(--color-border);
+    
+    --shadow-color: rgba(139, 92, 246, 0.1);
+}
