@@ -329,12 +329,12 @@ body.light-mode .audit-item:hover {
 }
 
 .auth-logo-img {
-    width: 64px; /* Default size for logo */
+    width: auto;
+    max-width: 250px;
     height: auto;
-    margin: 0 auto 1rem;
+    max-height: 80px;
+    margin: 0 auto 1.5rem;
     display: block;
-    transform: scale(0.5); /* Exakt um 50% verkleinert */
-    transform-origin: center;
 }
 
 .auth-tabs {
