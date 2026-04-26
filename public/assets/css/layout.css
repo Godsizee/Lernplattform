@@ -65,6 +65,16 @@ body.auth-mode .main-content {
     font-size: 1.1rem;
 }
 
+.mobile-nav-toggle {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    .mobile-nav-toggle {
+        display: flex !important;
+    }
+}
+
 @media (min-width: 768px) {
     .app-layout { flex-direction: row; }
     .main-content { padding: 3rem; display: block; }

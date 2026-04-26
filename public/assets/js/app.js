@@ -55,14 +55,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+    const mobileNavToggle = document.getElementById('mobile-nav-toggle');
     const sidebar = document.querySelector('.sidebar');
+    
     if (sidebarToggleBtn && sidebar) {
         sidebarToggleBtn.addEventListener('click', () => {
             if (window.innerWidth < 768) {
-                sidebar.classList.toggle('mobile-open');
+                sidebar.classList.remove('mobile-open');
             } else {
                 sidebar.classList.toggle('collapsed');
             }
+        });
+    }
+
+    if (mobileNavToggle && sidebar) {
+        mobileNavToggle.addEventListener('click', () => {
+            sidebar.classList.add('mobile-open');
         });
     }
 
