@@ -14,5 +14,22 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
 
+  web:
+    build: .
+    container_name: code_cash_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-code_and_cash}
+      - DB_USER=${DB_USER:-lern_user}
+      - DB_PASS=${DB_PASS:-!!Arschmusik11}
+    depends_on:
+      - postgres
+
 volumes:
   pg_data:
