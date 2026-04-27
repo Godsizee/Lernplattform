@@ -146,8 +146,14 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
                             <div class="progress-bar-fill" id="global-progress-bar" style="width: 0%;"></div>
                         </div>
                     </div>
-                </div>
             </header>
+            <?php endif; ?>
+
+            <?php if ($hideSidebar): ?>
+            <!-- Floating Theme Toggle for Auth Pages -->
+            <button id="theme-toggle-btn" class="floating-theme-toggle" title="Theme wechseln">
+                <i class="ph ph-moon" id="theme-icon"></i>
+            </button>
             <?php endif; ?>
 
             <!-- View Container -->
