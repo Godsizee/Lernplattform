@@ -25,11 +25,15 @@ try {
         $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin);
         
         $completedIds = [];
-        foreach ($lessons as $l) {
+        foreach ($lessons as &$l) {
             if ($l['status'] === 'completed') {
                 $completedIds[] = $l['id'];
             }
+            if (!$isAdmin) {
+                $l['author_name'] = null;
+            }
         }
+        unset($l);
         
         sendJson([
             'lessons' => $lessons,

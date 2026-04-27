@@ -23,8 +23,8 @@ try {
             $articleId = $lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status);
 
             global $auditRepo;
-            $statusLabel = $status === 'draft' ? 'als Entwurf' : '';
-            $auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel} erstellt.");
+            $statusLabel = $status === 'draft' ? 'als Entwurf ' : '';
+            $auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel}erstellt. {{article:{$articleId}}}");
 
             sendJson(['success' => true, 'id' => $articleId]);
             break;
@@ -52,7 +52,7 @@ try {
             $success = $lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin);
 
             global $auditRepo;
-            $auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' (ID: {$articleId}) bearbeitet.");
+            $auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' bearbeitet. {{article:{$articleId}}}");
 
             sendJson(['success' => $success]);
             break;
@@ -77,7 +77,7 @@ try {
             $success = $lessonRepo->deleteArticle($articleId, $userId, $isAdmin);
 
             global $auditRepo;
-            $auditRepo->log($userId, 'ARTICLE_DELETE', "Hat den Beitrag '{$title}' (ID: {$articleId}) gelöscht.");
+            $auditRepo->log($userId, 'ARTICLE_DELETE', "Hat den Beitrag '{$title}' gelöscht.");
 
             sendJson(['success' => $success]);
             break;

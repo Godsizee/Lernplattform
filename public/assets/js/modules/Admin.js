@@ -166,6 +166,12 @@ export class Admin {
                     day: '2-digit', month: '2-digit', year: 'numeric', 
                     hour: '2-digit', minute: '2-digit'
                 });
+
+                let detailsHtml = window.escapeHTML(log.details);
+                detailsHtml = detailsHtml.replace(
+                    /\{\{article:(\d+)\}\}/g,
+                    (_match, id) => `<a href="${window.BASE_URL}/learning#lesson-${id}" class="audit-article-link" title="Zum Beitrag"><i class="ph ph-arrow-square-out"></i> Beitrag ansehen</a>`
+                );
                 
                 item.innerHTML = `
                     <div class="audit-meta">
@@ -173,7 +179,7 @@ export class Admin {
                         <span><i class="ph ph-clock"></i> ${date}</span>
                     </div>
                     <div class="audit-text">
-                        ${window.escapeHTML(log.details)}
+                        ${detailsHtml}
                     </div>
                 `;
                 container.appendChild(item);
