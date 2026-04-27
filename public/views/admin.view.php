@@ -39,23 +39,17 @@ if ($user['role'] !== 'admin') {
     </div>
 
     <div id="admin-content" class="admin-panel content-card" style="display:none;">
-        <h2>Neue Lektion anlegen</h2>
-        <form id="admin-lesson-form" style="margin-top: 1.5rem; max-width: 800px;">
-            <div class="form-group">
-                <label>Fach wählen</label>
-                <select id="admin-lesson-subject" class="form-control" required></select>
-            </div>
-            <div class="form-group">
-                <label>Titel der Lektion</label>
-                <input type="text" id="admin-lesson-title" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label>Inhalt (HTML erlaubt)</label>
-                <textarea id="admin-lesson-content" class="form-control" rows="8" placeholder="<p>Dein Text hier...</p>" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary"><i class="ph ph-plus-circle"></i> Lektion veröffentlichen</button>
-            <div id="admin-lesson-msg" style="margin-top: 1rem; font-weight: bold;"></div>
-        </form>
+        <h2>Inhalte verwalten</h2>
+        <p style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.6; max-width: 800px;">
+            Um neue Lektionen und Beiträge zu erstellen, nutze bitte den globalen Editor. 
+            Dort stehen dir alle Formatierungsmöglichkeiten (Markdown, Code-Blöcke, Live-Vorschau) zur Verfügung. 
+            So garantieren wir ein einheitliches Schreib- und Leseerlebnis für alle Nutzer.
+        </p>
+        <div style="margin-top: 2rem;">
+            <a href="<?= BASE_URL ?>/editor" class="btn btn-primary">
+                <i class="ph ph-article"></i> Zum vollwertigen Editor wechseln
+            </a>
+        </div>
     </div>
 
     <div id="admin-audit" class="admin-panel content-card" style="display:none;">

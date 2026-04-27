@@ -18,11 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Formulare und Filter
-    document.getElementById('admin-lesson-form').addEventListener('submit', (e) => {
-        admin.adminAddLesson(e);
-    });
-
+    // Filter
     document.getElementById('audit-user-filter').addEventListener('change', (e) => {
         admin.loadAuditLogs(e.target.value);
     });

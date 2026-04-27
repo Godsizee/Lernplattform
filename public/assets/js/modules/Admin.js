@@ -1,21 +1,8 @@
 export class Admin {
-    constructor() {}
+    constructor() { }
 
     async loadAdminData() {
         try {
-            // Fächer für Select laden
-            const subRes = await fetch('../api/content.php?action=subjects');
-            if (subRes.ok) {
-                const subjects = await subRes.json();
-                const select = document.getElementById('admin-lesson-subject');
-                if (select) {
-                    select.innerHTML = '<option value="">Bitte wählen...</option>';
-                    subjects.forEach(s => {
-                        select.innerHTML += `<option value="${s.id}">${s.title}</option>`;
-                    });
-                }
-            }
-
             // Nutzer laden
             const userRes = await fetch('../api/admin.php?action=users');
             if (userRes.ok) {
@@ -37,14 +24,13 @@ export class Admin {
                                     </select>
                                 </td>
                                 <td>
-                                    <!-- Delete is possible for everyone via backend check (prevents self delete), but we show the button -->
                                     <button class="btn btn-danger admin-del-user" data-id="${u.id}" style="padding: 0.3rem 0.6rem;"><i class="ph ph-trash"></i></button>
                                 </td>
                             </tr>
                         `;
                     });
                 }
-                
+
                 if (filter) {
                     const currentFilter = filter.value;
                     filter.innerHTML = '<option value="">Alle Nutzer</option>';
@@ -98,59 +84,17 @@ export class Admin {
         }
     }
 
-    async adminAddLesson(e) {
-        e.preventDefault();
-        const payload = {
-            subject_id: document.getElementById('admin-lesson-subject').value,
-            title: document.getElementById('admin-lesson-title').value,
-            content: document.getElementById('admin-lesson-content').value
-        };
-
-        const btn = e.target.querySelector('button');
-        const origText = btn.innerHTML;
-        const msgDiv = document.getElementById('admin-lesson-msg');
-        
-        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i>';
-        btn.disabled = true;
-
-        try {
-            const res = await fetch('../api/admin.php?action=add_lesson', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                msgDiv.style.color = 'var(--color-success)';
-                msgDiv.textContent = 'Lektion erfolgreich veröffentlicht!';
-                e.target.reset();
-                this.loadAuditLogs();
-            } else {
-                msgDiv.style.color = 'var(--color-danger)';
-                msgDiv.textContent = data.error || 'Fehler beim Speichern.';
-            }
-        } catch (error) {
-            msgDiv.style.color = 'var(--color-danger)';
-            msgDiv.textContent = 'Verbindungsfehler.';
-        } finally {
-            btn.innerHTML = origText;
-            btn.disabled = false;
-            setTimeout(() => { msgDiv.textContent = ''; }, 3000);
-        }
-    }
-
     async loadAuditLogs(userId = '') {
         const container = document.getElementById('audit-timeline');
         if (!container) return;
-        
+
         container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Logs...</div>`;
-        
+
         try {
-            const res = await fetch(`../api/admin.php?action=audit${userId ? '&user_id='+userId : ''}`);
+            const res = await fetch(`../api/admin.php?action=audit${userId ? '&user_id=' + userId : ''}`);
             if (!res.ok) return;
             const logs = await res.json();
-            
+
             container.innerHTML = '';
             if (logs.length === 0) {
                 container.innerHTML = '<p style="color:var(--text-secondary); margin-left: 1rem;">Keine Aktivitäten gefunden.</p>';
@@ -161,9 +105,9 @@ export class Admin {
                 const item = document.createElement('div');
                 item.className = 'audit-item fade-in';
                 item.dataset.action = log.action;
-                
-                const date = new Date(log.created_at).toLocaleString('de-DE', { 
-                    day: '2-digit', month: '2-digit', year: 'numeric', 
+
+                const date = new Date(log.created_at).toLocaleString('de-DE', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
                     hour: '2-digit', minute: '2-digit'
                 });
 
@@ -172,7 +116,7 @@ export class Admin {
                     /\{\{article:(\d+)\}\}/g,
                     (_match, id) => `<a href="${window.BASE_URL}/learning#lesson-${id}" class="audit-article-link" title="Zum Beitrag"><i class="ph ph-arrow-square-out"></i> Beitrag ansehen</a>`
                 );
-                
+
                 item.innerHTML = `
                     <div class="audit-meta">
                         <span><i class="ph ph-user"></i> ${window.escapeHTML(log.user_name)}</span>
@@ -184,7 +128,7 @@ export class Admin {
                 `;
                 container.appendChild(item);
             });
-            
+
         } catch (error) {
             container.innerHTML = '<p class="form-error">Fehler beim Laden der Logs.</p>';
         }

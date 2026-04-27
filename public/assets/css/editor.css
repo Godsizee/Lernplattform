@@ -202,54 +202,17 @@
 .editor-form-actions {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
     margin-top: 1.5rem;
     flex-wrap: wrap;
 }
 
-.status-toggle {
+.editor-action-buttons {
     display: flex;
+    gap: 1rem;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-sm);
-    background: var(--color-background);
-    border: 1px solid var(--color-border);
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-}
-
-.status-toggle-switch {
-    position: relative;
-    width: 44px;
-    height: 24px;
-    background: var(--color-border);
-    border-radius: 24px;
-    cursor: pointer;
-    transition: var(--transition);
-    border: none;
-    padding: 0;
-}
-
-.status-toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--color-text-muted);
-    transition: var(--transition);
-}
-
-.status-toggle-switch.active {
-    background: var(--color-success);
-}
-
-.status-toggle-switch.active::after {
-    left: 23px;
-    background: #fff;
+    flex-wrap: wrap;
 }
 
 /* --- Author Badge --- */
@@ -365,8 +328,18 @@
     }
 
     .editor-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .editor-action-buttons {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .btn-back {
+        text-align: center;
+        justify-content: center;
     }
 
     .article-actions {

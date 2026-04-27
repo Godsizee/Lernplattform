@@ -28,16 +28,17 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="editor-form-actions">
-            <button type="button" id="article-save-btn" class="btn btn-primary">
-                <i class="ph ph-floppy-disk"></i> <span>Veröffentlichen</span>
-            </button>
-            <div class="status-toggle">
-                <span id="status-label">Entwurf</span>
-                <button type="button" id="status-toggle-switch" class="status-toggle-switch" aria-label="Status umschalten" title="Zwischen Entwurf und Veröffentlicht wechseln"></button>
-            </div>
-            <a href="<?= BASE_URL ?>/learning" class="btn btn-secondary" style="margin-left: auto;">
-                <i class="ph ph-arrow-left"></i> Zurück
+            <a href="<?= BASE_URL ?>/learning" class="btn btn-secondary btn-back">
+                <i class="ph ph-arrow-left"></i> Abbrechen
             </a>
+            <div class="editor-action-buttons">
+                <button type="button" id="btn-save-draft" class="btn btn-secondary">
+                    <i class="ph ph-floppy-disk"></i> <span>Als Entwurf speichern</span>
+                </button>
+                <button type="button" id="btn-publish" class="btn btn-primary">
+                    <i class="ph ph-paper-plane-right"></i> <span>Veröffentlichen</span>
+                </button>
+            </div>
         </div>
 
         <div id="article-message" style="margin-top: 1rem; font-weight: 500;"></div>
