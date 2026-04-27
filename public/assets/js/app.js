@@ -25,7 +25,11 @@ window.fetch = async function() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Search initialisieren
-    new Search();
+    try {
+        new Search();
+    } catch (e) {
+        console.warn('Search component not initialized:', e);
+    }
 
     // Theme Toggle
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
@@ -44,17 +48,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             localStorage.setItem('lern_theme', newTheme);
             
-            // Update Icon & Text
+            // Update Icon & Text (individuell prüfen, falls einer fehlt)
             const icon = document.getElementById('theme-icon');
             const text = document.getElementById('theme-text');
-            if (icon && text) {
-                if (newTheme === 'dark') {
-                    icon.className = 'ph ph-moon';
-                    text.textContent = 'Dark Mode';
-                } else {
-                    icon.className = 'ph ph-sun';
-                    text.textContent = 'Light Mode';
-                }
+            
+            if (icon) {
+                icon.className = newTheme === 'dark' ? 'ph ph-moon' : 'ph ph-sun';
+            }
+            
+            if (text) {
+                text.textContent = newTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
             }
         });
     }
