@@ -1,3 +1,5 @@
+import { Search } from './components/Search.js';
+
 // Globales XSS Escaping
 window.escapeHTML = function(str) {
     if (str === null || str === undefined) return '';
@@ -22,6 +24,9 @@ window.fetch = async function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Search initialisieren
+    new Search();
+
     // Theme Toggle
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
     if (themeToggleBtn) {

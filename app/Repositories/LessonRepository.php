@@ -147,4 +147,26 @@ class LessonRepository {
         $article = $stmt->fetch();
         return $article ?: null;
     }
+
+    public function searchLessons(string $query, int $userId, bool $isAdmin = false): array {
+        $sql = "
+            SELECT l.id, l.title, l.status, l.subject_id, s.title as subject_title, s.color as subject_color
+            FROM lessons l
+            JOIN subjects s ON l.subject_id = s.id
+            WHERE (l.title ILIKE :query OR l.content_raw ILIKE :query OR l.content ILIKE :query)
+        ";
+
+        $params = [':query' => '%' . $query . '%'];
+
+        if (!$isAdmin) {
+            $sql .= " AND (l.status = 'published' OR l.author_id = :user_id)";
+            $params[':user_id'] = $userId;
+        }
+
+        $sql .= " ORDER BY l.title ASC LIMIT 10";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

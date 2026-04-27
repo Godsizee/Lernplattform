@@ -9,6 +9,10 @@ export class Learning {
 
     async loadData() {
         try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlSubjectId = urlParams.get('subject');
+            const urlLessonId = urlParams.get('lesson');
+
             const res = await fetch('../api/content.php?action=subjects');
             if (!res.ok) return;
             const subjects = await res.json();
@@ -16,9 +20,23 @@ export class Learning {
             this.renderTabs(subjects);
             
             if (subjects.length > 0) {
-                const activeId = localStorage.getItem('active_subject') || subjects[0].id;
+                // Priorität: URL -> LocalStorage -> Erstes Fach
+                const activeId = urlSubjectId || localStorage.getItem('active_subject') || subjects[0].id;
                 const activeTitle = subjects.find(s => s.id == activeId)?.title || subjects[0].title;
-                this.switchTab(activeId, activeTitle);
+                
+                await this.switchTab(activeId, activeTitle);
+
+                // Wenn eine spezifische Lektion angefordert wurde, scrolle dorthin
+                if (urlLessonId) {
+                    setTimeout(() => {
+                        const target = document.getElementById(`lesson-${urlLessonId}`);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            target.classList.add('highlight-pulse');
+                            setTimeout(() => target.classList.remove('highlight-pulse'), 2000);
+                        }
+                    }, 500); // Kleiner Delay für Rendering
+                }
             }
         } catch (error) {
             console.error('Error loading subjects:', error);

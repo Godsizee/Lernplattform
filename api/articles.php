@@ -99,6 +99,16 @@ try {
             sendJson($article);
             break;
 
+        case 'search':
+            $query = trim($_GET['q'] ?? '');
+            if (strlen($query) < 2) {
+                sendJson([]);
+            }
+
+            $results = $lessonRepo->searchLessons($query, $userId, $isAdmin);
+            sendJson($results);
+            break;
+
         default:
             sendJson(['error' => 'Ungültige Aktion.'], 400);
     }
