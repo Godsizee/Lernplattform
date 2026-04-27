@@ -33,3 +33,6 @@ logs/
 
 # Agent Files
 .agents/
+
+# Project Scripts
+zusammenfassung.ps1
