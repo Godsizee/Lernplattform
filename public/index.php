@@ -13,6 +13,7 @@ $router->get('/datenschutz', 'datenschutz');
 $router->get('/learning', 'learning');
 $router->get('/profile', 'profile');
 $router->get('/admin', 'admin');
+$router->get('/editor', 'editor');
 
 // Request URI bereinigen und Base-Path extrahieren (falls in einem Unterordner wie z.B. /files/lernplattform/public)
 $baseDir = dirname($_SERVER['SCRIPT_NAME']);

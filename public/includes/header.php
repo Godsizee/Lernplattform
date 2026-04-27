@@ -34,7 +34,7 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code & Cash | Lernplattform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
@@ -69,6 +69,9 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
                 </a>
                 <a href="<?= BASE_URL ?>/learning" class="nav-item <?= $currentRoute === '/learning' ? 'active' : '' ?>">
                     <i class="ph ph-books"></i> <span class="nav-text">Lern-Bereich</span>
+                </a>
+                <a href="<?= BASE_URL ?>/editor" class="nav-item <?= $currentRoute === '/editor' ? 'active' : '' ?>">
+                    <i class="ph ph-article"></i> <span class="nav-text">Beitrag erstellen</span>
                 </a>
                 <a href="<?= BASE_URL ?>/profile" class="nav-item <?= $currentRoute === '/profile' ? 'active' : '' ?>">
                     <i class="ph ph-user-circle"></i> <span class="nav-text">Mein Profil</span>

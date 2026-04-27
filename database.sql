@@ -22,9 +22,15 @@ CREATE TABLE IF NOT EXISTS subjects (
 CREATE TABLE IF NOT EXISTS lessons (
     id SERIAL PRIMARY KEY,
     subject_id INT NOT NULL,
+    author_id INT DEFAULT NULL,
     title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    content TEXT NOT NULL DEFAULT '',
+    content_raw TEXT DEFAULT '',
+    status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('draft', 'published')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS user_progress (

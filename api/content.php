@@ -3,6 +3,7 @@ require_once __DIR__ . '/init.php';
 
 $userId = requireAuth();
 $action = $_GET['action'] ?? 'dashboard';
+$isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
 
 try {
     if ($action === 'dashboard') {
@@ -21,7 +22,7 @@ try {
     }
     elseif ($action === 'lessons') {
         $subjectId = filter_var($_GET['subject_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
-        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId);
+        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin);
         
         $completedIds = [];
         foreach ($lessons as $l) {
@@ -32,7 +33,9 @@ try {
         
         sendJson([
             'lessons' => $lessons,
-            'progress' => $completedIds
+            'progress' => $completedIds,
+            'current_user_id' => $userId,
+            'is_admin' => $isAdmin
         ]);
     } else {
         sendJson(['error' => 'Ungültige Aktion'], 400);

@@ -1,5 +1,11 @@
+import { MarkdownParser } from './MarkdownParser.js';
+
 export class Learning {
-    constructor() {}
+    constructor() {
+        this.parser = new MarkdownParser();
+        this.currentUserId = null;
+        this.isAdmin = false;
+    }
 
     async loadData() {
         try {
@@ -46,7 +52,6 @@ export class Learning {
             }
         }
 
-        // Speichere das aktuelle Fach, damit es nach Reload erhalten bleibt
         localStorage.setItem('active_subject', subjectId);
 
         const container = document.getElementById('learning-content-container');
@@ -57,19 +62,27 @@ export class Learning {
         try {
             const res = await fetch(`../api/content.php?action=lessons&subject_id=${subjectId}`);
             const data = await res.json();
+
+            this.currentUserId = data.current_user_id;
+            this.isAdmin = data.is_admin;
             
+            container.innerHTML = '';
+
+            const headerRow = document.createElement('div');
+            headerRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;';
+            headerRow.innerHTML = `
+                <h2 style="margin: 0; color: var(--color-primary); font-family: var(--font-display);">${titleText}</h2>
+                <a href="${window.BASE_URL}/editor?subject=${subjectId}" class="create-article-btn">
+                    <i class="ph ph-plus-circle"></i> Beitrag erstellen
+                </a>
+            `;
+            container.appendChild(headerRow);
+
             if (data.lessons.length === 0) {
-                container.innerHTML = `<div class="content-card"><p>Keine Lektionen in diesem Fach vorhanden.</p></div>`;
+                container.innerHTML += `<div class="content-card"><p>Noch keine Beiträge in diesem Fach. Sei der Erste!</p></div>`;
                 return;
             }
 
-            container.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
-                    <h2 style="margin: 0; color: var(--color-primary); font-family: var(--font-display);">${titleText} Lektionen</h2>
-                </div>
-            `;
-
-            // Observer für Lesetracking
             const readLessons = new Set();
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -91,7 +104,6 @@ export class Learning {
                 });
             }, { threshold: 0.5 });
 
-            // TOC Rendern
             const tocWrapper = document.createElement('div');
             tocWrapper.className = 'content-card toc-card';
             tocWrapper.innerHTML = `<h3>Inhaltsverzeichnis</h3>`;
@@ -101,7 +113,6 @@ export class Learning {
             data.lessons.forEach(lesson => {
                 const isCompleted = data.progress.includes(lesson.id);
                 
-                // TOC Item
                 const li = document.createElement('li');
                 li.className = 'toc-item';
                 const link = document.createElement('a');
@@ -110,13 +121,14 @@ export class Learning {
                 if (isCompleted) link.classList.add('completed');
                 
                 const iconHtml = isCompleted ? `<i class="ph-fill ph-check-circle toc-icon"></i>` : `<i class="ph ph-circle toc-icon"></i>`;
+                let titleHtml = `<span class="toc-text">${window.escapeHTML(lesson.title)}</span>`;
+
+                if (lesson.article_status === 'draft') {
+                    titleHtml += ` <span class="draft-badge"><i class="ph ph-note-pencil"></i> Entwurf</span>`;
+                }
                 
-                link.innerHTML = `
-                    ${iconHtml}
-                    <span class="toc-text">${window.escapeHTML(lesson.title)}</span>
-                `;
+                link.innerHTML = `${iconHtml}${titleHtml}`;
                 
-                // Smooth scroll via JS
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const target = document.getElementById(`lesson-${lesson.id}`);
@@ -128,7 +140,6 @@ export class Learning {
                 li.appendChild(link);
                 tocList.appendChild(li);
 
-                // Lektion Rendern
                 const lessonWrapper = document.createElement('div');
                 lessonWrapper.className = `content-card learning-content searchable-block fade-in`;
                 lessonWrapper.id = `lesson-${lesson.id}`;
@@ -136,34 +147,96 @@ export class Learning {
                 lessonWrapper.dataset.lessonTitle = lesson.title;
                 lessonWrapper.style.marginBottom = '3rem';
                 lessonWrapper.style.scrollMarginTop = '100px'; 
-                
+
+                const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
+                const isDraft = lesson.article_status === 'draft';
+
+                let metaHtml = '<div class="article-meta">';
+                if (lesson.author_name) {
+                    metaHtml += `<span class="author-badge"><i class="ph ph-user"></i> ${window.escapeHTML(lesson.author_name)}</span>`;
+                }
+                if (isDraft) {
+                    metaHtml += `<span class="draft-badge"><i class="ph ph-note-pencil"></i> Entwurf</span>`;
+                }
+                if (lesson.created_at) {
+                    const dateStr = new Date(lesson.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    metaHtml += `<span class="article-date"><i class="ph ph-calendar-blank"></i> ${dateStr}</span>`;
+                }
+                if (lesson.updated_at && lesson.created_at && lesson.updated_at !== lesson.created_at) {
+                    const updStr = new Date(lesson.updated_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    metaHtml += `<span class="article-date"><i class="ph ph-pencil-simple"></i> bearbeitet ${updStr}</span>`;
+                }
+                if (canEdit) {
+                    metaHtml += `
+                        <div class="article-actions">
+                            <a href="${window.BASE_URL}/editor?id=${lesson.id}" class="btn btn-secondary" title="Bearbeiten">
+                                <i class="ph ph-pencil-simple"></i>
+                            </a>
+                            <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" data-title="${window.escapeHTML(lesson.title)}" title="Löschen">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>`;
+                }
+                metaHtml += '</div>';
+
+                const contentHtml = lesson.content_raw
+                    ? this.parser.parse(lesson.content_raw)
+                    : lesson.content;
+
                 lessonWrapper.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                         <h2 style="margin:0; font-family: var(--font-display);">${window.escapeHTML(lesson.title)}</h2>
                         <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" 
                                 data-lesson-id="${lesson.id}"
-                                style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                style="font-size: 0.9rem; padding: 0.5rem 1rem; white-space: nowrap;">
                             <i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> 
                             ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}
                         </button>
                     </div>
-                    <div class="lesson-body" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-primary);">
-                        ${lesson.content}
+                    ${metaHtml}
+                    <div class="lesson-body" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-primary); margin-top: 1.25rem;">
+                        ${contentHtml}
                     </div>
                 `;
 
                 const btn = lessonWrapper.querySelector('.toggle-lesson-btn');
                 btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
 
+                const deleteBtn = lessonWrapper.querySelector('.delete-article-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => this.deleteArticle(lesson.id, lesson.title, subjectId));
+                }
+
                 container.appendChild(lessonWrapper);
                 observer.observe(lessonWrapper);
             });
             
             tocWrapper.appendChild(tocList);
-            container.insertBefore(tocWrapper, container.children[1]); // Insert after the title
+            container.insertBefore(tocWrapper, container.children[1]);
 
         } catch (error) {
             container.innerHTML = `<div class="form-error">Fehler beim Laden der Lektionen.</div>`;
+        }
+    }
+
+    async deleteArticle(articleId, title, subjectId) {
+        if (!confirm(`Beitrag "${title}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`)) return;
+
+        try {
+            const res = await fetch('../api/articles.php?action=delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: articleId })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                this.switchTab(subjectId);
+            } else {
+                alert(data.error || 'Fehler beim Löschen.');
+            }
+        } catch (e) {
+            alert('Verbindungsfehler.');
         }
     }
 
@@ -176,7 +249,6 @@ export class Learning {
             });
             
             if (res.ok) {
-                // DOM dynamisch updaten ohne die Seite neuzuladen
                 const lessonWrapper = document.getElementById(`lesson-${lessonId}`);
                 if (lessonWrapper) {
                     const btn = lessonWrapper.querySelector('.toggle-lesson-btn');
@@ -192,16 +264,17 @@ export class Learning {
                 const tocLink = document.querySelector(`.toc-link[href="#lesson-${lessonId}"]`);
                 if (tocLink) {
                     const text = tocLink.querySelector('.toc-text').textContent;
+                    const draftBadge = tocLink.querySelector('.draft-badge');
+                    const draftHtml = draftBadge ? ` ${draftBadge.outerHTML}` : '';
                     if (markAsCompleted) {
                         tocLink.classList.add('completed');
-                        tocLink.innerHTML = `<i class="ph-fill ph-check-circle toc-icon"></i><span class="toc-text">${text}</span>`;
+                        tocLink.innerHTML = `<i class="ph-fill ph-check-circle toc-icon"></i><span class="toc-text">${text}</span>${draftHtml}`;
                     } else {
                         tocLink.classList.remove('completed');
-                        tocLink.innerHTML = `<i class="ph ph-circle toc-icon"></i><span class="toc-text">${text}</span>`;
+                        tocLink.innerHTML = `<i class="ph ph-circle toc-icon"></i><span class="toc-text">${text}</span>${draftHtml}`;
                     }
                 }
                 
-                // Fetch progress manually to update global bar if needed
                 fetch('../api/content.php?action=dashboard').then(r=>r.json()).then(data => {
                      const bar = document.getElementById('global-progress-bar');
                      const txt = document.getElementById('global-progress-text');
