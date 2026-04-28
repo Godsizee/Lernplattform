@@ -57,7 +57,10 @@ export class Search {
         } else {
             data.forEach(item => {
                 const a = document.createElement('a');
-                a.href = `${window.BASE_URL}/learning#lesson-${item.id}`;
+                
+                // GEÄNDERT: Korrekte URL-Parameter (?subject=X&lesson=Y) verwenden,
+                // damit Learning.js die Lektion direkt beim Laden erkennt.
+                a.href = `${window.BASE_URL}/learning?subject=${item.subject_id}&lesson=${item.id}`;
                 a.className = 'search-result-item';
                 a.innerHTML = `
                     <span class="search-result-title">${window.escapeHTML(item.title)}</span>
@@ -65,13 +68,15 @@ export class Search {
                 `;
                 
                 a.addEventListener('click', () => {
+                    // Sicherstellen, dass das richtige Fach in localStorage gesetzt wird
                     localStorage.setItem('active_subject', item.subject_id);
+                    
                     this.hideResults();
                     this.input.value = '';
                     
-                    if (window.location.pathname.includes('/learning')) {
-                        window.location.reload();
-                    }
+                    // Hinweis: window.location.reload() wurde entfernt. Da das Link-Attribut (a.href) 
+                    // jetzt Query-Parameter enthält, übernimmt der Browser automatisch 
+                    // das korrekte Neuladen/Navigieren.
                 });
                 
                 this.resultsDropdown.appendChild(a);
