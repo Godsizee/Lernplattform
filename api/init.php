@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 // Sichere Session-Cookies
 session_set_cookie_params([
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', // Auf Prod: true
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
     'httponly' => true,
     'samesite' => 'Strict'
 ]);
@@ -25,7 +25,6 @@ if (file_exists($envPath)) {
 
 
 spl_autoload_register(function ($class) {
-    // App\Core\Database -> app/Core/Database.php
     $prefix = 'App\\';
     $base_dir = __DIR__ . '/../app/';
     
@@ -56,6 +55,28 @@ try {
     error_log("Database Connection Error: " . $e->getMessage());
     http_response_code(500);
     die(json_encode(['error' => 'Datenbankverbindung fehlgeschlagen.']));
+}
+
+// --- AUTO LOGIN VIA COOKIE ---
+// Wenn keine Session existiert, aber ein Remember-Cookie da ist
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['lern_remember'])) {
+    $token = $_COOKIE['lern_remember'];
+    $hashedToken = hash('sha256', $token);
+    
+    $user = $userRepo->findByRememberToken($hashedToken);
+    
+    if ($user) {
+        // Erfolgreicher Auto-Login
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_role'] = $user['role'];
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        
+        $auditRepo->log($user['id'], 'LOGIN_AUTO', "Automatischer Login via Cookie.");
+    } else {
+        // Ungültiger Cookie (Token in DB gelöscht oder manipuliert) -> Cookie verwerfen
+        setcookie('lern_remember', '', time() - 3600, '/');
+    }
 }
 
 function sendJson($data, $statusCode = 200) {

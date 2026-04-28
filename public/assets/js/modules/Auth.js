@@ -1,12 +1,13 @@
 export class Auth {
     constructor() {
-        // MPA Mode, no app reference needed
+        // MPA Mode
     }
 
     async handleLogin(e) {
         const payload = {
             email: document.getElementById('login-email').value,
-            password: document.getElementById('login-password').value
+            password: document.getElementById('login-password').value,
+            remember: document.getElementById('login-remember')?.checked || false
         };
         return await this.submitAuthForm(e, 'login', payload, 'login-error');
     }
@@ -24,10 +25,10 @@ export class Auth {
         const btn = e.target.querySelector('button');
         const origText = btn.innerHTML;
         const errorDiv = document.getElementById(errorElementId);
-        
+
         btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i>';
         btn.disabled = true;
-        
+
         if (errorDiv) {
             errorDiv.textContent = '';
         }
@@ -39,16 +40,16 @@ export class Auth {
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            
+
             if (res.ok && data.success) {
                 if (data.csrf_token) localStorage.setItem('csrf_token', data.csrf_token);
-                
+
                 if (action === 'login') {
                     fetch('../api/log.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'LOGIN', details: 'Nutzer hat sich eingeloggt.' })
-                    }).catch(() => {});
+                    }).catch(() => { });
                 }
                 return true;
             } else {

@@ -31,6 +31,20 @@ class UserRepository {
         return $user ?: null;
     }
 
+    // --- NEU: Finde User anhand des Remember Tokens ---
+    public function findByRememberToken(string $hashedToken): ?array {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE remember_token = :token");
+        $stmt->execute([':token' => $hashedToken]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
+    // --- NEU: Setze den Remember Token ---
+    public function setRememberToken(int $userId, ?string $hashedToken): void {
+        $stmt = $this->db->prepare("UPDATE users SET remember_token = :token WHERE id = :id");
+        $stmt->execute([':token' => $hashedToken, ':id' => $userId]);
+    }
+
     public function create(string $name, string $email, string $passwordHash): int {
         $stmt = $this->db->prepare("INSERT INTO users (name, email, password_hash) VALUES (:name, :email, :hash) RETURNING id");
         $stmt->execute([':name' => $name, ':email' => $email, ':hash' => $passwordHash]);

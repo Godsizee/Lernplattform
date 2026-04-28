@@ -31,13 +31,15 @@ try {
             $_SESSION['user_id'] = $userId;
             $_SESSION['user_name'] = $name;
             $_SESSION['user_role'] = 'student';
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
             global $auditRepo;
             $auditRepo->log($userId, 'REGISTER', "Hat sich neu auf der Plattform registriert.");
 
             sendJson([
                 'success' => true, 
-                'user' => ['id' => $userId, 'name' => $name, 'role' => 'student']
+                'user' => ['id' => $userId, 'name' => $name, 'role' => 'student'],
+                'csrf_token' => $_SESSION['csrf_token']
             ]);
             break;
 
@@ -55,6 +57,7 @@ try {
 
             $login = trim($input['email'] ?? '');
             $password = $input['password'] ?? '';
+            $remember = $input['remember'] ?? false;
 
             if (!$login || !$password) {
                 sendJson(['error' => 'Bitte Benutzername/E-Mail und Passwort eingeben.'], 400);
@@ -70,6 +73,23 @@ try {
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+                // --- REMEMBER ME LOGIC ---
+                if ($remember) {
+                    $token = bin2hex(random_bytes(32)); // Sicherer 64-Zeichen Token
+                    $hashedToken = hash('sha256', $token); // Hash für die DB
+                    $userRepo->setRememberToken($user['id'], $hashedToken);
+                    
+                    // Secure Cookie setzen (30 Tage gültig)
+                    $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+                    setcookie('lern_remember', $token, [
+                        'expires' => time() + (86400 * 30),
+                        'path' => '/',
+                        'secure' => $secure,
+                        'httponly' => true, // Wichtig: Verhindert XSS-Angriffe auf den Cookie!
+                        'samesite' => 'Strict'
+                    ]);
+                }
 
                 global $auditRepo;
                 $auditRepo->log($user['id'], 'LOGIN', "Hat sich erfolgreich eingeloggt.");
@@ -96,25 +116,16 @@ try {
             if (isset($_SESSION['user_id'])) {
                 global $auditRepo;
                 $auditRepo->log($_SESSION['user_id'], 'LOGOUT', "Hat sich ausgeloggt.");
+                
+                // Token in DB löschen
+                $userRepo->setRememberToken($_SESSION['user_id'], null);
             }
+            
+            // Cookie im Browser löschen
+            setcookie('lern_remember', '', time() - 3600, '/');
+            
             session_destroy();
             sendJson(['success' => true, 'message' => 'Erfolgreich ausgeloggt.']);
-            break;
-
-        case 'me':
-            if (isset($_SESSION['user_id'])) {
-                sendJson([
-                    'authenticated' => true, 
-                    'user' => [
-                        'id' => $_SESSION['user_id'],
-                        'name' => $_SESSION['user_name'],
-                        'role' => $_SESSION['user_role']
-                    ],
-                    'csrf_token' => $_SESSION['csrf_token'] ?? ''
-                ]);
-            } else {
-                sendJson(['authenticated' => false], 401);
-            }
             break;
 
         default:
