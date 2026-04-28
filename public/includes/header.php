@@ -129,7 +129,7 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
                     <div class="global-search-container" id="global-search-container">
                         <div class="search-input-wrapper">
                             <i class="ph ph-magnifying-glass search-icon"></i>
-                            <input type="text" id="global-search-input" placeholder="Suchen... (Alt + S)" autocomplete="off">
+                            <input type="text" id="global-search-input" placeholder="Suchen..." autocomplete="off">
                             <div class="search-shortcut">Alt + S</div>
                         </div>
                         <div class="search-results-dropdown" id="search-results-dropdown"></div>

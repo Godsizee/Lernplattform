@@ -22,7 +22,7 @@
 
 #auth-subtitle {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: var(--font-size-body);
     font-weight: 500;
 }
 

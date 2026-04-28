@@ -1,6 +1,6 @@
 /* components/_lesson-content.css */
 .lesson-body {
-    font-size: 1.05rem;
+    font-size: var(--font-size-body);
     line-height: 1.7;
     color: var(--text-primary);
 }
@@ -10,6 +10,7 @@
     margin-top: 2rem;
     margin-bottom: 1rem;
     color: var(--color-primary);
+    font-size: var(--font-size-h3);
 }
 
 /* Dark Mode fixes for inline styles from DB */
