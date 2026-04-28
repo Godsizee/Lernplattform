@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../app/bootstrap.php';
+require_once __DIR__ . '/../../api/init.php';
 
 if (!defined('BASE_URL')) {
     define('BASE_URL', '');
