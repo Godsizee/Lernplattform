@@ -75,6 +75,8 @@ select.form-control option {
     color: #e6edf3;
     padding: 0.8rem;
     font-size: 1rem;
+    background-image: none;
+    /* Verhindert das Vererben des Pfeil-Icons in manchen Browsern */
 }
 
 /* Light Mode Overrides for Forms */
@@ -102,6 +104,8 @@ body.light-mode select.form-control:focus {
 body.light-mode select.form-control option {
     background-color: #ffffff;
     color: #0f172a;
+    background-image: none;
+    /* Verhindert das Vererben des Pfeil-Icons in manchen Browsern */
 }
 
 .form-error {
