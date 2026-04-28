@@ -96,8 +96,8 @@ export class Learning {
         container.innerHTML = `
             <div class="learning-header fade-in">
                 <h2 class="learning-subject-title">${titleText}</h2>
-                <a href="${window.BASE_URL}/editor?subject=${this.currentSubjectId}" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-                    <i class="ph ph-plus-circle"></i> Beitrag erstellen
+                <a href="${window.BASE_URL}/editor?subject=${this.currentSubjectId}" class="btn btn-primary create-btn-mobile" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                    <i class="ph ph-plus-circle"></i> <span>Beitrag erstellen</span>
                 </a>
             </div>
             <div class="learning-layout">
@@ -235,7 +235,7 @@ export class Learning {
                         <i class="ph ph-pencil-simple"></i> Bearbeiten
                     </a>
                     <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" title="Löschen" style="padding: 0.5rem 1rem;">
-                        <i class="ph ph-trash"></i>
+                        <i class="ph ph-trash"></i> Löschen
                     </button>
                 </div>`;
         }

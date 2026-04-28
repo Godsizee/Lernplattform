@@ -30,7 +30,7 @@
     flex-shrink: 0;
     position: sticky;
     top: 100px;
-    align-self: flex-start; /* Stellt sicher, dass das Element im Flex-Container am Browser-Rand klebt */
+    align-self: flex-start;
     height: calc(100vh - 120px);
     overflow-y: auto;
     padding-bottom: 2rem;
@@ -44,10 +44,9 @@
 .learning-main {
     flex: 1;
     min-width: 0; 
-    max-width: 100%; /* Hier erlauben wir volle Breite! Das Design breitet sich nun aus. */
+    max-width: 100%;
 }
 
-/* Wunderschöner Empty-State, wenn keine Lektion gewählt ist */
 .lesson-placeholder {
     display: flex;
     flex-direction: column;
@@ -110,15 +109,15 @@
 
     .learning-sidebar {
         width: 100%;
-        position: relative; /* Sticky entfernt */
+        position: relative; 
         top: 0;
         height: auto;
         max-height: none;
-        background: transparent; /* Schweren Hintergrund entfernt */
+        background: transparent;
         padding: 0 0 1rem 0;
         border-bottom: none;
         margin-bottom: 1.5rem;
-        box-shadow: none; /* Schatten entfernt */
+        box-shadow: none;
     }
 
     .learning-main {
@@ -130,5 +129,37 @@
         padding: 2rem 1rem;
         height: auto;
         min-height: 50vh;
+    }
+}
+
+/* Fix für extrem schmale Bildschirme (Galaxy Fold Front-Display etc.) */
+@media (max-width: 480px) {
+    .learning-header {
+        gap: 0.5rem;
+    }
+    
+    .learning-subject-title {
+        font-size: 1.25rem;
+    }
+    
+    /* Der Button "Beitrag erstellen" wird zu einem kleinen, runden Icon-Button */
+    .create-btn-mobile {
+        padding: 0 !important;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .create-btn-mobile span {
+        display: none;
+    }
+    
+    .create-btn-mobile i {
+        margin: 0 !important;
+        font-size: 1.3rem;
     }
 }

@@ -131,10 +131,7 @@
     border-bottom: 1px solid var(--border-glass);
 }
 
-/* ==========================================================================
-   Legacy DB Content Fixes (Dark Mode Overrides)
-   ========================================================================== */
-
+/* Legacy DB Content Fixes */
 html:not(.light-mode) .lesson-body [style*="background"] { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
 html:not(.light-mode) .lesson-body [style*="color"] { color: var(--text-primary) !important; }
 html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #3498db"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(52, 152, 219)"] { background-color: rgba(52, 152, 219, 0.1) !important; border-left-color: #3498db !important; }
@@ -147,14 +144,15 @@ html:not(.light-mode) .lesson-body [style*="color: #27ae60"] { color: #34d399 !i
 html:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !important; }
 
 /* ==========================================================================
-   Mobile Optimierung (Neues Lernerlebnis)
+   Edge-to-Edge Mobile Optimierung (Speziell für extrem schmale Bildschirme)
    ========================================================================== */
 @media (max-width: 768px) {
+    /* Die Card-Hülle wird unsichtbar, damit der Fließtext Edge-to-Edge ist */
     .learning-content {
-        padding: 1.5rem 1rem;
+        padding: 1rem 0 0 0;
         border: none;
         box-shadow: none;
-        background: transparent; /* Entfernt die harte Karten-Optik für fließendes Lesen */
+        background: transparent;
     }
 
     .light-mode .learning-content {
@@ -164,54 +162,76 @@ html:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !i
 
     .lesson-header {
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 1rem;
         margin-bottom: 1.5rem;
+    }
+
+    .lesson-title {
+        font-size: clamp(1.4rem, 6vw, 1.8rem); /* Kleinere maximale Ausdehnung auf dem Handy */
+        line-height: 1.25;
     }
 
     .toggle-lesson-btn {
         width: 100%;
-        padding: 1rem;
-        font-size: 1.05rem;
+        padding: 0.85rem;
+        font-size: 1rem;
     }
 
+    /* Meta Bar: Umwickeln und an den Rand klatschen (Edge-to-Edge) */
     .article-meta {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.8rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem 1rem;
         background: rgba(0, 0, 0, 0.15);
-        padding: 1rem;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-glass);
-        margin-bottom: 2rem;
+        margin-left: -1rem; /* Bricht aus dem .main-content Padding aus */
+        margin-right: -1rem;
+        padding: 0.8rem 1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid var(--border-glass);
+        border-bottom: 1px solid var(--border-glass);
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
     }
 
     .light-mode .article-meta {
-        background: rgba(0, 0, 0, 0.03);
+        background: rgba(0, 0, 0, 0.02);
     }
 
+    /* Die Aktionsbuttons im Meta-Bar verteilen sich fair */
     .article-actions {
         margin-left: 0;
         width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        margin-top: 0.5rem;
+        margin-top: 0.4rem;
+        gap: 0.5rem;
     }
 
     .article-actions .btn {
         width: 100%;
+        padding: 0.5rem;
+        font-size: 0.85rem;
     }
 
-    /* Edge-to-Edge Code Blöcke auf Mobile (spart wertvollen horizontalen Platz) */
+    .lesson-body {
+        font-size: 0.95rem; /* Leichte Anpassung für kleine Displays */
+    }
+
+    /* Code-Blöcke brechen aus dem Rand aus, damit der Code Platz hat */
     .lesson-body pre {
         margin-left: -1rem !important;
         margin-right: -1rem !important;
         border-radius: 0;
         border-left: none;
         border-right: none;
-        padding: 1.5rem 1rem;
+        padding: 1.2rem 1rem;
+        font-size: 0.85rem; 
     }
 
-    /* Edge-to-Edge Tabellen */
+    /* Tabellen brechen aus dem Rand aus und werden seitlich scrollbar */
     .lesson-body table {
         display: block;
         overflow-x: auto;
@@ -225,6 +245,7 @@ html:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !i
     }
     
     .lesson-body td, .lesson-body th {
-        padding: 0.8rem 1rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
     }
 }
