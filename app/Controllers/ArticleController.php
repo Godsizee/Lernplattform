@@ -5,7 +5,13 @@ use App\Core\Controller;
 use Exception;
 
 class ArticleController extends Controller {
-    public function __construct() {
+    private $lessonRepo;
+    private $auditRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->lessonRepo = $container->get('LessonRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
         $this->requireAuth();
     }
 
@@ -13,7 +19,6 @@ class ArticleController extends Controller {
      * Beitrag erstellen
      */
     public function create() {
-        global $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -26,10 +31,10 @@ class ArticleController extends Controller {
             return $this->json(['error' => 'Bitte alle Felder ausfüllen.'], 400);
         }
 
-        $articleId = $lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status);
+        $articleId = $this->lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status);
         
         $statusLabel = $status === 'draft' ? 'als Entwurf ' : '';
-        $auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel}erstellt. {{article:{$articleId}}}");
+        $this->auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel}erstellt. {{article:{$articleId}}}");
 
         return $this->json(['success' => true, 'id' => $articleId]);
     }
@@ -38,7 +43,6 @@ class ArticleController extends Controller {
      * Beitrag aktualisieren
      */
     public function update() {
-        global $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -48,13 +52,13 @@ class ArticleController extends Controller {
         $contentRaw = trim($input['content_raw'] ?? '');
         $status = in_array($input['status'] ?? '', ['draft', 'published']) ? $input['status'] : 'draft';
 
-        $article = $lessonRepo->getArticleForEdit($articleId);
+        $article = $this->lessonRepo->getArticleForEdit($articleId);
         if (!$article || (!$isAdmin && $article['author_id'] != $userId)) {
             return $this->json(['error' => 'Nicht autorisiert oder nicht gefunden.'], 403);
         }
 
-        $success = $lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin);
-        $auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' bearbeitet. {{article:{$articleId}}}");
+        $success = $this->lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin);
+        $this->auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' bearbeitet. {{article:{$articleId}}}");
 
         return $this->json(['success' => $success]);
     }
@@ -63,20 +67,19 @@ class ArticleController extends Controller {
      * Beitrag löschen
      */
     public function delete() {
-        global $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
         $articleId = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
-        $article = $lessonRepo->getArticleForEdit($articleId);
+        $article = $this->lessonRepo->getArticleForEdit($articleId);
         
         if (!$article || (!$isAdmin && $article['author_id'] != $userId)) {
             return $this->json(['error' => 'Nicht autorisiert.'], 403);
         }
 
-        $lessonRepo->deleteArticle($articleId, $userId, $isAdmin);
-        $auditRepo->log($userId, 'ARTICLE_DELETE', "Hat den Beitrag '{$article['title']}' gelöscht.");
+        $this->lessonRepo->deleteArticle($articleId, $userId, $isAdmin);
+        $this->auditRepo->log($userId, 'ARTICLE_DELETE', "Hat den Beitrag '{$article['title']}' gelöscht.");
 
         return $this->json(['success' => true]);
     }
@@ -85,12 +88,11 @@ class ArticleController extends Controller {
      * Einzelnen Beitrag laden
      */
     public function get() {
-        global $lessonRepo;
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         
         $articleId = filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
-        $article = $lessonRepo->getArticleForEdit($articleId);
+        $article = $this->lessonRepo->getArticleForEdit($articleId);
 
         if (!$article || (!$isAdmin && $article['author_id'] != $userId && $article['status'] === 'draft')) {
             return $this->json(['error' => 'Nicht gefunden.'], 404);
@@ -107,21 +109,19 @@ class ArticleController extends Controller {
      * Suche nach Beiträgen
      */
     public function search() {
-        global $lessonRepo;
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         
         $query = trim($_GET['q'] ?? '');
         if (strlen($query) < 2) return $this->json([]);
 
-        return $this->json($lessonRepo->searchLessons($query, $userId, $isAdmin));
+        return $this->json($this->lessonRepo->searchLessons($query, $userId, $isAdmin));
     }
 
     /**
      * Lernfortschritt speichern
      */
     public function saveProgress() {
-        global $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -130,11 +130,11 @@ class ArticleController extends Controller {
         
         if (!$lessonId) return $this->json(['error' => 'Ungültige ID.'], 400);
 
-        $lessonRepo->saveProgress($userId, $lessonId, $completed ? 'completed' : 'pending');
+        $this->lessonRepo->saveProgress($userId, $lessonId, $completed ? 'completed' : 'pending');
         
-        $lessonTitle = $lessonRepo->getLessonTitle($lessonId);
+        $lessonTitle = $this->lessonRepo->getLessonTitle($lessonId);
         $action = $completed ? 'LESSON_COMPLETED' : 'LESSON_RESET';
-        $auditRepo->log($userId, $action, "Status für '$lessonTitle' geändert.");
+        $this->auditRepo->log($userId, $action, "Status für '$lessonTitle' geändert.");
 
         return $this->json(['success' => true]);
     }

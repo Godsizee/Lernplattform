@@ -7,6 +7,12 @@ class Router {
         'POST' => []
     ];
 
+    protected $container;
+
+    public function __construct($container = null) {
+        $this->container = $container;
+    }
+
     public function get($uri, $action) {
         $this->routes['GET'][$uri] = $action;
     }
@@ -43,7 +49,10 @@ class Router {
                 $fullControllerName = "\\App\\Controllers\\{$controllerName}";
                 
                 if (class_exists($fullControllerName)) {
-                    $controller = new $fullControllerName();
+                    // Dependency Injection: Pass the container to the controller
+                    // Alternatively, we could use Reflection to only pass specific dependencies,
+                    // but for this project, passing the container or having a factory is simpler.
+                    $controller = new $fullControllerName($this->container);
                     if (method_exists($controller, $method)) {
                         return $controller->$method();
                     }

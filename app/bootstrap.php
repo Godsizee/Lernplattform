@@ -42,15 +42,24 @@ spl_autoload_register(function ($class) {
 });
 
 use App\Core\Database;
+use App\Core\Container;
 use App\Repositories\UserRepository;
 use App\Repositories\LessonRepository;
 use App\Repositories\AuditLogRepository;
 
+$container = new Container();
+
 try {
     $db = Database::getInstance()->getConnection();
+    
     $userRepo = new UserRepository($db);
     $lessonRepo = new LessonRepository($db);
     $auditRepo = new AuditLogRepository($db);
+
+    $container->set('UserRepository', $userRepo);
+    $container->set('LessonRepository', $lessonRepo);
+    $container->set('AuditLogRepository', $auditRepo);
+    
 } catch (Exception $e) {
     error_log("Database Connection Error: " . $e->getMessage());
     http_response_code(500);

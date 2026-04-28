@@ -5,12 +5,19 @@ use App\Core\Controller;
 use Exception;
 
 class AuthController extends Controller {
+    private $userRepo;
+    private $auditRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->userRepo = $container->get('UserRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
+    }
+
     /**
      * Login via API
      */
     public function login() {
-        global $userRepo, $auditRepo;
-        
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         
         if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
@@ -30,7 +37,7 @@ class AuthController extends Controller {
             return $this->json(['error' => 'Bitte Benutzername/E-Mail und Passwort eingeben.'], 400);
         }
 
-        $user = $userRepo->findByLogin($login);
+        $user = $this->userRepo->findByLogin($login);
 
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['login_attempts'] = 0;
@@ -44,7 +51,7 @@ class AuthController extends Controller {
             if ($remember) {
                 $token = bin2hex(random_bytes(32));
                 $hashedToken = hash('sha256', $token);
-                $userRepo->setRememberToken($user['id'], $hashedToken);
+                $this->userRepo->setRememberToken($user['id'], $hashedToken);
                 
                 $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
                 setcookie('lern_remember', $token, [
@@ -56,7 +63,7 @@ class AuthController extends Controller {
                 ]);
             }
 
-            $auditRepo->log($user['id'], 'LOGIN', "Hat sich erfolgreich eingeloggt.");
+            $this->auditRepo->log($user['id'], 'LOGIN', "Hat sich erfolgreich eingeloggt.");
 
             return $this->json([
                 'success' => true, 
@@ -68,7 +75,7 @@ class AuthController extends Controller {
             $_SESSION['last_login_attempt'] = time();
             
             if ($user) {
-                $auditRepo->log($user['id'], 'LOGIN_FAILED', "Fehlgeschlagener Login-Versuch (falsches Passwort).");
+                $this->auditRepo->log($user['id'], 'LOGIN_FAILED', "Fehlgeschlagener Login-Versuch (falsches Passwort).");
             }
             
             return $this->json(['error' => 'Falscher Benutzername/E-Mail oder Passwort.'], 401);
@@ -79,8 +86,6 @@ class AuthController extends Controller {
      * Registrierung via API
      */
     public function register() {
-        global $userRepo, $auditRepo;
-        
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         
         $name = trim(htmlspecialchars($input['name'] ?? '', ENT_QUOTES, 'UTF-8'));
@@ -95,19 +100,19 @@ class AuthController extends Controller {
             return $this->json(['error' => 'Passwort zu schwach.'], 400);
         }
 
-        if ($userRepo->findByEmail($email)) {
+        if ($this->userRepo->findByEmail($email)) {
             return $this->json(['error' => 'Diese E-Mail-Adresse wird bereits verwendet.'], 409);
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $userId = $userRepo->create($name, $email, $hash);
+        $userId = $this->userRepo->create($name, $email, $hash);
         
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_name'] = $name;
         $_SESSION['user_role'] = 'student';
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-        $auditRepo->log($userId, 'REGISTER', "Hat sich neu auf der Plattform registriert.");
+        $this->auditRepo->log($userId, 'REGISTER', "Hat sich neu auf der Plattform registriert.");
 
         return $this->json([
             'success' => true, 
@@ -120,11 +125,9 @@ class AuthController extends Controller {
      * Logout
      */
     public function logout() {
-        global $userRepo, $auditRepo;
-        
         if (isset($_SESSION['user_id'])) {
-            $auditRepo->log($_SESSION['user_id'], 'LOGOUT', "Hat sich ausgeloggt.");
-            $userRepo->setRememberToken($_SESSION['user_id'], null);
+            $this->auditRepo->log($_SESSION['user_id'], 'LOGOUT', "Hat sich ausgeloggt.");
+            $this->userRepo->setRememberToken($_SESSION['user_id'], null);
         }
         
         setcookie('lern_remember', '', time() - 3600, '/');

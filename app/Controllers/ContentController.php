@@ -5,16 +5,24 @@ use App\Core\Controller;
 use Exception;
 
 class ContentController extends Controller {
+    private $lessonRepo;
+    private $userRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->lessonRepo = $container->get('LessonRepository');
+        $this->userRepo = $container->get('UserRepository');
+    }
+
     /**
      * Dashboard Daten für SPA
      */
     public function dashboard() {
-        global $lessonRepo, $userRepo;
         $userId = $this->requireAuth();
         
-        $subjects = $lessonRepo->getAllSubjects();
-        $progressMap = $lessonRepo->getProgress($userId);
-        $user = $userRepo->findById($userId);
+        $subjects = $this->lessonRepo->getAllSubjects();
+        $progressMap = $this->lessonRepo->getProgress($userId);
+        $user = $this->userRepo->findById($userId);
         
         return $this->json([
             'subjects' => $subjects,
@@ -27,22 +35,20 @@ class ContentController extends Controller {
      * Liste aller Fächer
      */
     public function subjects() {
-        global $lessonRepo;
         $this->requireAuth();
-        return $this->json($lessonRepo->getAllSubjects());
+        return $this->json($this->lessonRepo->getAllSubjects());
     }
 
     /**
      * Lektionen eines Fachs inkl. Fortschritt
      */
     public function lessons() {
-        global $lessonRepo;
         $userId = $this->requireAuth();
         $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
         
         $subjectId = filter_var($_GET['subject_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
         $listOnly = isset($_GET['list_only']) && $_GET['list_only'] == '1';
-        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin, !$listOnly);
+        $lessons = $this->lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin, !$listOnly);
         
         $completedIds = [];
         foreach ($lessons as &$l) {

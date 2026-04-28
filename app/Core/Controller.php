@@ -2,6 +2,11 @@
 namespace App\Core;
 
 abstract class Controller {
+    protected $container;
+
+    public function __construct($container = null) {
+        $this->container = $container;
+    }
     /**
      * Rendert eine View-Datei und übergibt Daten
      */
@@ -9,8 +14,7 @@ abstract class Controller {
         // Daten in den lokalen Scope extrahieren, damit die View darauf zugreifen kann
         extract($data);
         
-        // Globale Repositories und User-Daten für Views bereitstellen (Kompatibilität)
-        global $userRepo, $lessonRepo, $auditRepo;
+        // User-Daten für Views bereitstellen
         $user = null;
         if (isset($_SESSION['user_id'])) {
             $user = [

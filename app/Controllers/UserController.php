@@ -5,7 +5,15 @@ use App\Core\Controller;
 use Exception;
 
 class UserController extends Controller {
-    public function __construct() {
+    private $userRepo;
+    private $auditRepo;
+    private $lessonRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->userRepo = $container->get('UserRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
+        $this->lessonRepo = $container->get('LessonRepository');
         $this->requireAuth();
     }
 
@@ -13,8 +21,7 @@ class UserController extends Controller {
      * Profil laden
      */
     public function get() {
-        global $userRepo;
-        $user = $userRepo->findById($_SESSION['user_id']);
+        $user = $this->userRepo->findById($_SESSION['user_id']);
         if ($user) {
             unset($user['password_hash']);
             return $this->json($user);
@@ -26,7 +33,6 @@ class UserController extends Controller {
      * Profil aktualisieren
      */
     public function update() {
-        global $userRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -45,9 +51,9 @@ class UserController extends Controller {
             $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         }
 
-        $userRepo->updateProfile($userId, $name, $email, $passwordHash, $bio, null);
+        $this->userRepo->updateProfile($userId, $name, $email, $passwordHash, $bio, null);
         $_SESSION['user_name'] = $name;
-        $auditRepo->log($userId, 'PROFILE_UPDATE', "Hat Profildaten aktualisiert.");
+        $this->auditRepo->log($userId, 'PROFILE_UPDATE', "Hat Profildaten aktualisiert.");
 
         return $this->json(['success' => true, 'name' => $name]);
     }
@@ -56,10 +62,9 @@ class UserController extends Controller {
      * Theme Präferenz speichern
      */
     public function updateTheme() {
-        global $userRepo;
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $theme = in_array($input['theme'] ?? '', ['light', 'dark']) ? $input['theme'] : 'dark';
-        $userRepo->updateTheme($_SESSION['user_id'], $theme);
+        $this->userRepo->updateTheme($_SESSION['user_id'], $theme);
         return $this->json(['success' => true]);
     }
 
@@ -67,15 +72,14 @@ class UserController extends Controller {
      * DSGVO Daten Export
      */
     public function export() {
-        global $userRepo, $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         
-        $auditRepo->log($userId, 'PROFILE_EXPORT', "DSGVO Export angefordert.");
+        $this->auditRepo->log($userId, 'PROFILE_EXPORT', "DSGVO Export angefordert.");
         
-        $user = $userRepo->findById($userId);
+        $user = $this->userRepo->findById($userId);
         unset($user['password_hash']);
-        $progress = $lessonRepo->getLessonsWithProgress($userId);
-        $logs = $auditRepo->getLogs($userId);
+        $progress = $this->lessonRepo->getLessonsWithProgress($userId);
+        $logs = $this->auditRepo->getLogs($userId);
         
         return $this->json([
             'user' => $user,
@@ -89,12 +93,11 @@ class UserController extends Controller {
      * Aktivitäten loggen (Fire and forget)
      */
     public function logActivity() {
-        global $auditRepo;
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $action = $input['action'] ?? 'UNKNOWN';
         $details = $input['details'] ?? '';
         
-        $auditRepo->log($_SESSION['user_id'], $action, $details);
+        $this->auditRepo->log($_SESSION['user_id'], $action, $details);
         return $this->json(['success' => true]);
     }
 }
