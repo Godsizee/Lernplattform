@@ -1,4 +1,7 @@
+/* modules/Learning.js */
+import { ApiService } from '../services/ApiService.js';
 import { MarkdownParser } from './MarkdownParser.js';
+import { escapeHTML } from '../utils/Helpers.js';
 
 export class Learning {
     constructor() {
@@ -13,29 +16,17 @@ export class Learning {
             const urlSubjectId = urlParams.get('subject');
             const urlLessonId = urlParams.get('lesson');
 
-            const res = await fetch('../api/content.php?action=subjects');
-            if (!res.ok) return;
-            const subjects = await res.json();
-            
+            const subjects = await ApiService.content.getSubjects();
             this.renderTabs(subjects);
             
             if (subjects.length > 0) {
-                // Priorität: URL -> LocalStorage -> Erstes Fach
                 const activeId = urlSubjectId || localStorage.getItem('active_subject') || subjects[0].id;
                 const activeTitle = subjects.find(s => s.id == activeId)?.title || subjects[0].title;
                 
                 await this.switchTab(activeId, activeTitle);
 
-                // Wenn eine spezifische Lektion angefordert wurde, scrolle dorthin
                 if (urlLessonId) {
-                    setTimeout(() => {
-                        const target = document.getElementById(`lesson-${urlLessonId}`);
-                        if (target) {
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            target.classList.add('highlight-pulse');
-                            setTimeout(() => target.classList.remove('highlight-pulse'), 2000);
-                        }
-                    }, 500); // Kleiner Delay für Rendering
+                    this.scrollToLesson(urlLessonId);
                 }
             }
         } catch (error) {
@@ -43,18 +34,27 @@ export class Learning {
         }
     }
 
+    scrollToLesson(lessonId) {
+        setTimeout(() => {
+            const target = document.getElementById(`lesson-${lessonId}`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                target.classList.add('highlight-pulse');
+                setTimeout(() => target.classList.remove('highlight-pulse'), 2000);
+            }
+        }, 500);
+    }
+
     renderTabs(subjects) {
         const tabsContainer = document.getElementById('learning-tabs-container');
         if (!tabsContainer) return;
         
         tabsContainer.innerHTML = '';
-        
         subjects.forEach(subject => {
             const btn = document.createElement('button');
             btn.className = 'learning-tab';
             btn.dataset.subjectId = subject.id;
             btn.textContent = subject.title;
-            
             tabsContainer.appendChild(btn);
         });
     }
@@ -78,224 +78,184 @@ export class Learning {
         container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Lektionen...</div>`;
 
         try {
-            const res = await fetch(`../api/content.php?action=lessons&subject_id=${subjectId}`);
-            const data = await res.json();
+            const data = await ApiService.content.getLessons(subjectId);
 
             this.currentUserId = data.current_user_id;
             this.isAdmin = data.is_admin;
             
             container.innerHTML = '';
-
-            const headerRow = document.createElement('div');
-            headerRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;';
-            headerRow.innerHTML = `
-                <h2 style="margin: 0; color: var(--color-primary); font-family: var(--font-display);">${titleText}</h2>
-                <a href="${window.BASE_URL}/editor?subject=${subjectId}" class="create-article-btn">
-                    <i class="ph ph-plus-circle"></i> Beitrag erstellen
-                </a>
-            `;
-            container.appendChild(headerRow);
+            this.renderLessonsHeader(container, subjectId, titleText);
 
             if (data.lessons.length === 0) {
                 container.innerHTML += `<div class="content-card"><p>Noch keine Beiträge in diesem Fach. Sei der Erste!</p></div>`;
                 return;
             }
 
-            const readLessons = new Set();
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const lId = entry.target.dataset.lessonId;
-                        const lTitle = entry.target.dataset.lessonTitle;
-                        if (!readLessons.has(lId)) {
-                            readLessons.add(lId);
-                            fetch('../api/log.php', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    action: 'LESSON_READ',
-                                    details: `Liest die Lektion '${lTitle}'.`
-                                })
-                            }).catch(() => {});
-                        }
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            const tocWrapper = document.createElement('div');
-            tocWrapper.className = 'content-card toc-card';
-            tocWrapper.innerHTML = `<h3>Inhaltsverzeichnis</h3>`;
-            const tocList = document.createElement('ul');
-            tocList.className = 'toc-list';
-            
-            data.lessons.forEach(lesson => {
-                const isCompleted = data.progress.includes(lesson.id);
-                
-                const li = document.createElement('li');
-                li.className = 'toc-item';
-                const link = document.createElement('a');
-                link.href = `#lesson-${lesson.id}`;
-                link.className = 'toc-link';
-                if (isCompleted) link.classList.add('completed');
-                
-                const iconHtml = isCompleted ? `<i class="ph-fill ph-check-circle toc-icon"></i>` : `<i class="ph ph-circle toc-icon"></i>`;
-                let titleHtml = `<span class="toc-text">${window.escapeHTML(lesson.title)}</span>`;
-
-                if (lesson.article_status === 'draft') {
-                    titleHtml += ` <span class="draft-badge"><i class="ph ph-note-pencil"></i> Entwurf</span>`;
-                }
-                
-                link.innerHTML = `${iconHtml}${titleHtml}`;
-                
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const target = document.getElementById(`lesson-${lesson.id}`);
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-                
-                li.appendChild(link);
-                tocList.appendChild(li);
-
-                const lessonWrapper = document.createElement('div');
-                lessonWrapper.className = `content-card learning-content searchable-block fade-in`;
-                lessonWrapper.id = `lesson-${lesson.id}`;
-                lessonWrapper.dataset.lessonId = lesson.id;
-                lessonWrapper.dataset.lessonTitle = lesson.title;
-                lessonWrapper.style.marginBottom = '3rem';
-                lessonWrapper.style.scrollMarginTop = '100px'; 
-
-                const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
-                const isDraft = lesson.article_status === 'draft';
-
-                let metaHtml = '<div class="article-meta">';
-                if (lesson.author_name) {
-                    metaHtml += `<span class="author-badge"><i class="ph ph-user"></i> ${window.escapeHTML(lesson.author_name)}</span>`;
-                }
-                if (isDraft) {
-                    metaHtml += `<span class="draft-badge"><i class="ph ph-note-pencil"></i> Entwurf</span>`;
-                }
-                if (lesson.created_at) {
-                    const dateStr = new Date(lesson.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    metaHtml += `<span class="article-date"><i class="ph ph-calendar-blank"></i> ${dateStr}</span>`;
-                }
-                if (lesson.updated_at && lesson.created_at && lesson.updated_at !== lesson.created_at) {
-                    const updStr = new Date(lesson.updated_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    metaHtml += `<span class="article-date"><i class="ph ph-pencil-simple"></i> bearbeitet ${updStr}</span>`;
-                }
-                if (canEdit) {
-                    metaHtml += `
-                        <div class="article-actions">
-                            <a href="${window.BASE_URL}/editor?id=${lesson.id}" class="btn btn-secondary" title="Bearbeiten">
-                                <i class="ph ph-pencil-simple"></i>
-                            </a>
-                            <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" data-title="${window.escapeHTML(lesson.title)}" title="Löschen">
-                                <i class="ph ph-trash"></i>
-                            </button>
-                        </div>`;
-                }
-                metaHtml += '</div>';
-
-                const contentHtml = lesson.content_raw
-                    ? this.parser.parse(lesson.content_raw)
-                    : lesson.content;
-
-                lessonWrapper.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-                        <h2 style="margin:0; font-family: var(--font-display);">${window.escapeHTML(lesson.title)}</h2>
-                        <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" 
-                                data-lesson-id="${lesson.id}"
-                                style="font-size: 0.9rem; padding: 0.5rem 1rem; white-space: nowrap;">
-                            <i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> 
-                            ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}
-                        </button>
-                    </div>
-                    ${metaHtml}
-                    <div class="lesson-body" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-primary); margin-top: 1.25rem;">
-                        ${contentHtml}
-                    </div>
-                `;
-
-                const btn = lessonWrapper.querySelector('.toggle-lesson-btn');
-                btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
-
-                const deleteBtn = lessonWrapper.querySelector('.delete-article-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', () => this.deleteArticle(lesson.id, lesson.title, subjectId));
-                }
-
-                container.appendChild(lessonWrapper);
-                observer.observe(lessonWrapper);
-            });
-            
-            tocWrapper.appendChild(tocList);
-            container.insertBefore(tocWrapper, container.children[1]);
+            this.renderTOC(container, data.lessons, data.progress);
+            this.renderLessonsList(container, data.lessons, data.progress, subjectId);
 
         } catch (error) {
             container.innerHTML = `<div class="form-error">Fehler beim Laden der Lektionen.</div>`;
         }
     }
 
-    async deleteArticle(articleId, title, subjectId) {
-        if (!confirm(`Beitrag "${title}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`)) return;
+    renderLessonsHeader(container, subjectId, titleText) {
+        const headerRow = document.createElement('div');
+        headerRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;';
+        headerRow.innerHTML = `
+            <h2 style="margin: 0; color: var(--color-primary); font-family: var(--font-display);">${titleText}</h2>
+            <a href="${window.BASE_URL}/editor?subject=${subjectId}" class="create-article-btn">
+                <i class="ph ph-plus-circle"></i> Beitrag erstellen
+            </a>
+        `;
+        container.appendChild(headerRow);
+    }
 
-        try {
-            const res = await fetch('../api/articles.php?action=delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: articleId })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                this.switchTab(subjectId);
-            } else {
-                alert(data.error || 'Fehler beim Löschen.');
+    renderTOC(container, lessons, progress) {
+        const tocWrapper = document.createElement('div');
+        tocWrapper.className = 'content-card toc-card';
+        tocWrapper.innerHTML = `<h3>Inhaltsverzeichnis</h3>`;
+        const tocList = document.createElement('ul');
+        tocList.className = 'toc-list';
+        
+        lessons.forEach(lesson => {
+            const isCompleted = progress.includes(lesson.id);
+            const li = document.createElement('li');
+            li.className = 'toc-item';
+            const link = document.createElement('a');
+            link.href = `#lesson-${lesson.id}`;
+            link.className = `toc-link ${isCompleted ? 'completed' : ''}`;
+            
+            const iconClass = isCompleted ? 'ph-fill ph-check-circle' : 'ph ph-circle';
+            let titleHtml = `<span class="toc-text">${escapeHTML(lesson.title)}</span>`;
+            if (lesson.article_status === 'draft') {
+                titleHtml += ` <span class="draft-badge"><i class="ph ph-note-pencil"></i> Entwurf</span>`;
             }
-        } catch (e) {
-            alert('Verbindungsfehler.');
+            
+            link.innerHTML = `<i class="${iconClass} toc-icon"></i>${titleHtml}`;
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById(`lesson-${lesson.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            
+            li.appendChild(link);
+            tocList.appendChild(li);
+        });
+        
+        tocWrapper.appendChild(tocList);
+        container.appendChild(tocWrapper);
+    }
+
+    renderLessonsList(container, lessons, progress, subjectId) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const { lessonId, lessonTitle } = entry.target.dataset;
+                    ApiService.log.add('LESSON_READ', `Liest die Lektion '${lessonTitle}'.`);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        lessons.forEach(lesson => {
+            const isCompleted = progress.includes(lesson.id);
+            const lessonWrapper = this.createLessonElement(lesson, isCompleted, subjectId);
+            container.appendChild(lessonWrapper);
+            observer.observe(lessonWrapper);
+        });
+    }
+
+    createLessonElement(lesson, isCompleted, subjectId) {
+        const lessonWrapper = document.createElement('div');
+        lessonWrapper.className = `content-card learning-content searchable-block fade-in`;
+        lessonWrapper.id = `lesson-${lesson.id}`;
+        lessonWrapper.dataset.lessonId = lesson.id;
+        lessonWrapper.dataset.lessonTitle = lesson.title;
+        lessonWrapper.style.marginBottom = '3rem';
+        lessonWrapper.style.scrollMarginTop = '100px'; 
+
+        const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
+        const contentHtml = lesson.content_raw ? this.parser.parse(lesson.content_raw) : lesson.content;
+
+        lessonWrapper.innerHTML = `
+            <div class="lesson-header">
+                <h2 class="lesson-title">${escapeHTML(lesson.title)}</h2>
+                <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn">
+                    <i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> 
+                    ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}
+                </button>
+            </div>
+            ${this.renderArticleMeta(lesson, canEdit)}
+            <div class="lesson-body">
+                ${contentHtml}
+            </div>
+        `;
+
+        lessonWrapper.querySelector('.toggle-lesson-btn').addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
+        
+        const deleteBtn = lessonWrapper.querySelector('.delete-article-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => this.deleteArticle(lesson.id, lesson.title, subjectId));
         }
+
+        return lessonWrapper;
+    }
+
+    renderArticleMeta(lesson, canEdit) {
+        let metaHtml = '<div class="article-meta">';
+        if (lesson.author_name) metaHtml += `<span class="author-badge"><i class="ph ph-user"></i> ${escapeHTML(lesson.author_name)}</span>`;
+        if (lesson.article_status === 'draft') metaHtml += `<span class="draft-badge"><i class="ph ph-note-pencil"></i> Entwurf</span>`;
+        
+        const dateStr = new Date(lesson.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        metaHtml += `<span class="article-date"><i class="ph ph-calendar-blank"></i> ${dateStr}</span>`;
+        
+        if (canEdit) {
+            metaHtml += `
+                <div class="article-actions">
+                    <a href="${window.BASE_URL}/editor?id=${lesson.id}" class="btn btn-secondary" title="Bearbeiten">
+                        <i class="ph ph-pencil-simple"></i>
+                    </a>
+                    <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" title="Löschen">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>`;
+        }
+        metaHtml += '</div>';
+        return metaHtml;
     }
 
     async toggleLesson(lessonId, markAsCompleted) {
         try {
-            const res = await fetch('../api/progress.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lesson_id: lessonId, completed: markAsCompleted })
-            });
-            
-            if (res.ok) {
-                const lessonWrapper = document.getElementById(`lesson-${lessonId}`);
-                if (lessonWrapper) {
-                    const btn = lessonWrapper.querySelector('.toggle-lesson-btn');
-                    if (btn) {
-                        btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn`;
-                        btn.innerHTML = `<i class="ph ${markAsCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${markAsCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
-                        const newBtn = btn.cloneNode(true);
-                        btn.parentNode.replaceChild(newBtn, btn);
-                        newBtn.addEventListener('click', () => this.toggleLesson(lessonId, !markAsCompleted));
-                    }
-                }
-
-                const tocLink = document.querySelector(`.toc-link[href="#lesson-${lessonId}"]`);
-                if (tocLink) {
-                    const text = tocLink.querySelector('.toc-text').textContent;
-                    const draftBadge = tocLink.querySelector('.draft-badge');
-                    const draftHtml = draftBadge ? ` ${draftBadge.outerHTML}` : '';
-                    if (markAsCompleted) {
-                        tocLink.classList.add('completed');
-                        tocLink.innerHTML = `<i class="ph-fill ph-check-circle toc-icon"></i><span class="toc-text">${text}</span>${draftHtml}`;
-                    } else {
-                        tocLink.classList.remove('completed');
-                        tocLink.innerHTML = `<i class="ph ph-circle toc-icon"></i><span class="toc-text">${text}</span>${draftHtml}`;
-                    }
-                }
+            await ApiService.progress.toggle(lessonId, markAsCompleted);
+            const lessonWrapper = document.getElementById(`lesson-${lessonId}`);
+            if (lessonWrapper) {
+                const btn = lessonWrapper.querySelector('.toggle-lesson-btn');
+                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn`;
+                btn.innerHTML = `<i class="ph ${markAsCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${markAsCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
                 
+                // Re-attach listener
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', () => this.toggleLesson(lessonId, !markAsCompleted));
+            }
+
+            const tocLink = document.querySelector(`.toc-link[href="#lesson-${lessonId}"]`);
+            if (tocLink) {
+                tocLink.classList.toggle('completed', markAsCompleted);
+                const icon = tocLink.querySelector('.toc-icon');
+                icon.className = markAsCompleted ? 'ph-fill ph-check-circle toc-icon' : 'ph ph-circle toc-icon';
             }
         } catch (error) {
             console.error('Error toggling progress:', error);
+        }
+    }
+
+    async deleteArticle(articleId, title, subjectId) {
+        if (!confirm(`Beitrag "${title}" wirklich löschen?`)) return;
+        try {
+            await ApiService.articles.delete(articleId);
+            this.switchTab(subjectId);
+        } catch (e) {
+            alert(e.message || 'Fehler beim Löschen.');
         }
     }
 }

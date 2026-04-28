@@ -1,86 +1,71 @@
+/* modules/Admin.js */
+import { ApiService } from '../services/ApiService.js';
+import { escapeHTML } from '../utils/Helpers.js';
+
 export class Admin {
     constructor() { }
 
     async loadAdminData() {
         try {
-            // Nutzer laden
-            const userRes = await fetch('../api/admin.php?action=users');
-            if (userRes.ok) {
-                const users = await userRes.json();
-                const tbody = document.getElementById('admin-users-tbody');
-                const filter = document.getElementById('audit-user-filter');
-                if (tbody) {
-                    tbody.innerHTML = '';
-                    users.forEach(u => {
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${u.id}</td>
-                                <td>${window.escapeHTML(u.name)}</td>
-                                <td>${window.escapeHTML(u.email)}</td>
-                                <td>
-                                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.3rem; margin:0; height:auto; background:transparent;">
-                                        <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
-                                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button class="btn btn-danger admin-del-user" data-id="${u.id}" style="padding: 0.3rem 0.6rem;"><i class="ph ph-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                if (filter) {
-                    const currentFilter = filter.value;
-                    filter.innerHTML = '<option value="">Alle Nutzer</option>';
-                    users.forEach(u => {
-                        filter.innerHTML += `<option value="${u.id}">${window.escapeHTML(u.name)}</option>`;
-                    });
-                    filter.value = currentFilter;
-                }
-            }
-
-            // Logs laden
+            const users = await ApiService.admin.getUsers();
+            this.renderUsersTable(users);
+            this.renderUserFilter(users);
+            
             await this.loadAuditLogs();
-
         } catch (error) {
             console.error('Error loading admin data:', error);
         }
     }
 
+    renderUsersTable(users) {
+        const tbody = document.getElementById('admin-users-tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td>${escapeHTML(u.name)}</td>
+                <td>${escapeHTML(u.email)}</td>
+                <td>
+                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.3rem; margin:0; height:auto; background:transparent;">
+                        <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-danger admin-del-user" data-id="${u.id}" style="padding: 0.3rem 0.6rem;"><i class="ph ph-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    renderUserFilter(users) {
+        const filter = document.getElementById('audit-user-filter');
+        if (!filter) return;
+
+        const currentFilter = filter.value;
+        filter.innerHTML = '<option value="">Alle Nutzer</option>' + 
+            users.map(u => `<option value="${u.id}">${escapeHTML(u.name)}</option>`).join('');
+        filter.value = currentFilter;
+    }
+
     async adminSetRole(userId, role) {
         if (!confirm('Rolle wirklich ändern?')) return;
         try {
-            const res = await fetch('../api/admin.php?action=set_role', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId, role: role })
-            });
-            const data = await res.json();
-            if (!data.success) alert(data.error || 'Fehler beim Ändern der Rolle.');
-            this.loadAuditLogs();
+            await ApiService.admin.setRole(userId, role);
+            await this.loadAuditLogs();
         } catch (error) {
-            alert('Verbindungsfehler.');
+            alert(error.message || 'Verbindungsfehler.');
         }
     }
 
     async adminDeleteUser(userId) {
-        if (!confirm('Nutzer und ALLE seine Daten wirklich löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+        if (!confirm('Nutzer und ALLE seine Daten wirklich löschen?')) return;
         try {
-            const res = await fetch('../api/admin.php?action=delete_user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                this.loadAdminData();
-            } else {
-                alert(data.error || 'Fehler beim Löschen des Nutzers.');
-            }
+            await ApiService.admin.deleteUser(userId);
+            await this.loadAdminData();
         } catch (error) {
-            alert('Verbindungsfehler.');
+            alert(error.message || 'Verbindungsfehler.');
         }
     }
 
@@ -91,11 +76,9 @@ export class Admin {
         container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Logs...</div>`;
 
         try {
-            const res = await fetch(`../api/admin.php?action=audit${userId ? '&user_id=' + userId : ''}`);
-            if (!res.ok) return;
-            const logs = await res.json();
-
+            const logs = await ApiService.admin.getAuditLogs(userId);
             container.innerHTML = '';
+            
             if (logs.length === 0) {
                 container.innerHTML = '<p style="color:var(--text-secondary); margin-left: 1rem;">Keine Aktivitäten gefunden.</p>';
                 return;
@@ -111,20 +94,17 @@ export class Admin {
                     hour: '2-digit', minute: '2-digit'
                 });
 
-                let detailsHtml = window.escapeHTML(log.details);
-                detailsHtml = detailsHtml.replace(
+                let detailsHtml = escapeHTML(log.details).replace(
                     /\{\{article:(\d+)\}\}/g,
-                    (_match, id) => `<a href="${window.BASE_URL}/learning#lesson-${id}" class="audit-article-link" title="Zum Beitrag"><i class="ph ph-arrow-square-out"></i> Beitrag ansehen</a>`
+                    (_match, id) => `<a href="${window.BASE_URL}/learning#lesson-${id}" class="audit-article-link"><i class="ph ph-arrow-square-out"></i> Beitrag ansehen</a>`
                 );
 
                 item.innerHTML = `
                     <div class="audit-meta">
-                        <span><i class="ph ph-user"></i> ${window.escapeHTML(log.user_name)}</span>
+                        <span><i class="ph ph-user"></i> ${escapeHTML(log.user_name)}</span>
                         <span><i class="ph ph-clock"></i> ${date}</span>
                     </div>
-                    <div class="audit-text">
-                        ${detailsHtml}
-                    </div>
+                    <div class="audit-text">${detailsHtml}</div>
                 `;
                 container.appendChild(item);
             });

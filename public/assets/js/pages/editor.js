@@ -1,4 +1,6 @@
+/* pages/editor.js */
 import { Editor } from '../modules/Editor.js';
+import { ApiService } from '../services/ApiService.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
@@ -15,39 +17,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const editor = new Editor('article-editor-container');
 
-    // Fächer laden
+    // Fächer laden via ApiService
     try {
-        const res = await fetch('../api/content.php?action=subjects');
-        if (res.ok) {
-            const subjects = await res.json();
-            subjects.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.title;
-                subjectSelect.appendChild(opt);
-            });
-        }
+        const subjects = await ApiService.content.getSubjects();
+        subjects.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.title;
+            subjectSelect.appendChild(opt);
+        });
     } catch (e) {
         console.error('Fehler beim Laden der Fächer:', e);
     }
 
     // Wenn Editiert wird: Daten laden
     if (isEditing) {
-        pageTitle.textContent = 'Beitrag bearbeiten';
-        pageSubtitle.textContent = 'Überarbeite deinen bestehenden Beitrag.';
+        if (pageTitle) pageTitle.textContent = 'Beitrag bearbeiten';
+        if (pageSubtitle) pageSubtitle.textContent = 'Überarbeite deinen bestehenden Beitrag.';
 
         try {
-            const res = await fetch(`../api/articles.php?action=get&id=${editId}`);
-            if (res.ok) {
-                const article = await res.json();
-                subjectSelect.value = article.subject_id;
-                titleInput.value = article.title;
-                editor.render(article.content_raw || '');
-            } else {
-                showMessage('Beitrag nicht gefunden oder keine Berechtigung.', false);
-            }
+            const article = await ApiService.articles.get(editId);
+            subjectSelect.value = article.subject_id;
+            titleInput.value = article.title;
+            editor.render(article.content_raw || '');
         } catch (e) {
-            showMessage('Fehler beim Laden des Beitrags.', false);
+            showMessage('Beitrag nicht gefunden oder keine Berechtigung.', false);
         }
     } else {
         const preselectedSubject = params.get('subject');
@@ -56,10 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Event Listener für die Buttons
-    btnSaveDraft.addEventListener('click', () => saveArticle('draft', btnSaveDraft));
-    btnPublish.addEventListener('click', () => saveArticle('published', btnPublish));
+    if (btnSaveDraft) btnSaveDraft.addEventListener('click', () => saveArticle('draft', btnSaveDraft));
+    if (btnPublish) btnPublish.addEventListener('click', () => saveArticle('published', btnPublish));
 
-    // Zentralisierte Speicher-Funktion
     async function saveArticle(targetStatus, activeBtn) {
         const subjectId = subjectSelect.value;
         const title = titleInput.value.trim();
@@ -70,11 +63,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Button State
         const origHtml = activeBtn.innerHTML;
-        activeBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> <span>Speichert...</span>';
-        btnSaveDraft.disabled = true;
-        btnPublish.disabled = true;
+        setLoading(activeBtn, true);
 
         try {
             const payload = {
@@ -84,39 +74,39 @@ document.addEventListener('DOMContentLoaded', async () => {
                 status: targetStatus
             };
 
-            let url = '../api/articles.php?action=create';
             if (isEditing) {
                 payload.id = parseInt(editId);
-                url = '../api/articles.php?action=update';
             }
 
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const data = await ApiService.articles.save(payload);
 
-            const data = await res.json();
-
-            if (res.ok && data.success) {
+            if (data.success) {
                 const verb = isEditing ? 'aktualisiert' : 'erstellt';
                 const statusText = targetStatus === 'draft' ? ' (als Entwurf)' : '';
                 showMessage(`Beitrag erfolgreich ${verb}${statusText}!`, true);
 
-                // Wenn veröffentlicht oder neu erstellt: Zurück zur Liste
                 if (targetStatus === 'published' || (!isEditing && data.id)) {
                     setTimeout(() => {
-                        window.location.href = window.BASE_URL + '/learning';
+                        window.location.href = `${window.BASE_URL}/learning`;
                     }, 1200);
                 }
             } else {
-                showMessage(data.error || 'Fehler beim Speichern.', false);
+                throw new Error(data.error || 'Fehler beim Speichern.');
             }
         } catch (e) {
-            showMessage('Verbindungsfehler.', false);
+            showMessage(e.message || 'Verbindungsfehler.', false);
         } finally {
-            // Button State Reset
-            activeBtn.innerHTML = origHtml;
+            setLoading(activeBtn, false, origHtml);
+        }
+    }
+
+    function setLoading(btn, isLoading, originalText = '') {
+        if (isLoading) {
+            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> <span>Speichert...</span>';
+            btnSaveDraft.disabled = true;
+            btnPublish.disabled = true;
+        } else {
+            btn.innerHTML = originalText;
             btnSaveDraft.disabled = false;
             btnPublish.disabled = false;
         }

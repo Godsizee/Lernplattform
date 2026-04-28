@@ -1,22 +1,18 @@
+/* pages/profile.js */
 import { Profile } from '../modules/Profile.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const profile = new Profile({
-        container: document.getElementById('view-container')
-    });
-
+    const profile = new Profile();
     await profile.loadData();
 
-    // Profil Aktionen
-    document.getElementById('profile-form').addEventListener('submit', (e) => {
-        profile.handleUpdate(e);
-    });
+    // Event-Bindung für zusätzliche Aktionen
+    const exportBtn = document.getElementById('export-data-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => profile.exportData());
+    }
 
-    document.getElementById('export-data-btn').addEventListener('click', () => {
-        profile.exportData();
-    });
-
-    document.getElementById('delete-account-btn').addEventListener('click', () => {
-        profile.deleteAccount();
-    });
+    const deleteBtn = document.getElementById('delete-account-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => profile.deleteAccount());
+    }
 });

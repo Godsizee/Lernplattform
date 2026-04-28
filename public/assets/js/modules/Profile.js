@@ -1,21 +1,33 @@
+/* modules/Profile.js */
+import { ApiService } from '../services/ApiService.js';
+import { Auth } from './Auth.js';
+
 export class Profile {
-    constructor(app) {
-        this.app = app;
+    constructor() {
+        this.form = document.getElementById('profile-form');
+        this.init();
+    }
+
+    init() {
+        if (this.form) {
+            this.form.addEventListener('submit', (e) => this.handleUpdate(e));
+        }
     }
 
     async loadData() {
         try {
-            const res = await fetch('../api/profile.php?action=get');
-            if (!res.ok) return;
-            const data = await res.json();
+            const data = await ApiService.profile.get();
             
-            const nameEl = document.getElementById('profile-name');
-            const emailEl = document.getElementById('profile-email');
-            const bioEl = document.getElementById('profile-bio');
-            
-            if (nameEl) nameEl.value = data.name || '';
-            if (emailEl) emailEl.value = data.email || '';
-            if (bioEl) bioEl.value = data.bio || '';
+            const fields = {
+                'profile-name': data.name,
+                'profile-email': data.email,
+                'profile-bio': data.bio
+            };
+
+            Object.entries(fields).forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val || '';
+            });
         } catch (error) {
             console.error('Error loading profile data:', error);
         }
@@ -27,9 +39,7 @@ export class Profile {
         const err = document.getElementById('profile-error');
         const origHtml = btn.innerHTML;
         
-        btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
-        btn.disabled = true;
-        
+        this.setLoading(btn, true);
         if (err) err.textContent = '';
 
         try {
@@ -40,34 +50,27 @@ export class Profile {
                 bio: document.getElementById('profile-bio').value
             };
 
-            const res = await fetch('../api/profile.php?action=update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
+            const data = await ApiService.profile.update(payload);
             
-            if (res.ok && data.success) {
-                if (this.app.user) {
-                    this.app.user.name = data.name;
-                    this.app.updateUIForUser();
-                }
-                
+            if (data.success) {
                 document.getElementById('profile-password').value = '';
-
                 btn.innerHTML = '<i class="ph ph-check"></i> Gespeichert';
-                setTimeout(() => {
-                    btn.innerHTML = origHtml;
-                    btn.disabled = false;
-                }, 2000);
+                setTimeout(() => this.setLoading(btn, false, origHtml), 2000);
             } else {
-                if (err) err.textContent = data.error || 'Fehler beim Speichern.';
-                btn.innerHTML = origHtml;
-                btn.disabled = false;
+                throw new Error(data.error || 'Fehler beim Speichern.');
             }
         } catch (error) {
-            if (err) err.textContent = 'Verbindungsfehler.';
-            btn.innerHTML = origHtml;
+            if (err) err.textContent = error.message;
+            this.setLoading(btn, false, origHtml);
+        }
+    }
+
+    setLoading(btn, isLoading, originalText = '') {
+        if (isLoading) {
+            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
+            btn.disabled = true;
+        } else {
+            btn.innerHTML = originalText;
             btn.disabled = false;
         }
     }
@@ -76,23 +79,16 @@ export class Profile {
         if (!confirm('Achtung! Dies löscht dein Konto unwiderruflich! Bist du sicher?')) return;
         
         try {
-            const res = await fetch('../api/profile.php?action=delete', { method: 'POST' });
-            if (res.ok) {
-                this.app.auth.logout();
-            } else {
-                alert('Fehler beim Löschen des Accounts.');
-            }
+            await ApiService.request('profile.php?action=delete', { method: 'POST' });
+            Auth.logout();
         } catch (error) {
-            alert('Verbindungsfehler beim Löschen des Accounts.');
+            alert('Fehler beim Löschen des Accounts.');
         }
     }
 
     async exportData() {
         try {
-            const res = await fetch('../api/profile.php?action=export');
-            if (!res.ok) throw new Error('Export failed');
-            
-            const data = await res.json();
+            const data = await ApiService.request('profile.php?action=export');
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = window.URL.createObjectURL(blob);
             
