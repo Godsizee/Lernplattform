@@ -155,8 +155,11 @@
 @media (min-width: 768px) {
     .sidebar { 
         position: sticky; 
+        top: 0;
         left: 0; 
         box-shadow: none; 
+        align-self: flex-start; /* Zwingend erforderlich für sticky im Flex-Layout */
+        overflow-y: auto; /* Erlaubt das Scrollen des Menüs, falls es sehr lang wird */
     }
     
     .sidebar.collapsed {

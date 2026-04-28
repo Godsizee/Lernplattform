@@ -44,7 +44,7 @@
 .learning-main {
     flex: 1;
     min-width: 0; /* Verhindert Flexbox-Overflow-Bugs */
-    max-width: 850px; /* Optimale Breite für langen Fließtext */
+    max-width: 100%; /* Nimmt nun den gesamten Platz ein, besonders wenn die Sidebar einklappt */
 }
 
 /* Wunderschöner Empty-State, wenn keine Lektion gewählt ist */
