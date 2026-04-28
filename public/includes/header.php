@@ -39,6 +39,7 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
     <script>
         // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';
@@ -53,11 +54,6 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
         
         // Globale BASE_URL für JavaScript
         window.BASE_URL = '<?= BASE_URL ?>';
-
-        // CSRF-Token mit dem LocalStorage synchronisieren (wichtig nach Auto-Logins)
-        <?php if (isset($_SESSION['csrf_token'])): ?>
-        localStorage.setItem('csrf_token', '<?= $_SESSION['csrf_token'] ?>');
-        <?php endif; ?>
     </script>
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">

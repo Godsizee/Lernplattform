@@ -67,8 +67,7 @@ class AuthController extends Controller {
 
             return $this->json([
                 'success' => true, 
-                'user' => ['id' => $user['id'], 'name' => $user['name'], 'role' => $user['role']],
-                'csrf_token' => $_SESSION['csrf_token']
+                'user' => ['id' => $user['id'], 'name' => $user['name'], 'role' => $user['role']]
             ]);
         } else {
             $_SESSION['login_attempts']++;
@@ -116,8 +115,7 @@ class AuthController extends Controller {
 
         return $this->json([
             'success' => true, 
-            'user' => ['id' => $userId, 'name' => $name, 'role' => 'student'],
-            'csrf_token' => $_SESSION['csrf_token']
+            'user' => ['id' => $userId, 'name' => $name, 'role' => 'student']
         ]);
     }
 

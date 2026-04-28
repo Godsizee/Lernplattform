@@ -13,7 +13,7 @@ export class ApiService {
 
         // CSRF Token automatisch hinzufügen, falls vorhanden
         if (config.method && config.method.toUpperCase() !== 'GET') {
-            const token = localStorage.getItem('csrf_token');
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
             if (token) {
                 config.headers['X-CSRF-Token'] = token;
             }

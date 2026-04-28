@@ -61,7 +61,6 @@ export class Auth {
                 : ApiService.auth.register(payload));
 
             if (data.success) {
-                if (data.csrf_token) localStorage.setItem('csrf_token', data.csrf_token);
                 return true;
             } else {
                 throw new Error(data.error || 'Fehler bei der Authentifizierung.');
@@ -77,7 +76,6 @@ export class Auth {
     static async logout() {
         try {
             await ApiService.auth.logout();
-            localStorage.removeItem('csrf_token');
             window.location.href = `${window.BASE_URL}/login`;
         } catch (error) {
             console.error('Logout failed:', error);
