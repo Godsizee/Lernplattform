@@ -62,7 +62,7 @@ class Router {
 
     protected function callAction($action, $params = []) {
         if (is_callable($action)) {
-            return call_user_func_array($action, $params);
+            return call_user_func_array($action, array_values($params));
         }
 
         if (is_string($action)) {
@@ -74,7 +74,7 @@ class Router {
                 if (class_exists($fullControllerName)) {
                     $controller = new $fullControllerName($this->container);
                     if (method_exists($controller, $method)) {
-                        return call_user_func_array([$controller, $method], $params);
+                        return call_user_func_array([$controller, $method], array_values($params));
                     }
                 }
                 throw new \Exception("Controller oder Methode nicht gefunden: {$action}");
