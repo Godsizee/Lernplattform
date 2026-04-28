@@ -4,15 +4,14 @@
     flex-direction: column;
     min-height: 100vh;
     width: 100%;
-    /* overflow-x: hidden wurde hier entfernt, da es position: sticky zerschießt */
+    /* overflow-x: hidden; WURDE ENTFERNT: Zerstört position: sticky! */
+    overflow-x: clip; 
 }
 
 .main-content {
     flex: 1;
     padding: 1.5rem 1rem;
-    /* overflow-y und overflow-x entfernt, damit die gesamte Seite sauber scrollt */
     width: 100%;
-    min-width: 0; /* Wichtig, damit Flex-Items wachsen/schrumpfen können */
     display: block;
     position: relative;
 }

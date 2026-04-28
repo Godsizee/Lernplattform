@@ -30,6 +30,7 @@
     flex-shrink: 0;
     position: sticky;
     top: 100px;
+    align-self: flex-start; /* Stellt sicher, dass das Element im Flex-Container am Browser-Rand klebt */
     height: calc(100vh - 120px);
     overflow-y: auto;
     padding-bottom: 2rem;

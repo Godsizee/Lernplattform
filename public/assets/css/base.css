@@ -11,7 +11,10 @@ html,
 body {
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    /* WICHTIG: 'hidden' zerschießt position: sticky. 
+       Wir nutzen stattdessen 'clip', um horizontales Scrollen zu verhindern,
+       ohne das Sticky-Verhalten der Sidebars zu zerstören. */
+    overflow-x: clip; 
 }
 
 /* Bilder dürfen niemals ihren Container sprengen */
