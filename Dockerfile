@@ -4,7 +4,7 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql
 
-# Apache mod_rewrite aktivieren (für SPA Routing)
+# Apache mod_rewrite aktivieren (für zentrales Routing)
 RUN a2enmod rewrite
 
 # DocumentRoot sicher auf /public setzen
@@ -18,14 +18,10 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 # Sicherstellen, dass Apache Überschreibungen (htaccess) erlaubt und Zugriff gewährt.
-# WICHTIG: Einen Alias für /api setzen, damit das Routing von /api nicht ins Leere (ins public-Verzeichnis) läuft!
+# HINWEIS: Der alte Alias für /api wurde entfernt. Alle Anfragen (inkl. /api/*) 
+# werden nun von mod_rewrite an public/index.php weitergeleitet.
 RUN echo '<Directory "/var/www/html/public">\n\
     Options Indexes FollowSymLinks\n\
-    AllowOverride All\n\
-    Require all granted\n\
-    </Directory>\n\
-    Alias /api /var/www/html/api\n\
-    <Directory "/var/www/html/api">\n\
     AllowOverride All\n\
     Require all granted\n\
     </Directory>' >> /etc/apache2/apache2.conf
