@@ -1,26 +1,45 @@
 <?php
-require_once __DIR__ . '/init.php';
+namespace App\Controllers;
 
-$userId = requireAuth();
-$action = $_GET['action'] ?? 'dashboard';
-$isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
+use App\Core\Controller;
+use Exception;
 
-try {
-    if ($action === 'dashboard') {
+class ContentController extends Controller {
+    /**
+     * Dashboard Daten für SPA
+     */
+    public function dashboard() {
+        global $lessonRepo, $userRepo;
+        $userId = $this->requireAuth();
+        
         $subjects = $lessonRepo->getAllSubjects();
         $progressMap = $lessonRepo->getProgress($userId);
         $user = $userRepo->findById($userId);
         
-        sendJson([
+        return $this->json([
             'subjects' => $subjects,
             'progress' => $progressMap,
             'streak' => $user['streak'] ?? 0
         ]);
     }
-    elseif ($action === 'subjects') {
-        sendJson($lessonRepo->getAllSubjects());
+
+    /**
+     * Liste aller Fächer
+     */
+    public function subjects() {
+        global $lessonRepo;
+        $this->requireAuth();
+        return $this->json($lessonRepo->getAllSubjects());
     }
-    elseif ($action === 'lessons') {
+
+    /**
+     * Lektionen eines Fachs inkl. Fortschritt
+     */
+    public function lessons() {
+        global $lessonRepo;
+        $userId = $this->requireAuth();
+        $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
+        
         $subjectId = filter_var($_GET['subject_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
         $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin);
         
@@ -30,21 +49,16 @@ try {
                 $completedIds[] = $l['id'];
             }
             if (!$isAdmin) {
-                $l['author_name'] = null;
+                $l['author_name'] = null; // Datenschutz: Autorennamen für Studenten ausblenden
             }
         }
         unset($l);
         
-        sendJson([
+        return $this->json([
             'lessons' => $lessons,
             'progress' => $completedIds,
             'current_user_id' => $userId,
             'is_admin' => $isAdmin
         ]);
-    } else {
-        sendJson(['error' => 'Ungültige Aktion'], 400);
     }
-} catch (Exception $e) {
-    error_log("Content API Error: " . $e->getMessage());
-    sendJson(['error' => 'Datenbankfehler beim Laden der Inhalte.'], 500);
 }

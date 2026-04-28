@@ -37,14 +37,26 @@ class Router {
         }
 
         if (is_string($action)) {
-            // Die Ansicht laden
+            // Check if it's a Controller@action format
+            if (strpos($action, '@') !== false) {
+                list($controllerName, $method) = explode('@', $action);
+                $fullControllerName = "\\App\\Controllers\\{$controllerName}";
+                
+                if (class_exists($fullControllerName)) {
+                    $controller = new $fullControllerName();
+                    if (method_exists($controller, $method)) {
+                        return $controller->$method();
+                    }
+                }
+                throw new \Exception("Controller oder Methode nicht gefunden: {$action}");
+            }
+
+            // Fallback: Die Ansicht direkt laden
             $viewPath = __DIR__ . "/../../public/views/{$action}.view.php";
             if (file_exists($viewPath)) {
                 require $viewPath;
                 return;
             }
         }
-        
-        throw new \Exception("Action not found: " . $action);
     }
 }

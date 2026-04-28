@@ -42,73 +42,76 @@ export class ApiService {
 
     // Domain-spezifische Helfer
     static auth = {
-        login: (credentials) => this.request('auth.php?action=login', {
+        login: (credentials) => this.request('auth/login', {
             method: 'POST',
             body: JSON.stringify(credentials)
         }),
-        register: (data) => this.request('auth.php?action=register', {
+        register: (data) => this.request('auth/register', {
             method: 'POST',
             body: JSON.stringify(data)
         }),
-        logout: () => this.request('auth.php?action=logout'),
-        check: () => this.request('auth.php?action=check')
+        logout: () => this.request('auth/logout')
     };
 
     static content = {
-        getSubjects: () => this.request('content.php?action=subjects'),
-        getLessons: (subjectId) => this.request(`content.php?action=lessons&subject_id=${subjectId}`),
-        getDashboard: () => this.request('content.php?action=dashboard'),
-        search: (query) => this.request(`search.php?q=${encodeURIComponent(query)}`)
+        getSubjects: () => this.request('content/subjects'),
+        getLessons: (subjectId) => this.request(`content/lessons?subject_id=${subjectId}`),
+        getDashboard: () => this.request('content/dashboard'),
+        search: (query) => this.request(`search?q=${encodeURIComponent(query)}`)
     };
 
     static progress = {
-        toggle: (lessonId, completed) => this.request('progress.php', {
+        toggle: (lessonId, completed) => this.request('progress/toggle', {
             method: 'POST',
             body: JSON.stringify({ lesson_id: lessonId, completed })
         })
     };
 
     static profile = {
-        get: () => this.request('profile.php?action=get'),
-        update: (data) => this.request('profile.php?action=update', {
+        get: () => this.request('profile/get'),
+        update: (data) => this.request('profile/update', {
             method: 'POST',
             body: JSON.stringify(data)
         }),
-        updateTheme: (theme) => this.request('profile.php?action=update_theme', {
+        updateTheme: (theme) => this.request('profile/theme', {
             method: 'POST',
             body: JSON.stringify({ theme })
         })
     };
 
     static admin = {
-        getUsers: () => this.request('admin.php?action=users'),
-        setRole: (userId, role) => this.request('admin.php?action=set_role', {
+        getUsers: () => this.request('admin/users'),
+        setRole: (userId, role) => this.request('admin/set-role', {
             method: 'POST',
             body: JSON.stringify({ user_id: userId, role })
         }),
-        deleteUser: (userId) => this.request('admin.php?action=delete_user', {
+        deleteUser: (userId) => this.request('admin/delete-user', {
             method: 'POST',
             body: JSON.stringify({ user_id: userId })
         }),
-        getAuditLogs: (userId = '') => this.request(`admin.php?action=audit${userId ? '&user_id=' + userId : ''}`)
+        getAuditLogs: (userId = '') => this.request(`admin/audit${userId ? '?user_id=' + userId : ''}`)
     };
 
     static articles = {
-        save: (data) => this.request('articles.php?action=save', {
+        save: (data) => this.request('articles/save', {
             method: 'POST',
             body: JSON.stringify(data)
         }),
-        delete: (id) => this.request('articles.php?action=delete', {
+        update: (data) => this.request('articles/update', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        delete: (id) => this.request('articles/delete', {
             method: 'POST',
             body: JSON.stringify({ id })
         }),
-        get: (id) => this.request(`articles.php?action=get&id=${id}`)
+        get: (id) => this.request(`articles/get?id=${id}`)
     };
 
     static log = {
-        add: (action, details) => this.request('log.php', {
+        add: (action, details) => this.request('log', {
             method: 'POST',
             body: JSON.stringify({ action, details })
-        }).catch(() => {}) // Logs sind "fire and forget"
+        }).catch(() => {}) 
     };
 }
