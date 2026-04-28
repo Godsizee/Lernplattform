@@ -1,12 +1,10 @@
 <?php
-require_once __DIR__ . '/../api/init.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 
 use App\Core\Router;
 
 $router = new Router();
 
-// Routen definieren
-// Routen definieren (MVC Style)
 // --- SEITEN ROUTEN ---
 $router->get('/', 'PageController@dashboard');
 $router->get('/login', 'PageController@login');
