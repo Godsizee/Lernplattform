@@ -110,20 +110,15 @@
 
     .learning-sidebar {
         width: 100%;
-        position: sticky;
-        top: 70px; /* Unter die Topbar kleben */
-        z-index: 40;
+        position: relative; /* Sticky entfernt */
+        top: 0;
         height: auto;
         max-height: none;
-        background: var(--bg-dark); /* Verdeckt den Text beim Scrollen */
-        padding: 0.5rem 0 1rem 0;
-        border-bottom: 1px solid var(--border-glass);
-        margin-bottom: 1rem;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3); /* Sanfter Schatten nach unten */
-    }
-
-    .light-mode .learning-sidebar {
-        box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+        background: transparent; /* Schweren Hintergrund entfernt */
+        padding: 0 0 1rem 0;
+        border-bottom: none;
+        margin-bottom: 1.5rem;
+        box-shadow: none; /* Schatten entfernt */
     }
 
     .learning-main {
