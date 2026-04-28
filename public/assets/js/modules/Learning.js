@@ -93,10 +93,22 @@ export class Learning {
     }
 
     renderLayout(container, titleText) {
+        // Wir injizieren hier eine winzige Style-Klasse direkt ins Layout, um
+        // Mobile-Only und Desktop-Only Elemente nahtlos zu steuern.
         container.innerHTML = `
+            <style>
+                @media (max-width: 768px) {
+                    .hide-on-mobile { display: none !important; }
+                    .show-on-mobile { display: block !important; }
+                    .mobile-bottom-action { margin-top: 2rem; border-top: 1px solid var(--border-glass); padding-top: 1.5rem; }
+                }
+                @media (min-width: 769px) {
+                    .show-on-mobile { display: none !important; }
+                }
+            </style>
             <div class="learning-header fade-in">
                 <h2 class="learning-subject-title">${titleText}</h2>
-                <a href="${window.BASE_URL}/editor?subject=${this.currentSubjectId}" class="btn btn-primary create-btn-mobile" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                <a href="${window.BASE_URL}/editor?subject=${this.currentSubjectId}" class="btn btn-primary create-btn-mobile hide-on-mobile" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
                     <i class="ph ph-plus-circle"></i> <span>Beitrag erstellen</span>
                 </a>
             </div>
@@ -195,24 +207,34 @@ export class Learning {
     renderLesson(container, lesson, isCompleted) {
         const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
         const contentHtml = lesson.content_raw ? this.parser.parse(lesson.content_raw) : lesson.content;
+        const btnContentHtml = `<i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
 
         container.innerHTML = `
             <div class="content-card learning-content fade-in" style="margin-bottom: 0;">
                 <div class="lesson-header">
                     <h2 class="lesson-title">${escapeHTML(lesson.title)}</h2>
-                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" style="flex-shrink: 0; min-width: 220px;">
-                        <i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> 
-                        ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}
+                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn hide-on-mobile" style="flex-shrink: 0; min-width: 220px;">
+                        ${btnContentHtml}
                     </button>
                 </div>
                 ${this.renderArticleMeta(lesson, canEdit)}
                 <div class="lesson-body">
                     ${contentHtml}
                 </div>
+                
+                <!-- Mobiler Abschluss-Button am Ende des Dokuments -->
+                <div class="show-on-mobile mobile-bottom-action fade-in">
+                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
+                        ${btnContentHtml}
+                    </button>
+                </div>
             </div>
         `;
 
-        container.querySelector('.toggle-lesson-btn').addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
+        // Event-Listener an BEIDE Buttons (Desktop & Mobile) binden
+        container.querySelectorAll('.toggle-lesson-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
+        });
         
         const deleteBtn = container.querySelector('.delete-article-btn');
         if (deleteBtn) {
@@ -254,17 +276,19 @@ export class Learning {
                 this.progress = this.progress.filter(id => id != lessonId);
             }
 
-            // Update Current View
-            const btn = document.querySelector('.toggle-lesson-btn');
-            if (btn) {
-                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn`;
+            // Update Current View for BOTH buttons
+            const btns = document.querySelectorAll('.toggle-lesson-btn');
+            btns.forEach(btn => {
+                const isDesktopBtn = btn.classList.contains('hide-on-mobile');
+                
+                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn ${isDesktopBtn ? 'hide-on-mobile' : ''}`;
                 btn.innerHTML = `<i class="ph ${markAsCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${markAsCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
                 
                 // Re-attach listener
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode.replaceChild(newBtn, btn);
                 newBtn.addEventListener('click', () => this.toggleLesson(lessonId, !markAsCompleted));
-            }
+            });
 
             // Update TOC
             this.renderTOC();
