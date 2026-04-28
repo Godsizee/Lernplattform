@@ -171,6 +171,123 @@ html:not(.light-mode) .lesson-body [style*="color: #856404"] { color: #fde047 !i
 
 
 /* ==========================================================================
+   ERM Diagramm Komponenten (Pure CSS Magic)
+   ========================================================================== */
+.erm-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3rem 1.5rem;
+    margin: 3rem 0;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
+    border: 1px dashed var(--border-glass);
+    overflow-x: auto;
+    box-shadow: inset 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.erm-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: min-content;
+    margin: 0 auto;
+}
+
+.light-mode .erm-container {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    box-shadow: inset 0 4px 20px rgba(0,0,0,0.02);
+}
+
+.erm-entity {
+    border: 2px solid var(--color-primary);
+    background: rgba(169, 114, 255, 0.1);
+    padding: 1rem 1.5rem;
+    font-weight: 700;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(169, 114, 255, 0.15);
+    text-align: center;
+    min-width: 130px;
+    color: var(--text-primary);
+    letter-spacing: 0.05em;
+    z-index: 2;
+}
+
+.light-mode .erm-entity {
+    border-color: #8b5cf6;
+    background: #ede9fe;
+    color: #4c1d95;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.15);
+}
+
+.erm-relation {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 60px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    z-index: 2;
+    margin: 0 0.5rem;
+}
+
+.erm-relation::before {
+    content: '';
+    position: absolute;
+    width: 76px;
+    height: 76px;
+    background: rgba(63, 185, 80, 0.1);
+    border: 2px solid var(--color-success);
+    transform: rotate(45deg);
+    z-index: -1;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(63, 185, 80, 0.15);
+}
+
+.light-mode .erm-relation::before {
+    border-color: #10b981;
+    background: #d1fae5;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+}
+
+.light-mode .erm-relation {
+    color: #065f46;
+}
+
+.erm-line {
+    height: 3px;
+    width: 60px;
+    background: var(--text-secondary);
+    position: relative;
+    z-index: 1;
+}
+
+.light-mode .erm-line {
+    background: #cbd5e1;
+}
+
+.erm-cardinality {
+    position: absolute;
+    top: -32px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    color: var(--color-warning);
+    font-size: 1.4rem;
+}
+
+.light-mode .erm-cardinality {
+    color: #d97706;
+}
+
+.erm-line.left .erm-cardinality { left: 10px; }
+    
+.erm-line.right .erm-cardinality { right: 10px; }
+
+/* ==========================================================================
    Edge-to-Edge Mobile Optimierung (Speziell für extrem schmale Bildschirme)
    ========================================================================== */
 @media (max-width: 768px) {
