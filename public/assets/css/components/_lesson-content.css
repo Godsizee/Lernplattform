@@ -131,17 +131,44 @@
     border-bottom: 1px solid var(--border-glass);
 }
 
-/* Legacy DB Content Fixes */
-html:not(.light-mode) .lesson-body [style*="background"] { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
-html:not(.light-mode) .lesson-body [style*="color"] { color: var(--text-primary) !important; }
+
+/* ==========================================================================
+   Smart Inline-Style Overrides (Dark Mode Fixes für DB-Content)
+   Ersetzt den alten Vorschlaghammer durch gezielte Anpassungen
+   ========================================================================== */
+   
+/* Basis-Override: Mache Standard-Kästen dunkel (ohne den blauen Code-Block zu zerstören) */
+html:not(.light-mode) .lesson-body [style*="background"]:not([style*="background: #2c3e50"]):not([style*="background: #fff3cd"]):not([style*="background: #f0fdf4"]) { 
+    background-color: rgba(255, 255, 255, 0.05) !important; 
+    border-color: rgba(255, 255, 255, 0.1) !important; 
+}
+
+/* Harte dunkle Textfarben (#555, #2c3e50) im Dark Mode weicher machen */
+html:not(.light-mode) .lesson-body [style*="color: #555"],
+html:not(.light-mode) .lesson-body [style*="color: #2c3e50"] { 
+    color: var(--text-secondary) !important; 
+}
+
+/* Spezieller Fix für deinen dunklen "Relationenschreibweise" Block */
+html:not(.light-mode) .lesson-body [style*="background: #2c3e50"] {
+    background-color: #0d1117 !important;
+    border: 1px solid var(--border-glass) !important;
+}
+
+/* Farbige Info-Boxen (Alerts) gezielt anhand des linken Randes stylen */
 html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #3498db"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(52, 152, 219)"] { background-color: rgba(52, 152, 219, 0.1) !important; border-left-color: #3498db !important; }
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #f39c12"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(243, 156, 18)"] { background-color: rgba(243, 156, 18, 0.1) !important; border-left-color: #f39c12 !important; }
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #2ecc71"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(46, 204, 113)"] { background-color: rgba(46, 204, 113, 0.1) !important; border-left-color: #2ecc71 !important; }
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e74c3c"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(231, 76, 60)"] { background-color: rgba(231, 76, 60, 0.1) !important; border-left-color: #e74c3c !important; }
-html:not(.light-mode) .lesson-body [style*="color: #2980b9"] { color: #60a5fa !important; }
-html:not(.light-mode) .lesson-body [style*="color: #d35400"] { color: #fbbf24 !important; }
-html:not(.light-mode) .lesson-body [style*="color: #27ae60"] { color: #34d399 !important; }
-html:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #ffc107"] { background-color: rgba(255, 193, 7, 0.1) !important; border-left-color: #ffc107 !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e67e22"] { background-color: rgba(230, 126, 34, 0.1) !important; border-left-color: #e67e22 !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #2ecc71"] { background-color: rgba(46, 204, 113, 0.1) !important; border-left-color: #2ecc71 !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e74c3c"] { background-color: rgba(231, 76, 60, 0.1) !important; border-left-color: #e74c3c !important; }
+
+/* Spezifische Text-Highlight-Farben im Dark Mode aufhellen (Neon-Effekt) */
+html:not(.light-mode) .lesson-body [style*="color: #2980b9"] { color: #60a5fa !important; } /* Hellblau */
+html:not(.light-mode) .lesson-body [style*="color: #8e44ad"] { color: #c084fc !important; } /* Helllila (1:1) */
+html:not(.light-mode) .lesson-body [style*="color: #27ae60"] { color: #34d399 !important; } /* Hellgrün (1:n) */
+html:not(.light-mode) .lesson-body [style*="color: #e67e22"] { color: #fbbf24 !important; } /* Orange (m:n) */
+html:not(.light-mode) .lesson-body [style*="color: #856404"] { color: #fde047 !important; } /* Gelber Text (Warning) */
+
 
 /* ==========================================================================
    Edge-to-Edge Mobile Optimierung (Speziell für extrem schmale Bildschirme)
