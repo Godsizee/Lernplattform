@@ -35,9 +35,10 @@ class LessonRepository {
         return $progressMap;
     }
 
-    public function getLessonsWithProgress(int $userId, ?int $subjectId = null, bool $isAdmin = false): array {
+    public function getLessonsWithProgress(int $userId, ?int $subjectId = null, bool $isAdmin = false, bool $includeContent = true): array {
+        $contentFields = $includeContent ? ", l.content, l.content_raw" : "";
         $sql = "
-            SELECT l.id, l.subject_id, l.author_id, l.title, l.content, l.content_raw,
+            SELECT l.id, l.subject_id, l.author_id, l.title $contentFields,
                    l.status as article_status, l.created_at, l.updated_at,
                    s.title as subject_title, s.color as subject_color,
                    up.status,
@@ -142,7 +143,13 @@ class LessonRepository {
     }
 
     public function getArticleForEdit(int $id): ?array {
-        $stmt = $this->db->prepare("SELECT l.*, s.title as subject_title FROM lessons l JOIN subjects s ON l.subject_id = s.id WHERE l.id = :id");
+        $stmt = $this->db->prepare("
+            SELECT l.*, s.title as subject_title, u.name as author_name 
+            FROM lessons l 
+            JOIN subjects s ON l.subject_id = s.id 
+            LEFT JOIN users u ON l.author_id = u.id
+            WHERE l.id = :id
+        ");
         $stmt->execute([':id' => $id]);
         $article = $stmt->fetch();
         return $article ?: null;

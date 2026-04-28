@@ -1,0 +1,96 @@
+/* layout/_learning-layout.css */
+.learning-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .learning-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.learning-sidebar {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar for Sidebar */
+.learning-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.learning-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.learning-sidebar::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+}
+
+.learning-main {
+    min-height: 500px;
+}
+
+.toc-card {
+    margin-bottom: 0 !important;
+}
+
+.toc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.toc-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.toc-link:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.toc-link.active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    border-color: var(--color-primary-soft);
+    font-weight: 500;
+}
+
+.toc-link.completed .toc-icon {
+    color: var(--color-success);
+}
+
+.toc-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.lesson-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.lesson-placeholder i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}

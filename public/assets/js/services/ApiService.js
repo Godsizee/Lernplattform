@@ -55,7 +55,7 @@ export class ApiService {
 
     static content = {
         getSubjects: () => this.request('content/subjects'),
-        getLessons: (subjectId) => this.request(`content/lessons?subject_id=${subjectId}`),
+        getLessons: (subjectId, listOnly = false) => this.request(`content/lessons?subject_id=${subjectId}${listOnly ? '&list_only=1' : ''}`),
         getDashboard: () => this.request('content/dashboard'),
         search: (query) => this.request(`search?q=${encodeURIComponent(query)}`)
     };

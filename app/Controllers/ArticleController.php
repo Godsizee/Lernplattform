@@ -96,6 +96,10 @@ class ArticleController extends Controller {
             return $this->json(['error' => 'Nicht gefunden.'], 404);
         }
 
+        if (!$isAdmin) {
+            $article['author_name'] = null; // Datenschutz
+        }
+
         return $this->json($article);
     }
 

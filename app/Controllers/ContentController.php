@@ -41,7 +41,8 @@ class ContentController extends Controller {
         $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
         
         $subjectId = filter_var($_GET['subject_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
-        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin);
+        $listOnly = isset($_GET['list_only']) && $_GET['list_only'] == '1';
+        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin, !$listOnly);
         
         $completedIds = [];
         foreach ($lessons as &$l) {
