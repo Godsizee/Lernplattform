@@ -42,12 +42,13 @@ class ArticleController extends Controller {
     /**
      * Beitrag aktualisieren
      */
-    public function update() {
+    public function update($articleId = null) {
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        $articleId = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
+        // Priorisiere ID aus URL (REST), Fallback auf Body (Legacy)
+        $articleId = $articleId ?? filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
         $title = trim($input['title'] ?? '');
         $contentRaw = trim($input['content_raw'] ?? '');
         $status = in_array($input['status'] ?? '', ['draft', 'published']) ? $input['status'] : 'draft';
@@ -66,12 +67,13 @@ class ArticleController extends Controller {
     /**
      * Beitrag löschen
      */
-    public function delete() {
+    public function delete($articleId = null) {
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        $articleId = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
+        // Priorisiere ID aus URL (REST), Fallback auf Body (Legacy)
+        $articleId = $articleId ?? filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
         $article = $this->lessonRepo->getArticleForEdit($articleId);
         
         if (!$article || (!$isAdmin && $article['author_id'] != $userId)) {
@@ -87,11 +89,12 @@ class ArticleController extends Controller {
     /**
      * Einzelnen Beitrag laden
      */
-    public function get() {
+    public function get($articleId = null) {
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         
-        $articleId = filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
+        // Priorisiere ID aus URL (REST), Fallback auf Query-Param (Legacy)
+        $articleId = $articleId ?? filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
         $article = $this->lessonRepo->getArticleForEdit($articleId);
 
         if (!$article || (!$isAdmin && $article['author_id'] != $userId && $article['status'] === 'draft')) {

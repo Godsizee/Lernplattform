@@ -74,11 +74,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 status: targetStatus
             };
 
+            let data;
             if (isEditing) {
-                payload.id = parseInt(editId);
+                data = await ApiService.articles.update(editId, payload);
+            } else {
+                data = await ApiService.articles.save(payload);
             }
-
-            const data = await ApiService.articles.save(payload);
 
             if (data.success) {
                 const verb = isEditing ? 'aktualisiert' : 'erstellt';

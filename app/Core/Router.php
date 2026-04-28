@@ -4,7 +4,9 @@ namespace App\Core;
 class Router {
     protected $routes = [
         'GET' => [],
-        'POST' => []
+        'POST' => [],
+        'PUT' => [],
+        'DELETE' => []
     ];
 
     protected $container;
@@ -21,10 +23,31 @@ class Router {
         $this->routes['POST'][$uri] = $action;
     }
 
+    public function put($uri, $action) {
+        $this->routes['PUT'][$uri] = $action;
+    }
+
+    public function delete($uri, $action) {
+        $this->routes['DELETE'][$uri] = $action;
+    }
+
     public function dispatch($uri, $requestType) {
-        if (array_key_exists($uri, $this->routes[$requestType])) {
-            $action = $this->routes[$requestType][$uri];
-            return $this->callAction($action);
+        // Method Spoofing unterstützen (falls POST mit _method=PUT/DELETE gesendet wird)
+        if ($requestType === 'POST' && isset($_POST['_method'])) {
+            $requestType = strtoupper($_POST['_method']);
+        }
+
+        foreach ($this->routes[$requestType] as $route => $action) {
+            // Konvertiere {param} zu Regex Capture Groups
+            // Wir erlauben Alphanumerische Zeichen und Unterstriche für Parameter-Namen
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route);
+            $pattern = "#^" . $pattern . "$#";
+
+            if (preg_match($pattern, $uri, $matches)) {
+                // Nur die benannten Matches extrahieren (Strings als Keys)
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                return $this->callAction($action, $params);
+            }
         }
 
         // 404 Not Found
@@ -37,9 +60,9 @@ class Router {
         exit;
     }
 
-    protected function callAction($action) {
+    protected function callAction($action, $params = []) {
         if (is_callable($action)) {
-            return call_user_func($action);
+            return call_user_func_array($action, $params);
         }
 
         if (is_string($action)) {
@@ -49,12 +72,9 @@ class Router {
                 $fullControllerName = "\\App\\Controllers\\{$controllerName}";
                 
                 if (class_exists($fullControllerName)) {
-                    // Dependency Injection: Pass the container to the controller
-                    // Alternatively, we could use Reflection to only pass specific dependencies,
-                    // but for this project, passing the container or having a factory is simpler.
                     $controller = new $fullControllerName($this->container);
                     if (method_exists($controller, $method)) {
-                        return $controller->$method();
+                        return call_user_func_array([$controller, $method], $params);
                     }
                 }
                 throw new \Exception("Controller oder Methode nicht gefunden: {$action}");

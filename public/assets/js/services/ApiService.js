@@ -93,19 +93,18 @@ export class ApiService {
     };
 
     static articles = {
-        save: (data) => this.request('articles/save', {
+        save: (data) => this.request('articles', {
             method: 'POST',
             body: JSON.stringify(data)
         }),
-        update: (data) => this.request('articles/update', {
-            method: 'POST',
+        update: (id, data) => this.request(`articles/${id}`, {
+            method: 'PUT',
             body: JSON.stringify(data)
         }),
-        delete: (id) => this.request('articles/delete', {
-            method: 'POST',
-            body: JSON.stringify({ id })
+        delete: (id) => this.request(`articles/${id}`, {
+            method: 'DELETE'
         }),
-        get: (id) => this.request(`articles/get?id=${id}`)
+        get: (id) => this.request(`articles/${id}`)
     };
 
     static log = {

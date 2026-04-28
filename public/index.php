@@ -28,11 +28,11 @@ $router->get('/api/content/dashboard', 'ContentController@dashboard');
 $router->post('/api/progress/toggle', 'ArticleController@saveProgress');
 $router->get('/api/search', 'ArticleController@search');
 
-// Articles
-$router->get('/api/articles/get', 'ArticleController@get');
-$router->post('/api/articles/save', 'ArticleController@create'); // Create
-$router->post('/api/articles/update', 'ArticleController@update'); // Update
-$router->post('/api/articles/delete', 'ArticleController@delete');
+// Articles (RESTful)
+$router->get('/api/articles/{id}', 'ArticleController@get');
+$router->post('/api/articles', 'ArticleController@create');
+$router->put('/api/articles/{id}', 'ArticleController@update');
+$router->delete('/api/articles/{id}', 'ArticleController@delete');
 
 // Profile
 $router->get('/api/profile/get', 'UserController@get');
