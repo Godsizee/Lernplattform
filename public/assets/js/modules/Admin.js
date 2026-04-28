@@ -1,6 +1,8 @@
 /* modules/Admin.js */
 import { ApiService } from '../services/ApiService.js';
 import { escapeHTML } from '../utils/Helpers.js';
+import { Toast } from '../helpers/Toast.js';
+import { Modal } from '../helpers/Modal.js';
 
 export class Admin {
     constructor() { }
@@ -14,6 +16,7 @@ export class Admin {
             await this.loadAuditLogs();
         } catch (error) {
             console.error('Error loading admin data:', error);
+            Toast.error('Fehler beim Laden der Admin-Daten.');
         }
     }
 
@@ -50,22 +53,34 @@ export class Admin {
     }
 
     async adminSetRole(userId, role) {
-        if (!confirm('Rolle wirklich ändern?')) return;
+        const confirmed = await Modal.confirm('Soll die Rolle dieses Nutzers wirklich geändert werden?', {
+            confirmText: 'Ja, ändern',
+            icon: 'ph-user-gear'
+        });
+        if (!confirmed) return;
+
         try {
             await ApiService.admin.setRole(userId, role);
+            Toast.success('Rolle erfolgreich aktualisiert.');
             await this.loadAuditLogs();
         } catch (error) {
-            alert(error.message || 'Verbindungsfehler.');
+            Toast.error(error.message || 'Verbindungsfehler.');
         }
     }
 
     async adminDeleteUser(userId) {
-        if (!confirm('Nutzer und ALLE seine Daten wirklich löschen?')) return;
+        const confirmed = await Modal.confirm('Möchtest du diesen Nutzer und ALLE seine zugehörigen Daten wirklich unwiderruflich löschen?', {
+            confirmText: 'Ja, Nutzer löschen',
+            icon: 'ph-user-minus'
+        });
+        if (!confirmed) return;
+
         try {
             await ApiService.admin.deleteUser(userId);
+            Toast.success('Nutzer wurde erfolgreich gelöscht.');
             await this.loadAdminData();
         } catch (error) {
-            alert(error.message || 'Verbindungsfehler.');
+            Toast.error(error.message || 'Verbindungsfehler.');
         }
     }
 

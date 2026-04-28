@@ -1,6 +1,8 @@
 /* modules/Profile.js */
 import { ApiService } from '../services/ApiService.js';
 import { Auth } from './Auth.js';
+import { Toast } from '../helpers/Toast.js';
+import { Modal } from '../helpers/Modal.js';
 
 export class Profile {
     constructor() {
@@ -30,6 +32,7 @@ export class Profile {
             });
         } catch (error) {
             console.error('Error loading profile data:', error);
+            Toast.error('Fehler beim Laden der Profil-Daten.');
         }
     }
 
@@ -55,12 +58,14 @@ export class Profile {
             if (data.success) {
                 document.getElementById('profile-password').value = '';
                 btn.innerHTML = '<i class="ph ph-check"></i> Gespeichert';
+                Toast.success('Profil erfolgreich aktualisiert.');
                 setTimeout(() => this.setLoading(btn, false, origHtml), 2000);
             } else {
                 throw new Error(data.error || 'Fehler beim Speichern.');
             }
         } catch (error) {
             if (err) err.textContent = error.message;
+            Toast.error(error.message || 'Fehler beim Speichern.');
             this.setLoading(btn, false, origHtml);
         }
     }
@@ -76,13 +81,18 @@ export class Profile {
     }
 
     async deleteAccount() {
-        if (!confirm('Achtung! Dies löscht dein Konto unwiderruflich! Bist du sicher?')) return;
+        const confirmed = await Modal.confirm('Achtung! Dies löscht dein Konto unwiderruflich! Bist du sicher?', {
+            confirmText: 'Ja, Konto löschen',
+            icon: 'ph-warning'
+        });
+        if (!confirmed) return;
         
         try {
             await ApiService.request('profile.php?action=delete', { method: 'POST' });
-            Auth.logout();
+            Toast.success('Konto erfolgreich gelöscht. Auf Wiedersehen!');
+            setTimeout(() => Auth.logout(), 2000);
         } catch (error) {
-            alert('Fehler beim Löschen des Accounts.');
+            Toast.error('Fehler beim Löschen des Accounts.');
         }
     }
 
@@ -100,8 +110,9 @@ export class Profile {
             
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+            Toast.success('Daten erfolgreich exportiert.');
         } catch (error) {
-            alert('Fehler beim Exportieren der Daten.');
+            Toast.error('Fehler beim Exportieren der Daten.');
         }
     }
 }

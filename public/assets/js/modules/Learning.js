@@ -2,6 +2,8 @@
 import { ApiService } from '../services/ApiService.js';
 import { MarkdownParser } from './MarkdownParser.js';
 import { escapeHTML } from '../utils/Helpers.js';
+import { Toast } from '../helpers/Toast.js';
+import { Modal } from '../helpers/Modal.js';
 
 export class Learning {
     constructor() {
@@ -34,6 +36,7 @@ export class Learning {
             }
         } catch (error) {
             console.error('Error loading subjects:', error);
+            Toast.error('Fehler beim Laden der Fächer.');
         }
     }
 
@@ -89,6 +92,7 @@ export class Learning {
         } catch (error) {
             console.error('Error switching tab:', error);
             container.innerHTML = `<div class="form-error">Fehler beim Laden der Themen.</div>`;
+            Toast.error('Themenübersicht konnte nicht geladen werden.');
         }
     }
 
@@ -192,6 +196,7 @@ export class Learning {
         } catch (error) {
             console.error('Error loading lesson:', error);
             mainContainer.innerHTML = `<div class="form-error">Fehler beim Laden des Inhalts.</div>`;
+            Toast.error('Lektion konnte nicht geladen werden.');
         }
     }
 
@@ -272,8 +277,10 @@ export class Learning {
             // Update Progress State
             if (markAsCompleted) {
                 if (!this.progress.includes(parseInt(lessonId))) this.progress.push(parseInt(lessonId));
+                Toast.success('Lektion als abgeschlossen markiert.');
             } else {
                 this.progress = this.progress.filter(id => id != lessonId);
+                Toast.info('Lektion als ungelesen markiert.');
             }
 
             // Update Current View for BOTH buttons
@@ -294,16 +301,23 @@ export class Learning {
             this.renderTOC();
         } catch (error) {
             console.error('Error toggling progress:', error);
+            Toast.error('Fehler beim Aktualisieren des Fortschritts.');
         }
     }
 
     async deleteArticle(articleId, title) {
-        if (!confirm(`Beitrag "${title}" wirklich löschen?`)) return;
+        const confirmed = await Modal.confirm(`Möchtest du den Beitrag "${title}" wirklich unwiderruflich löschen?`, {
+            confirmText: 'Ja, Beitrag löschen',
+            icon: 'ph-trash'
+        });
+        if (!confirmed) return;
+
         try {
             await ApiService.articles.delete(articleId);
+            Toast.success('Beitrag wurde erfolgreich gelöscht.');
             this.switchTab(this.currentSubjectId, '');
         } catch (e) {
-            alert(e.message || 'Fehler beim Löschen.');
+            Toast.error(e.message || 'Fehler beim Löschen.');
         }
     }
 }
