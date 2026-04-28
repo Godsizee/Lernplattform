@@ -19,7 +19,7 @@
     box-shadow: 0 0 0 3px rgba(169, 114, 255, 0.1), 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
-body.light-mode .wiki-editor:focus-within {
+.light-mode .wiki-editor:focus-within {
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 15px 40px rgba(139, 92, 246, 0.08);
 }
 
@@ -55,7 +55,7 @@ body.light-mode .wiki-editor:focus-within {
     backdrop-filter: blur(10px);
 }
 
-body.light-mode .editor-toolbar {
+.light-mode .editor-toolbar {
     background: rgba(255, 255, 255, 0.8);
 }
 
@@ -97,7 +97,7 @@ body.light-mode .editor-toolbar {
     outline: none;
 }
 
-body.light-mode .toolbar-btn:hover {
+.light-mode .toolbar-btn:hover {
     background: rgba(139, 92, 246, 0.1);
 }
 
@@ -109,7 +109,7 @@ body.light-mode .toolbar-btn:hover {
     border-radius: var(--radius-sm);
 }
 
-body.light-mode .editor-mobile-tabs {
+.light-mode .editor-mobile-tabs {
     background: rgba(0, 0, 0, 0.05);
 }
 
@@ -136,7 +136,7 @@ body.light-mode .editor-mobile-tabs {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-body.light-mode .editor-mobile-tab.active {
+.light-mode .editor-mobile-tab.active {
     background: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
@@ -184,7 +184,7 @@ body.light-mode .editor-mobile-tab.active {
     overflow-y: auto;
 }
 
-body.light-mode .editor-preview {
+.light-mode .editor-preview {
     background: rgba(248, 250, 252, 0.5);
 }
 

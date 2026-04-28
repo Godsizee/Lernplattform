@@ -10,7 +10,7 @@
     width: 100%;
 }
 
-body.light-mode .auth-card {
+.light-mode .auth-card {
     background: #ffffff;
     box-shadow: 0 10px 40px rgba(139, 92, 246, 0.08);
 }

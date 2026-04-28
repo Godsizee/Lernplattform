@@ -40,7 +40,7 @@
     --shadow-color: rgba(169, 114, 255, 0.15);
 }
 
-body.light-mode {
+:root.light-mode {
     --color-primary: #8b5cf6; 
     --color-secondary: #ec4899; 
     --color-success: #10b981; 

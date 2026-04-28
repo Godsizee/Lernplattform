@@ -49,17 +49,17 @@
     box-shadow: 0 4px 15px rgba(169, 114, 255, 0.3);
 }
 
-body.light-mode .learning-tab {
+.light-mode .learning-tab {
     background: #ffffff;
     border: 1px solid var(--border-glass);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
 }
 
-body.light-mode .learning-tab:hover {
+.light-mode .learning-tab:hover {
     background: #f8fafc;
 }
 
-body.light-mode .learning-tab.active {
+.light-mode .learning-tab.active {
     background: var(--brand-primary);
     color: white;
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);

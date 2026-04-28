@@ -22,7 +22,7 @@
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-body.light-mode .progress-bar-bg {
+.light-mode .progress-bar-bg {
     background: rgba(0, 0, 0, 0.05);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }

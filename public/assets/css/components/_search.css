@@ -45,7 +45,7 @@
     box-shadow: 0 0 0 4px rgba(169, 114, 255, 0.15), 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-body.light-mode .global-search-container:focus-within input {
+.light-mode .global-search-container:focus-within input {
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), 0 10px 30px rgba(139, 92, 246, 0.1);
 }
@@ -115,7 +115,7 @@ body.light-mode .global-search-container:focus-within input {
     transform: translateX(5px);
 }
 
-body.light-mode .search-result-item:hover {
+.light-mode .search-result-item:hover {
     background: rgba(139, 92, 246, 0.08);
 }
 

@@ -68,7 +68,7 @@
     transition: transform 0.3s ease; 
 }
 
-body.light-mode .subject-icon-img { 
+.light-mode .subject-icon-img { 
     opacity: 0.9; 
 }
 

@@ -42,15 +42,20 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <script>
         // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        // Fallback fürs CSS
-        if(savedTheme === 'light') document.documentElement.classList.add('light-mode');
+        const root = document.documentElement;
+        
+        root.setAttribute('data-theme', savedTheme);
+        if(savedTheme === 'light') {
+            root.classList.add('light-mode');
+        } else {
+            root.classList.remove('light-mode');
+        }
         
         // Globale BASE_URL für JavaScript
         window.BASE_URL = '<?= BASE_URL ?>';
     </script>
 </head>
-<body data-theme="dark" class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
+<body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
     <div id="app" class="app-layout">
         
         <?php if (!$hideSidebar): ?>

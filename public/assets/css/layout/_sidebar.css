@@ -22,7 +22,7 @@
     left: 0;
 }
 
-body.light-mode .sidebar {
+.light-mode .sidebar {
     background: #ffffff;
     box-shadow: 5px 0 30px rgba(0,0,0,0.03);
 }
@@ -77,8 +77,8 @@ body.light-mode .sidebar {
     border-color: var(--border-glass); 
 }
 
-body.light-mode .nav-item:hover, 
-body.light-mode .nav-item.active { 
+.light-mode .nav-item:hover, 
+.light-mode .nav-item.active { 
     background: rgba(0, 0, 0, 0.05); 
 }
 

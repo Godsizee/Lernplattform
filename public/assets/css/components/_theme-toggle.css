@@ -33,12 +33,12 @@
 }
 
 /* Light Mode specific shadows */
-body.light-mode .floating-theme-toggle {
+.light-mode .floating-theme-toggle {
     background: rgba(255, 255, 255, 0.8);
     box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
 }
 
-body.light-mode .floating-theme-toggle:hover {
+.light-mode .floating-theme-toggle:hover {
     background: var(--brand-primary);
     color: white;
 }

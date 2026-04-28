@@ -32,7 +32,7 @@ body {
     transition: background-color 0.4s ease;
 }
 
-body.light-mode {
+.light-mode {
     background-image: radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.05), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
 }
@@ -64,7 +64,7 @@ a {
     padding: 3rem;
 }
 
-body.light-mode .loader {
+.light-mode .loader {
     color: var(--brand-primary);
 }
 

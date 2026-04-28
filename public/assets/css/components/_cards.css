@@ -10,7 +10,7 @@
     transition: var(--transition);
 }
 
-body.light-mode .content-card {
+.light-mode .content-card {
     background: #ffffff;
     box-shadow: 0 10px 40px rgba(139, 92, 246, 0.05);
 }

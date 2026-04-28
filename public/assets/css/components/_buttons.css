@@ -69,14 +69,14 @@
     transform: translateY(-2px);
 }
 
-body.light-mode .btn-secondary {
+.light-mode .btn-secondary {
     background: #ffffff;
     color: var(--text-primary);
     border: 1px solid var(--border-glass);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-body.light-mode .btn-secondary:hover {
+.light-mode .btn-secondary:hover {
     background: #f8fafc;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
