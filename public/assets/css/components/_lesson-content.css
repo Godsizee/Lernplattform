@@ -133,68 +133,98 @@
 
 /* ==========================================================================
    Legacy DB Content Fixes (Dark Mode Overrides)
-   Überschreibt hart kodierte WYSIWYG-Styles aus der Datenbank
    ========================================================================== */
 
-/* Wandelt harte weiße Hintergründe in ein elegantes, transparentes Dunkelgrau um */
-html:not(.light-mode) .lesson-body [style*="background"] {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Erzwingt eine lesbare Textfarbe, falls das Original schwarz/dunkelgrau kodiert war */
-html:not(.light-mode) .lesson-body [style*="color"] {
-    color: var(--text-primary) !important;
-}
-
-/* Erhält die farbigen Info-Boxen (alte "Alert"-Struktur), dimmt sie aber ab */
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #3498db"],
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(52, 152, 219)"] {
-    background-color: rgba(52, 152, 219, 0.1) !important; 
-    border-left-color: #3498db !important;
-}
-
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #f39c12"],
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(243, 156, 18)"] {
-    background-color: rgba(243, 156, 18, 0.1) !important; 
-    border-left-color: #f39c12 !important;
-}
-
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #2ecc71"],
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(46, 204, 113)"] {
-    background-color: rgba(46, 204, 113, 0.1) !important; 
-    border-left-color: #2ecc71 !important;
-}
-
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e74c3c"],
-html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(231, 76, 60)"] {
-    background-color: rgba(231, 76, 60, 0.1) !important; 
-    border-left-color: #e74c3c !important;
-}
-
-/* Bewahrt Text-Hervorhebungen in speziellen Farben */
+html:not(.light-mode) .lesson-body [style*="background"] { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+html:not(.light-mode) .lesson-body [style*="color"] { color: var(--text-primary) !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #3498db"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(52, 152, 219)"] { background-color: rgba(52, 152, 219, 0.1) !important; border-left-color: #3498db !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #f39c12"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(243, 156, 18)"] { background-color: rgba(243, 156, 18, 0.1) !important; border-left-color: #f39c12 !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #2ecc71"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(46, 204, 113)"] { background-color: rgba(46, 204, 113, 0.1) !important; border-left-color: #2ecc71 !important; }
+html:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e74c3c"], html:not(.light-mode) .lesson-body [style*="border-left: 4px solid rgb(231, 76, 60)"] { background-color: rgba(231, 76, 60, 0.1) !important; border-left-color: #e74c3c !important; }
 html:not(.light-mode) .lesson-body [style*="color: #2980b9"] { color: #60a5fa !important; }
 html:not(.light-mode) .lesson-body [style*="color: #d35400"] { color: #fbbf24 !important; }
 html:not(.light-mode) .lesson-body [style*="color: #27ae60"] { color: #34d399 !important; }
 html:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !important; }
 
-/* Mobile Optimierung */
+/* ==========================================================================
+   Mobile Optimierung (Neues Lernerlebnis)
+   ========================================================================== */
 @media (max-width: 768px) {
     .learning-content {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
+        border: none;
+        box-shadow: none;
+        background: transparent; /* Entfernt die harte Karten-Optik für fließendes Lesen */
     }
+
+    .light-mode .learning-content {
+        background: transparent;
+        box-shadow: none;
+    }
+
     .lesson-header {
         flex-direction: column;
+        gap: 1.2rem;
+        margin-bottom: 1.5rem;
     }
+
+    .toggle-lesson-btn {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.05rem;
+    }
+
     .article-meta {
-        flex-wrap: wrap;
-        gap: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+        background: rgba(0, 0, 0, 0.15);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-glass);
+        margin-bottom: 2rem;
     }
+
+    .light-mode .article-meta {
+        background: rgba(0, 0, 0, 0.03);
+    }
+
     .article-actions {
         margin-left: 0;
         width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-top: 0.5rem;
     }
+
     .article-actions .btn {
-        flex: 1;
+        width: 100%;
+    }
+
+    /* Edge-to-Edge Code Blöcke auf Mobile (spart wertvollen horizontalen Platz) */
+    .lesson-body pre {
+        margin-left: -1rem !important;
+        margin-right: -1rem !important;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: 1.5rem 1rem;
+    }
+
+    /* Edge-to-Edge Tabellen */
+    .lesson-body table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        width: calc(100% + 2rem);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+    
+    .lesson-body td, .lesson-body th {
+        padding: 0.8rem 1rem;
     }
 }
