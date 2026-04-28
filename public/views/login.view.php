@@ -2,6 +2,13 @@
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
+<!-- Theme Toggle Button -->
+<button id="theme-toggle-btn" class="floating-theme-btn" title="Theme wechseln">
+    <i class="ph ph-moon" id="theme-icon"></i>
+    <!-- Hidden span required for app.js existing logic -->
+    <span id="theme-text" style="display: none;">Dark Mode</span>
+</button>
+
 <div class="auth-wrapper fade-in">
     <div class="auth-card">
         <div class="auth-header">
