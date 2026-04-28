@@ -120,37 +120,25 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
             <?php if (!$hideSidebar): ?>
             <!-- Topbar -->
             <header class="topbar">
-                <div class="topbar-left" style="display: flex; align-items: center; gap: 1.5rem; flex: 1;">
-                    <button id="mobile-nav-toggle" class="mobile-nav-toggle" title="Menü öffnen" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;">
-                        <i class="ph ph-list" style="font-size: 1.5rem;"></i>
-                    </button>
-                    
+                <button id="mobile-nav-toggle" class="mobile-nav-toggle" title="Menü öffnen">
+                    <i class="ph ph-list"></i>
+                </button>
+                
+                <div class="topbar-content">
                     <!-- Global Search -->
                     <div class="global-search-container" id="global-search-container">
                         <div class="search-input-wrapper">
                             <i class="ph ph-magnifying-glass search-icon"></i>
-                            <input type="text" id="global-search-input" placeholder="Inhalten suchen... (Alt + S)" autocomplete="off">
+                            <input type="text" id="global-search-input" placeholder="Suchen... (Alt + S)" autocomplete="off">
                             <div class="search-shortcut">Alt + S</div>
                         </div>
-                        <div class="search-results-dropdown" id="search-results-dropdown">
-                            <!-- Results will be injected here -->
-                        </div>
+                        <div class="search-results-dropdown" id="search-results-dropdown"></div>
                     </div>
 
-                    <div class="user-greeting" style="font-weight: 500; color: var(--text-secondary); white-space: nowrap;">
-                        Schön dich hier zu haben, <strong style="color: var(--text-primary);"><?= htmlspecialchars($user['name']) ?></strong>!
+                    <div class="user-greeting">
+                        Schön dich hier zu haben, <strong><?= htmlspecialchars($user['name']) ?></strong>!
                     </div>
                 </div>
-                <div class="topbar-right">
-                    <div class="global-progress">
-                        <div class="progress-info">
-                            <span>Gesamtfortschritt</span>
-                            <strong id="global-progress-text">0%</strong>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="global-progress-bar" style="width: 0%;"></div>
-                        </div>
-                    </div>
             </header>
             <?php endif; ?>
 

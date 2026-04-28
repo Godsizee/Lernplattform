@@ -141,7 +141,8 @@
 
 @media (min-width: 768px) {
     .global-search-container {
-        max-width: 350px;
+        max-width: 400px;
+        flex: 0 1 400px;
     }
 
     .search-shortcut {

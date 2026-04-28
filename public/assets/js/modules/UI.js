@@ -56,12 +56,7 @@ export class UI {
             }
             
             const globalPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
-            
-            const pb = document.getElementById('global-progress-bar');
-            if (pb) pb.style.width = `${globalPercentage}%`;
-            
-            const pt = document.getElementById('global-progress-text');
-            if (pt) pt.innerText = `${globalPercentage}%`;
+            // Progress Bar removed from UI
             
         } catch (error) {
             console.error('Error refreshing global topbar:', error);

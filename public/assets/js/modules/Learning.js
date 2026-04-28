@@ -293,12 +293,6 @@ export class Learning {
                     }
                 }
                 
-                fetch('../api/content.php?action=dashboard').then(r=>r.json()).then(data => {
-                     const bar = document.getElementById('global-progress-bar');
-                     const txt = document.getElementById('global-progress-text');
-                     if(bar && data.global_progress) bar.style.width = data.global_progress + '%';
-                     if(txt && data.global_progress) txt.textContent = data.global_progress + '%';
-                });
             }
         } catch (error) {
             console.error('Error toggling progress:', error);
