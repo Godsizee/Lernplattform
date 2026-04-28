@@ -94,18 +94,19 @@ export class Learning {
 
     renderLayout(container, titleText) {
         container.innerHTML = `
-            <div class="learning-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
-                <h2 style="margin: 0; color: var(--color-primary); font-family: var(--font-display);">${titleText}</h2>
-                <a href="${window.BASE_URL}/editor?subject=${this.currentSubjectId}" class="create-article-btn">
+            <div class="learning-header fade-in">
+                <h2 class="learning-subject-title">${titleText}</h2>
+                <a href="${window.BASE_URL}/editor?subject=${this.currentSubjectId}" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
                     <i class="ph ph-plus-circle"></i> Beitrag erstellen
                 </a>
             </div>
             <div class="learning-layout">
                 <aside class="learning-sidebar" id="learning-toc-container"></aside>
                 <section class="learning-main" id="active-lesson-container">
-                    <div class="lesson-placeholder">
-                        <i class="ph ph-book-open"></i>
-                        <p>Wähle ein Thema aus dem Inhaltsverzeichnis,<br>um den Inhalt anzuzeigen.</p>
+                    <div class="lesson-placeholder fade-in">
+                        <div class="placeholder-icon"><i class="ph ph-books"></i></div>
+                        <h3>Bereit für neues Wissen?</h3>
+                        <p>Wähle ein Thema aus dem Inhaltsverzeichnis auf der linken Seite,<br>um den Inhalt anzuzeigen und zu lernen.</p>
                     </div>
                 </section>
             </div>
@@ -116,9 +117,9 @@ export class Learning {
         const tocContainer = document.getElementById('learning-toc-container');
         if (!tocContainer) return;
 
-        const tocCard = document.createElement('div');
-        tocCard.className = 'content-card toc-card';
-        tocCard.innerHTML = `<h3>Inhaltsverzeichnis</h3>`;
+        const tocWrapper = document.createElement('div');
+        tocWrapper.className = 'toc-container fade-in';
+        tocWrapper.innerHTML = `<div class="toc-header">Themenübersicht</div>`;
         
         const tocList = document.createElement('ul');
         tocList.className = 'toc-list';
@@ -133,13 +134,12 @@ export class Learning {
             link.className = `toc-link ${isCompleted ? 'completed' : ''} ${this.activeLessonId == lesson.id ? 'active' : ''}`;
             link.dataset.lessonId = lesson.id;
             
-            const iconClass = isCompleted ? 'ph-fill ph-check-circle' : 'ph ph-circle';
             let titleHtml = `<span class="toc-text">${escapeHTML(lesson.title)}</span>`;
             if (lesson.article_status === 'draft') {
-                titleHtml += ` <span class="draft-badge" style="font-size: 0.7rem;"><i class="ph ph-note-pencil"></i></span>`;
+                titleHtml += ` <span class="draft-badge" style="font-size: 0.7rem; margin-left: 0.5rem; color: var(--color-warning);"><i class="ph ph-note-pencil"></i></span>`;
             }
             
-            link.innerHTML = `<i class="${iconClass} toc-icon"></i>${titleHtml}`;
+            link.innerHTML = titleHtml;
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.loadLesson(lesson.id);
@@ -149,9 +149,9 @@ export class Learning {
             tocList.appendChild(li);
         });
         
-        tocCard.appendChild(tocList);
+        tocWrapper.appendChild(tocList);
         tocContainer.innerHTML = '';
-        tocContainer.appendChild(tocCard);
+        tocContainer.appendChild(tocWrapper);
     }
 
     async loadLesson(lessonId) {
@@ -200,7 +200,7 @@ export class Learning {
             <div class="content-card learning-content fade-in" style="margin-bottom: 0;">
                 <div class="lesson-header">
                     <h2 class="lesson-title">${escapeHTML(lesson.title)}</h2>
-                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn">
+                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" style="flex-shrink: 0; min-width: 220px;">
                         <i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> 
                         ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}
                     </button>
@@ -231,10 +231,10 @@ export class Learning {
         if (canEdit) {
             metaHtml += `
                 <div class="article-actions">
-                    <a href="${window.BASE_URL}/editor?id=${lesson.id}" class="btn btn-secondary" title="Bearbeiten">
-                        <i class="ph ph-pencil-simple"></i>
+                    <a href="${window.BASE_URL}/editor?id=${lesson.id}" class="btn btn-secondary" title="Bearbeiten" style="padding: 0.5rem 1rem;">
+                        <i class="ph ph-pencil-simple"></i> Bearbeiten
                     </a>
-                    <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" title="Löschen">
+                    <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" title="Löschen" style="padding: 0.5rem 1rem;">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>`;

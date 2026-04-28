@@ -1,96 +1,114 @@
 /* layout/_learning-layout.css */
-.learning-layout {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 2rem;
-    align-items: start;
+.learning-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-glass);
 }
 
-@media (max-width: 1024px) {
-    .learning-layout {
-        grid-template-columns: 1fr;
-    }
+.learning-subject-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.learning-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 3.5rem;
+    position: relative;
 }
 
 .learning-sidebar {
+    width: 260px;
+    flex-shrink: 0;
     position: sticky;
-    top: 100px;
-    max-height: calc(100vh - 120px);
+    top: 100px; /* Bleibt beim Scrollen elegant kleben */
+    height: calc(100vh - 120px);
     overflow-y: auto;
-    padding-right: 0.5rem;
+    padding-bottom: 2rem;
+    /* Versteckt Scrollbars für einen sauberen Look */
+    scrollbar-width: none; 
 }
 
-/* Custom Scrollbar for Sidebar */
 .learning-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-.learning-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.learning-sidebar::-webkit-scrollbar-thumb {
-    background: var(--bg-tertiary);
-    border-radius: 10px;
+    display: none; 
 }
 
 .learning-main {
-    min-height: 500px;
+    flex: 1;
+    min-width: 0; /* Verhindert Flexbox-Overflow-Bugs */
+    max-width: 850px; /* Optimale Breite für langen Fließtext */
 }
 
-.toc-card {
-    margin-bottom: 0 !important;
-}
-
-.toc-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.toc-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-}
-
-.toc-link:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-}
-
-.toc-link.active {
-    background: var(--color-primary-soft);
-    color: var(--color-primary);
-    border-color: var(--color-primary-soft);
-    font-weight: 500;
-}
-
-.toc-link.completed .toc-icon {
-    color: var(--color-success);
-}
-
-.toc-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
+/* Wunderschöner Empty-State, wenn keine Lektion gewählt ist */
 .lesson-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 400px;
-    color: var(--text-muted);
+    height: 50vh;
+    min-height: 400px;
     text-align: center;
+    background: transparent;
+    border: 1px dashed var(--border-glass);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
 }
 
-.lesson-placeholder i {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
+.placeholder-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(169, 114, 255, 0.1);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 30px rgba(169, 114, 255, 0.15);
+}
+
+.light-mode .placeholder-icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--brand-primary);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
+}
+
+.lesson-placeholder h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+    color: var(--text-primary);
+}
+
+.lesson-placeholder p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Responsive Verhalten */
+@media (max-width: 1024px) {
+    .learning-layout {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .learning-sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        height: auto;
+        max-height: 350px;
+        border-bottom: 1px solid var(--border-glass);
+        padding-bottom: 1.5rem;
+    }
+    .learning-main {
+        max-width: 100%;
+    }
 }

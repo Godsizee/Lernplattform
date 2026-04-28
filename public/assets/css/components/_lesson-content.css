@@ -1,81 +1,153 @@
 /* components/_lesson-content.css */
-.lesson-body {
-    font-size: var(--font-size-body);
-    line-height: 1.7;
+
+.learning-content {
+    padding: 3.5rem 4rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.light-mode .learning-content {
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+}
+
+.lesson-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.lesson-title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-family: var(--font-display);
+    line-height: 1.2;
+    margin: 0;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
+}
+
+.article-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border-glass);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.article-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.article-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.lesson-body {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+    font-weight: 300;
+}
+
+.lesson-body p {
+    margin-bottom: 1.5rem;
 }
 
 .lesson-body h3, 
 .lesson-body h4 {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.2rem;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+}
+
+.lesson-body h3 { font-size: 1.6rem; }
+.lesson-body h4 { font-size: 1.2rem; }
+
+/* Elegante Code-Blöcke */
+.lesson-body pre {
+    background: #090c10 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    overflow-x: auto;
+    margin: 2rem 0;
+}
+
+.light-mode .lesson-body pre {
+    background: #f1f5f9 !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.lesson-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+}
+
+/* Inline Code */
+.lesson-body p code, .lesson-body li code {
+    background: rgba(169, 114, 255, 0.1);
     color: var(--color-primary);
-    font-size: var(--font-size-h3);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
 }
 
-/* Dark Mode fixes for inline styles from DB */
-body:not(.light-mode) .lesson-body [style*="background"] {
-    background-color: rgba(255, 255, 255, 0.03) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+.light-mode .lesson-body p code, .light-mode .lesson-body li code {
+    background: rgba(139, 92, 246, 0.1);
 }
 
-body:not(.light-mode) .lesson-body [style*="color"] {
-    color: var(--text-primary) !important;
-}
-
-/* Legacy Highlight Boxes */
-body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #3498db"] {
-    background-color: rgba(52, 152, 219, 0.08) !important; 
-    border-left-color: #3498db !important;
-}
-
-body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #f39c12"] {
-    background-color: rgba(243, 156, 18, 0.08) !important; 
-    border-left-color: #f39c12 !important;
-}
-
-body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #2ecc71"] {
-    background-color: rgba(46, 204, 113, 0.08) !important; 
-    border-left-color: #2ecc71 !important;
-}
-
-body:not(.light-mode) .lesson-body [style*="border-left: 4px solid #e74c3c"] {
-    background-color: rgba(231, 76, 60, 0.08) !important; 
-    border-left-color: #e74c3c !important;
-}
-
-body:not(.light-mode) .lesson-body table,
-body:not(.light-mode) .lesson-body td, 
-body:not(.light-mode) .lesson-body th {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Text Colors */
-body:not(.light-mode) .lesson-body [style*="color: #2980b9"] { color: #60a5fa !important; }
-body:not(.light-mode) .lesson-body [style*="color: #d35400"] { color: #fbbf24 !important; }
-body:not(.light-mode) .lesson-body [style*="color: #27ae60"] { color: #34d399 !important; }
-body:not(.light-mode) .lesson-body [style*="color: #c0392b"] { color: #f87171 !important; }
-body:not(.light-mode) .lesson-body [style*="color: #555"] { color: var(--text-secondary) !important; }
-body:not(.light-mode) .lesson-body [style*="color: #333"] { color: var(--text-primary) !important; }
-
-/* Tables in Lesson Content */
+/* Tabellen aufhübschen */
 .lesson-body table {
     width: 100%;
-    margin: 1.5rem 0;
-    box-shadow: 0 4px 6px var(--shadow-color) !important;
+    margin: 2rem 0;
+    border-collapse: collapse;
     border-radius: var(--radius-sm);
     overflow: hidden;
 }
 
-.lesson-body td {
-    padding: 0.75rem !important;
-}
-
 .lesson-body th {
-    padding: 0.75rem !important;
-    background: rgba(0,0,0,0.2) !important;
+    background: rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem;
 }
 
-.light-mode .lesson-body [style*="background"] {
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+.lesson-body td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-glass);
+}
+
+/* Mobile Optimierung */
+@media (max-width: 768px) {
+    .learning-content {
+        padding: 2rem 1.5rem;
+    }
+    .lesson-header {
+        flex-direction: column;
+    }
+    .article-meta {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .article-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+    .article-actions .btn {
+        flex: 1;
+    }
 }
