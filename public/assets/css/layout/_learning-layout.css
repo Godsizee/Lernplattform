@@ -29,11 +29,10 @@
     width: 260px;
     flex-shrink: 0;
     position: sticky;
-    top: 100px; /* Bleibt beim Scrollen elegant kleben */
+    top: 100px;
     height: calc(100vh - 120px);
     overflow-y: auto;
     padding-bottom: 2rem;
-    /* Versteckt Scrollbars für einen sauberen Look */
     scrollbar-width: none; 
 }
 
@@ -43,8 +42,8 @@
 
 .learning-main {
     flex: 1;
-    min-width: 0; /* Verhindert Flexbox-Overflow-Bugs */
-    max-width: 100%; /* Nimmt nun den gesamten Platz ein, besonders wenn die Sidebar einklappt */
+    min-width: 0; 
+    max-width: 100%; /* Hier erlauben wir volle Breite! Das Design breitet sich nun aus. */
 }
 
 /* Wunderschöner Empty-State, wenn keine Lektion gewählt ist */

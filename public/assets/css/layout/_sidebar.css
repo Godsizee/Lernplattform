@@ -159,6 +159,7 @@
         left: 0; 
         box-shadow: none; 
         align-self: flex-start; /* Zwingend erforderlich für sticky im Flex-Layout */
+        height: 100vh; /* Zwingend erforderlich, damit sie den Viewport ausfüllt */
         overflow-y: auto; /* Erlaubt das Scrollen des Menüs, falls es sehr lang wird */
     }
     
