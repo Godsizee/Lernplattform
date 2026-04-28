@@ -22,21 +22,24 @@ window.fetch = async function () {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initiale Festlegung des Theme-Icons anhand der globalen Body-Klasse (aus header.php)
-    const isLightMode = document.documentElement.classList.contains('light-mode');
-    const initIcon = document.getElementById('theme-icon');
-    const initText = document.getElementById('theme-text');
-    if (initIcon) {
-        initIcon.className = isLightMode ? 'ph ph-sun' : 'ph ph-moon';
-    }
-    if (initText) {
-        initText.textContent = isLightMode ? 'Light Mode' : 'Dark Mode';
-    }
+    // --- Theme Toggle Logic ---
+    const updateThemeUI = (theme) => {
+        const isLight = theme === 'light';
+        document.querySelectorAll('.theme-icon-js').forEach(icon => {
+            icon.className = isLight ? 'ph ph-sun theme-icon-js' : 'ph ph-moon theme-icon-js';
+        });
+        document.querySelectorAll('.theme-text-js').forEach(text => {
+            text.textContent = isLight ? 'Light Mode' : 'Dark Mode';
+        });
+    };
 
-    // Theme Toggle Listener
-    const themeToggleBtn = document.getElementById('theme-toggle-btn');
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
+    // Initial UI Update
+    const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    updateThemeUI(initialTheme);
+
+    // Add Listeners to all toggle buttons
+    document.querySelectorAll('.theme-toggle-js').forEach(btn => {
+        btn.addEventListener('click', () => {
             const root = document.documentElement;
             const currentTheme = root.getAttribute('data-theme') || 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -49,21 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             localStorage.setItem('lern_theme', newTheme);
-
-            // Update Icon & Text
-            const icon = document.getElementById('theme-icon');
-            const text = document.getElementById('theme-text');
-            if (icon && text) {
-                if (newTheme === 'dark') {
-                    icon.className = 'ph ph-moon';
-                    text.textContent = 'Dark Mode';
-                } else {
-                    icon.className = 'ph ph-sun';
-                    text.textContent = 'Light Mode';
-                }
-            }
+            updateThemeUI(newTheme);
         });
-    }
+    });
 
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
     const mobileNavToggle = document.getElementById('mobile-nav-toggle');

@@ -84,8 +84,8 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
             </nav>
             
             <div style="margin-top: auto;">
-                <button id="theme-toggle-btn" class="nav-item" style="width:100%; background:none; border:none; text-align:left; cursor:pointer; padding-top: 0.8rem; padding-bottom: 0.8rem;">
-                    <i class="ph ph-moon" id="theme-icon"></i> <span class="nav-text" id="theme-text">Dark Mode</span>
+                <button class="nav-item theme-toggle-js" style="width:100%; background:none; border:none; text-align:left; cursor:pointer; padding-top: 0.8rem; padding-bottom: 0.8rem;">
+                    <i class="ph ph-moon theme-icon-js"></i> <span class="nav-text theme-text-js">Dark Mode</span>
                 </button>
                 <a href="<?= BASE_URL ?>/datenschutz" class="nav-item" style="margin-bottom:1rem; padding-top: 0.8rem; padding-bottom: 0.8rem;">
                     <i class="ph ph-shield-check"></i> <span class="nav-text">Datenschutz</span>
@@ -151,8 +151,9 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
 
             <?php if ($hideSidebar): ?>
             <!-- Floating Theme Toggle for Auth Pages -->
-            <button id="theme-toggle-btn" class="floating-theme-toggle" title="Theme wechseln">
-                <i class="ph ph-moon" id="theme-icon"></i>
+            <button class="theme-toggle-js floating-theme-toggle" title="Theme wechseln">
+                <i class="ph ph-moon theme-icon-js"></i>
+                <span class="theme-text-js" style="display: none;">Dark Mode</span>
             </button>
             <?php endif; ?>
 

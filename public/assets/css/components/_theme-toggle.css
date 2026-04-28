@@ -1,0 +1,58 @@
+/* components/_theme-toggle.css */
+.floating-theme-toggle {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.floating-theme-toggle:hover {
+    transform: scale(1.1) rotate(12deg);
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 0 20px rgba(169, 114, 255, 0.4);
+    border-color: var(--color-primary);
+}
+
+.floating-theme-toggle i {
+    font-size: 1.4rem;
+}
+
+/* Light Mode specific shadows */
+body.light-mode .floating-theme-toggle {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
+}
+
+body.light-mode .floating-theme-toggle:hover {
+    background: var(--brand-primary);
+    color: white;
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 768px) {
+    .floating-theme-toggle {
+        top: 1rem;
+        right: 1rem;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .floating-theme-toggle i {
+        font-size: 1.2rem;
+    }
+}
