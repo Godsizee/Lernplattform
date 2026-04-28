@@ -1,0 +1,16 @@
+/* components/_cards.css */
+.content-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: var(--transition);
+}
+
+body.light-mode .content-card {
+    background: #ffffff;
+    box-shadow: 0 10px 40px rgba(139, 92, 246, 0.05);
+}

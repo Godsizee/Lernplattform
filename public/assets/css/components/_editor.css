@@ -1,6 +1,4 @@
-/* public/assets/css/editor.css */
-
-/* --- Main Editor Container --- */
+/* components/_editor.css */
 .wiki-editor {
     display: flex;
     flex-direction: column;
@@ -25,7 +23,6 @@ body.light-mode .wiki-editor:focus-within {
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 15px 40px rgba(139, 92, 246, 0.08);
 }
 
-/* --- Form Row (Subject & Title) --- */
 .editor-page-form {
     display: flex;
     flex-direction: column;
@@ -44,7 +41,6 @@ body.light-mode .wiki-editor:focus-within {
     }
 }
 
-/* --- Toolbar --- */
 .editor-toolbar {
     display: flex;
     align-items: center;
@@ -83,7 +79,6 @@ body.light-mode .editor-toolbar {
     align-items: center;
     justify-content: center;
     width: 44px;
-    /* Mobile First: Touch Target Size */
     height: 44px;
     border: none;
     border-radius: var(--radius-sm);
@@ -106,7 +101,6 @@ body.light-mode .toolbar-btn:hover {
     background: rgba(139, 92, 246, 0.1);
 }
 
-/* --- Mobile Segmented Control (Tabs) --- */
 .editor-mobile-tabs {
     display: flex;
     background: rgba(0, 0, 0, 0.3);
@@ -147,7 +141,6 @@ body.light-mode .editor-mobile-tab.active {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-/* --- Editor Body (Textarea & Preview) --- */
 .editor-body {
     display: grid;
     grid-template-columns: 1fr;
@@ -195,7 +188,6 @@ body.light-mode .editor-preview {
     background: rgba(248, 250, 252, 0.5);
 }
 
-/* --- Action Buttons --- */
 .editor-form-actions {
     display: flex;
     flex-direction: column;
@@ -211,7 +203,6 @@ body.light-mode .editor-preview {
     gap: 1rem;
 }
 
-/* --- Desktop Enhancements --- */
 @media (min-width: 768px) {
     .editor-mobile-tabs {
         display: none;
@@ -223,7 +214,6 @@ body.light-mode .editor-preview {
 
     .editor-pane {
         display: flex;
-        /* Both visible on desktop */
     }
 
     .editor-write {
@@ -242,7 +232,6 @@ body.light-mode .editor-preview {
 
     .toolbar-btn {
         width: 36px;
-        /* Slightly smaller on desktop for neatness */
         height: 36px;
     }
 }

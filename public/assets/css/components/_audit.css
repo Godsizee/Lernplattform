@@ -1,0 +1,124 @@
+/* components/_audit.css */
+.audit-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.audit-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-glass);
+}
+
+.audit-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding: 1.2rem;
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-glass);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.audit-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.light-mode .audit-item {
+    background: #ffffff;
+}
+
+body.light-mode .audit-item:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    border-color: var(--color-primary);
+}
+
+.audit-item::before {
+    content: '';
+    position: absolute;
+    left: -1.8rem;
+    top: 1.5rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 0 12px var(--color-primary);
+    border: 2px solid var(--bg-dark);
+    z-index: 2;
+}
+
+.audit-item[data-action="LESSON_COMPLETED"]::before {
+    background: var(--color-success);
+    box-shadow: 0 0 12px var(--color-success);
+}
+
+.audit-item[data-action="LESSON_RESET"]::before {
+    background: var(--color-danger);
+    box-shadow: 0 0 12px var(--color-danger);
+}
+
+.audit-item[data-action="LOGIN"]::before {
+    background: var(--color-warning);
+    box-shadow: 0 0 12px var(--color-warning);
+}
+
+.audit-item[data-action="ARTICLE_CREATE"]::before {
+    background: var(--color-success);
+    box-shadow: 0 0 12px var(--color-success);
+}
+
+.audit-item[data-action="ARTICLE_UPDATE"]::before {
+    background: var(--color-primary);
+    box-shadow: 0 0 12px var(--color-primary);
+}
+
+.audit-item[data-action="ARTICLE_DELETE"]::before {
+    background: var(--color-danger);
+    box-shadow: 0 0 12px var(--color-danger);
+}
+
+.audit-article-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    background: rgba(169, 114, 255, 0.1);
+    transition: var(--transition);
+    margin-left: 0.5rem;
+}
+
+.audit-article-link:hover {
+    background: rgba(169, 114, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.audit-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 0.5rem;
+}
+
+.audit-text {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1.5;
+}

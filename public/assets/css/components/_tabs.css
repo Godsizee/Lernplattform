@@ -1,0 +1,66 @@
+/* components/_tabs.css */
+.learning-tabs {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0.8rem;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.learning-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.learning-tabs::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.learning-tabs::-webkit-scrollbar-thumb {
+    background: var(--border-glass);
+    border-radius: 4px;
+}
+
+.learning-tab {
+    padding: 0.7rem 1.4rem;
+    border: 1px solid var(--border-glass);
+    border-radius: 30px;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.learning-tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.learning-tab.active {
+    background: var(--brand-primary);
+    color: white;
+    border-color: var(--brand-primary);
+    box-shadow: 0 4px 15px rgba(169, 114, 255, 0.3);
+}
+
+body.light-mode .learning-tab {
+    background: #ffffff;
+    border: 1px solid var(--border-glass);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+body.light-mode .learning-tab:hover {
+    background: #f8fafc;
+}
+
+body.light-mode .learning-tab.active {
+    background: var(--brand-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}

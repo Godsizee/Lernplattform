@@ -1,0 +1,47 @@
+/* layout/_topbar.css */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 2rem;
+    margin-bottom: 3rem;
+    border-bottom: var(--border-glass);
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.topbar-right {
+    flex: 1;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.user-greeting {
+    font-weight: 500; 
+    color: var(--text-secondary); 
+    white-space: nowrap;
+}
+
+.mobile-nav-toggle {
+    display: flex;
+}
+
+/* Global Progress in Topbar */
+.global-progress {
+    width: 100%;
+    max-width: 250px;
+}
+
+@media (min-width: 768px) {
+    .topbar-right {
+        justify-content: flex-end;
+    }
+
+    .mobile-nav-toggle {
+        display: none !important;
+    }
+}

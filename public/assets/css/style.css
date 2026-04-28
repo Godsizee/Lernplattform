@@ -1,8 +1,12 @@
 /* public/assets/css/style.css */
+/* 1. Settings (Variables) */
 @import url('variables.css');
+
+/* 2. Base (Reset, Global Styles) */
 @import url('base.css');
+
+/* 3. Layout (Structure) */
 @import url('layout.css');
-@import url('sidebar.css');
+
+/* 4. Components (Reusable UI) */
 @import url('components.css');
-@import url('lessons.css');
-@import url('editor.css');
