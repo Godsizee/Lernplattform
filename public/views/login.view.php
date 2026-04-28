@@ -15,7 +15,6 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="auth-forms">
-            <!-- Login Form -->
             <form id="login-form" class="auth-form active">
                 <div class="form-group">
                     <label>Benutzername oder E-Mail</label>
@@ -25,8 +24,8 @@ require_once __DIR__ . '/../includes/header.php';
                     <label>Passwort</label>
                     <input type="password" id="login-password" required placeholder="••••••••" class="form-control">
                 </div>
-                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; flex-direction: row;">
-                    <input type="checkbox" id="login-remember" style="width: auto; margin: 0;">
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; flex-direction: row; flex-wrap: wrap;">
+                    <input type="checkbox" id="login-remember" style="width: auto; margin: 0; cursor: pointer;">
                     <label for="login-remember" style="margin: 0; cursor: pointer;">Angemeldet bleiben (30 Tage)</label>
                 </div>
                 <div class="form-error" id="login-error"></div>
