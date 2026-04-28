@@ -1,6 +1,7 @@
 /* pages/editor.js */
 import { Editor } from '../modules/Editor.js';
 import { ApiService } from '../services/ApiService.js';
+import { UI } from '../utils/UI.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
@@ -64,7 +65,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const origHtml = activeBtn.innerHTML;
-        setLoading(activeBtn, true);
+        UI.setLoading(activeBtn, true);
+        if (btnSaveDraft) btnSaveDraft.disabled = true;
+        if (btnPublish) btnPublish.disabled = true;
 
         try {
             const payload = {
@@ -97,19 +100,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             showMessage(e.message || 'Verbindungsfehler.', false);
         } finally {
-            setLoading(activeBtn, false, origHtml);
-        }
-    }
-
-    function setLoading(btn, isLoading, originalText = '') {
-        if (isLoading) {
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> <span>Speichert...</span>';
-            btnSaveDraft.disabled = true;
-            btnPublish.disabled = true;
-        } else {
-            btn.innerHTML = originalText;
-            btnSaveDraft.disabled = false;
-            btnPublish.disabled = false;
+            UI.setLoading(activeBtn, false, origHtml);
+            if (btnSaveDraft) btnSaveDraft.disabled = false;
+            if (btnPublish) btnPublish.disabled = false;
         }
     }
 

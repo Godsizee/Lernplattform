@@ -1,5 +1,6 @@
 /* modules/Auth.js */
 import { ApiService } from '../services/ApiService.js';
+import { UI } from '../utils/UI.js';
 
 export class Auth {
     constructor() {
@@ -51,7 +52,7 @@ export class Auth {
         const origText = btn.innerHTML;
         const errorDiv = document.getElementById(errorElementId);
 
-        this.setLoading(btn, true);
+        UI.setLoading(btn, true);
         if (errorDiv) errorDiv.textContent = '';
 
         try {
@@ -69,17 +70,7 @@ export class Auth {
             if (errorDiv) errorDiv.textContent = error.message;
             return false;
         } finally {
-            this.setLoading(btn, false, origText);
-        }
-    }
-
-    setLoading(btn, isLoading, originalText = '') {
-        if (isLoading) {
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i>';
-            btn.disabled = true;
-        } else {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            UI.setLoading(btn, false, origText);
         }
     }
 

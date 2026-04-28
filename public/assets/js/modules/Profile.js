@@ -3,6 +3,7 @@ import { ApiService } from '../services/ApiService.js';
 import { Auth } from './Auth.js';
 import { Toast } from '../helpers/Toast.js';
 import { Modal } from '../helpers/Modal.js';
+import { UI } from '../utils/UI.js';
 
 export class Profile {
     constructor() {
@@ -42,7 +43,7 @@ export class Profile {
         const err = document.getElementById('profile-error');
         const origHtml = btn.innerHTML;
         
-        this.setLoading(btn, true);
+        UI.setLoading(btn, true);
         if (err) err.textContent = '';
 
         try {
@@ -59,24 +60,14 @@ export class Profile {
                 document.getElementById('profile-password').value = '';
                 btn.innerHTML = '<i class="ph ph-check"></i> Gespeichert';
                 Toast.success('Profil erfolgreich aktualisiert.');
-                setTimeout(() => this.setLoading(btn, false, origHtml), 2000);
+                setTimeout(() => UI.setLoading(btn, false, origHtml), 2000);
             } else {
                 throw new Error(data.error || 'Fehler beim Speichern.');
             }
         } catch (error) {
             if (err) err.textContent = error.message;
             Toast.error(error.message || 'Fehler beim Speichern.');
-            this.setLoading(btn, false, origHtml);
-        }
-    }
-
-    setLoading(btn, isLoading, originalText = '') {
-        if (isLoading) {
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
-            btn.disabled = true;
-        } else {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            UI.setLoading(btn, false, origHtml);
         }
     }
 
