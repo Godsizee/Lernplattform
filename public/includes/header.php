@@ -53,6 +53,11 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
         
         // Globale BASE_URL für JavaScript
         window.BASE_URL = '<?= BASE_URL ?>';
+
+        // CSRF-Token mit dem LocalStorage synchronisieren (wichtig nach Auto-Logins)
+        <?php if (isset($_SESSION['csrf_token'])): ?>
+        localStorage.setItem('csrf_token', '<?= $_SESSION['csrf_token'] ?>');
+        <?php endif; ?>
     </script>
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
