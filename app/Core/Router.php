@@ -16,10 +16,14 @@ class Router {
     }
 
     public function dispatch($uri, $requestType) {
+        $requestType = strtoupper($requestType);
         if (array_key_exists($uri, $this->routes[$requestType])) {
             $action = $this->routes[$requestType][$uri];
             return $this->callAction($action);
         }
+
+        // Debug-Logging (optional, kann in bootstrap.php konfiguriert werden)
+        error_log("Router 404: No route found for [{$requestType}] {$uri}");
 
         // 404 Not Found
         http_response_code(404);
