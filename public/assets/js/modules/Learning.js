@@ -213,6 +213,8 @@ export class Learning {
         const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
         const contentHtml = lesson.content_raw ? this.parser.parse(lesson.content_raw) : lesson.content;
         const btnContentHtml = `<i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
+        
+        const nextLesson = this.getNextLesson(lesson.id);
 
         container.innerHTML = `
             <div class="content-card learning-content fade-in" style="margin-bottom: 0;">
@@ -227,24 +229,81 @@ export class Learning {
                     ${contentHtml}
                 </div>
                 
-                <!-- Mobiler Abschluss-Button am Ende des Dokuments -->
-                <div class="show-on-mobile mobile-bottom-action fade-in">
-                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
+                <div class="lesson-footer-nav">
+                    <!-- Primärer Abschluss-Button am Ende -->
+                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; font-weight: 600;">
                         ${btnContentHtml}
                     </button>
+
+                    ${nextLesson ? `
+                        <a href="?subject=${this.currentSubjectId}&lesson=${nextLesson.id}" class="next-lesson-card" id="next-lesson-link">
+                            <div class="next-lesson-info">
+                                <span class="next-lesson-label">Nächste Lektion</span>
+                                <span class="next-lesson-title">${escapeHTML(nextLesson.title)}</span>
+                            </div>
+                            <i class="ph ph-arrow-right next-lesson-icon"></i>
+                        </a>
+                    ` : ''}
                 </div>
             </div>
         `;
 
-        // Event-Listener an BEIDE Buttons (Desktop & Mobile) binden
+        // Event-Listener binden
         container.querySelectorAll('.toggle-lesson-btn').forEach(btn => {
             btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
         });
         
+        const nextLink = container.querySelector('#next-lesson-link');
+        if (nextLink) {
+            nextLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.loadLesson(nextLesson.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
         const deleteBtn = container.querySelector('.delete-article-btn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => this.deleteArticle(lesson.id, lesson.title));
         }
+
+        // UX: Scroll-Indikator initialisieren
+        this.initScrollIndicator();
+    }
+
+    getNextLesson(currentId) {
+        const index = this.lessonsMetadata.findIndex(l => l.id == currentId);
+        if (index !== -1 && index < this.lessonsMetadata.length - 1) {
+            return this.lessonsMetadata[index + 1];
+        }
+        return null;
+    }
+
+    initScrollIndicator() {
+        // Bestehenden Indikator entfernen, falls vorhanden
+        const existing = document.getElementById('scroll-indicator-container');
+        if (existing) existing.remove();
+
+        const container = document.createElement('div');
+        container.id = 'scroll-indicator-container';
+        container.className = 'scroll-progress-container';
+        container.innerHTML = '<div id="scroll-progress-bar" class="scroll-progress-bar"></div>';
+        document.body.appendChild(container);
+
+        const bar = document.getElementById('scroll-progress-bar');
+        
+        const updateProgress = () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+            if (bar) bar.style.width = scrolled + "%";
+        };
+
+        // Event Listener hinzufügen und direkt einmal ausführen
+        window.removeEventListener('scroll', this._scrollHandler); // Vorherigen Handler entfernen
+        this._scrollHandler = updateProgress;
+        window.addEventListener('scroll', this._scrollHandler);
+        updateProgress();
     }
 
     renderArticleMeta(lesson, canEdit) {
@@ -286,9 +345,9 @@ export class Learning {
             // Update Current View for BOTH buttons
             const btns = document.querySelectorAll('.toggle-lesson-btn');
             btns.forEach(btn => {
-                const isDesktopBtn = btn.classList.contains('hide-on-mobile');
+                const isHeaderBtn = btn.closest('.lesson-header');
                 
-                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn ${isDesktopBtn ? 'hide-on-mobile' : ''}`;
+                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn ${isHeaderBtn ? 'hide-on-mobile' : ''}`;
                 btn.innerHTML = `<i class="ph ${markAsCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${markAsCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
                 
                 // Re-attach listener
