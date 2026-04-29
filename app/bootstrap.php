@@ -105,6 +105,12 @@ function requireAuth() {
     }
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+
+        if (!$token && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $token = $headers['X-CSRF-Token'] ?? $headers['x-csrf-token'] ?? $headers['X-Csrf-Token'] ?? '';
+        }
+
         if (!$token || $token !== ($_SESSION['csrf_token'] ?? '')) {
             sendJson(['error' => 'Ungültiger oder fehlender CSRF-Token.'], 403);
         }

@@ -58,6 +58,14 @@ abstract class Controller {
         // CSRF Check für POST/PUT/DELETE
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            
+            // Fallback für Umgebungen, in denen X-Headers nicht direkt in $_SERVER landen (z.B. manche Apache-Configs)
+            if (!$token && function_exists('getallheaders')) {
+                $headers = getallheaders();
+                // Prüfe verschiedene Schreibweisen
+                $token = $headers['X-CSRF-Token'] ?? $headers['x-csrf-token'] ?? $headers['X-Csrf-Token'] ?? '';
+            }
+
             if (!$token || $token !== ($_SESSION['csrf_token'] ?? '')) {
                 $this->json(['error' => 'CSRF Token ungültig.'], 403);
             }
