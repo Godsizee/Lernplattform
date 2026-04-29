@@ -3,7 +3,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: var(--font-body);
 }
 
 /* Globaler Mobile-First Overflow-Schutz */
@@ -32,8 +31,27 @@ body {
         radial-gradient(circle at 85% 30%, rgba(63, 185, 80, 0.05), transparent 25%);
     background-attachment: fixed;
     line-height: 1.6;
+    font-family: var(--font-body);
     font-size: var(--font-size-body);
     transition: background-color 0.4s ease;
+}
+
+/* Form-Elemente erben die Schriftart (Browser-Defaults verhindern das oft) */
+button, 
+input, 
+select, 
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* Monospace Support */
+code, 
+pre, 
+kbd, 
+samp {
+    font-family: var(--font-mono);
 }
 
 .light-mode {
@@ -41,18 +59,15 @@ body {
         radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
 }
 
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
 h1 { font-size: var(--font-size-h1); }
 h2 { font-size: var(--font-size-h2); }
 h3 { font-size: var(--font-size-h3); }
-
-h4,
-h5,
-h6 {
-    line-height: 1.2;
-    font-weight: 700;
-    font-family: var(--font-display);
-    letter-spacing: 0.02em;
-}
 
 a {
     color: inherit;

@@ -166,7 +166,7 @@
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace, sans-serif;
+    font-family: var(--font-mono);
     font-size: 0.95rem;
     line-height: 1.6;
     resize: none;
