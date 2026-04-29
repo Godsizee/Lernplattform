@@ -39,6 +39,14 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <!-- Styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
+    <meta name="theme-color" content="#0b0e14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/img/logo.png">
+
     <script>
         // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';
@@ -53,6 +61,15 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
         
         // Globale BASE_URL für JavaScript
         window.BASE_URL = '<?= BASE_URL ?>';
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= BASE_URL ?>/service-worker.js')
+                    .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+                    .catch(err => console.log('[PWA] Service Worker registration failed:', err));
+            });
+        }
     </script>
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
