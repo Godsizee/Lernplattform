@@ -9,6 +9,10 @@ export class Admin {
 
     async loadAdminData() {
         try {
+            // Dashboard zuerst laden
+            const dashboardData = await ApiService.admin.getDashboard();
+            this.renderDashboard(dashboardData);
+
             const users = await ApiService.admin.getUsers();
             this.renderUsersTable(users);
             this.renderUserFilter(users);
@@ -17,6 +21,72 @@ export class Admin {
         } catch (error) {
             console.error('Error loading admin data:', error);
             Toast.error('Fehler beim Laden der Admin-Daten.');
+        }
+    }
+
+    renderDashboard(data) {
+        const statsGrid = document.getElementById('admin-stats-grid');
+        const popularList = document.getElementById('admin-popular-lessons');
+        const healthContainer = document.getElementById('admin-system-health');
+
+        if (statsGrid) {
+            statsGrid.innerHTML = `
+                <div class="stats-card fade-in">
+                    <div class="stats-icon"><i class="ph ph-users"></i></div>
+                    <div class="stats-info">
+                        <span class="stats-label">Nutzer</span>
+                        <span class="stats-value">${data.top_level.total_users}</span>
+                    </div>
+                </div>
+                <div class="stats-card fade-in">
+                    <div class="stats-icon"><i class="ph ph-book-open"></i></div>
+                    <div class="stats-info">
+                        <span class="stats-label">Lektionen</span>
+                        <span class="stats-value">${data.top_level.total_lessons}</span>
+                    </div>
+                </div>
+                <div class="stats-card fade-in">
+                    <div class="stats-icon"><i class="ph ph-sign-in"></i></div>
+                    <div class="stats-info">
+                        <span class="stats-label">Logins (24h)</span>
+                        <span class="stats-value">${data.top_level.logins_24h}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (popularList) {
+            if (data.popular_lessons.length === 0) {
+                popularList.innerHTML = '<p class="text-muted">Noch keine Abschlüsse verzeichnet.</p>';
+            } else {
+                popularList.innerHTML = `
+                    <ul class="popular-list">
+                        ${data.popular_lessons.map((l, i) => `
+                            <li class="fade-in" style="animation-delay: ${i * 0.1}s">
+                                <span class="rank">#${i + 1}</span>
+                                <span class="title">${escapeHTML(l.title)}</span>
+                                <span class="badge">${l.completion_count} <i class="ph ph-check-circle"></i></span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            }
+        }
+
+        if (healthContainer) {
+            const isWarning = data.system_health.status === 'warning';
+            healthContainer.innerHTML = `
+                <div class="health-card ${data.system_health.status} fade-in">
+                    <div class="health-status">
+                        <i class="ph ${isWarning ? 'ph-warning-octagon' : 'ph-check-circle'}"></i>
+                        <span>${isWarning ? 'Auffällige Aktivitäten' : 'System stabil'}</span>
+                    </div>
+                    <div class="health-details">
+                        ${data.system_health.failed_logins_24h} fehlgeschlagene Logins in den letzten 24h.
+                    </div>
+                    ${isWarning ? '<p class="health-hint">Prüfe das Aktivitäten-Log auf mögliche Bruteforce-Angriffe.</p>' : ''}
+                </div>
+            `;
         }
     }
 

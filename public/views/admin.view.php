@@ -15,12 +15,40 @@ if ($user['role'] !== 'admin') {
     </header>
 
     <div class="learning-tabs" id="admin-tabs" style="margin-bottom: 2rem;">
-        <button class="learning-tab active" data-target="admin-users">Nutzerverwaltung</button>
+        <button class="learning-tab active" data-target="admin-dashboard">Cockpit</button>
+        <button class="learning-tab" data-target="admin-users">Nutzerverwaltung</button>
         <button class="learning-tab" data-target="admin-content">Inhalte (Lektionen)</button>
         <button class="learning-tab" data-target="admin-audit">Aktivitäten-Log</button>
     </div>
+
+    <div id="admin-dashboard" class="admin-panel active-panel fade-in">
+        <!-- KPI Cards -->
+        <div class="stats-grid" id="admin-stats-grid">
+            <div class="stats-card skeleton" style="height: 120px;"></div>
+            <div class="stats-card skeleton" style="height: 120px;"></div>
+            <div class="stats-card skeleton" style="height: 120px;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+            <!-- Popular Content -->
+            <div class="content-card">
+                <h3><i class="ph ph-trend-up" style="color: var(--accent-primary);"></i> Beliebteste Inhalte</h3>
+                <div id="admin-popular-lessons" style="margin-top: 1rem;">
+                    <div class="loader"><i class="ph ph-spinner-gap ph-spin"></i></div>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="content-card">
+                <h3><i class="ph ph-heartbeat" style="color: var(--accent-primary);"></i> System-Gesundheit</h3>
+                <div id="admin-system-health" style="margin-top: 1rem;">
+                    <div class="loader"><i class="ph ph-spinner-gap ph-spin"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <div id="admin-users" class="admin-panel active-panel content-card">
+    <div id="admin-users" class="admin-panel content-card" style="display:none;">
         <h2>Registrierte Nutzer</h2>
         <div style="overflow-x: auto; margin-top: 1.5rem;">
             <table class="data-table">

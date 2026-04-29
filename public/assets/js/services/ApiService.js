@@ -95,6 +95,7 @@ export class ApiService {
     };
 
     static admin = {
+        getDashboard: () => this.request('admin/dashboard'),
         getUsers: () => this.request('admin/users'),
         setRole: (userId, role) => this.request('admin/set-role', {
             method: 'POST',

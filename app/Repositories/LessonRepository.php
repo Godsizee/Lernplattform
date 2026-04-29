@@ -237,4 +237,23 @@ class LessonRepository {
             ':content' => $content
         ]);
     }
+
+    public function countPublished(): int {
+        $stmt = $this->db->query("SELECT COUNT(*) FROM lessons WHERE status = 'published'");
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getPopular(int $limit = 5): array {
+        $stmt = $this->db->prepare("
+            SELECT l.id, l.title, COUNT(up.lesson_id) as completion_count
+            FROM lessons l
+            LEFT JOIN user_progress up ON l.id = up.lesson_id AND up.status = 'completed'
+            GROUP BY l.id, l.title
+            ORDER BY completion_count DESC, l.title ASC
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

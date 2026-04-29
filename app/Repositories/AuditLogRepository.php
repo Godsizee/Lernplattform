@@ -39,4 +39,10 @@ class AuditLogRepository {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    public function countActionsInLast24h(string $action): int {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM audit_logs WHERE action = :action AND created_at >= NOW() - INTERVAL '24 hours'");
+        $stmt->execute([':action' => $action]);
+        return (int)$stmt->fetchColumn();
+    }
 }

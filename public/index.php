@@ -47,6 +47,7 @@ $router->post('/api/profile/theme', 'UserController@updateTheme');
 $router->get('/api/profile/export', 'UserController@export');
 
 // Admin
+$router->get('/api/admin/dashboard', 'AdminController@dashboard');
 $router->get('/api/admin/users', 'AdminController@users');
 $router->post('/api/admin/set-role', 'AdminController@setRole');
 $router->post('/api/admin/delete-user', 'AdminController@deleteUser');

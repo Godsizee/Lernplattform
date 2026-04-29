@@ -97,4 +97,8 @@ class UserRepository {
         $stmt = $this->db->query("SELECT id, name, email, role, created_at FROM users ORDER BY id DESC");
         return $stmt->fetchAll();
     }
+
+    public function countAll(): int {
+        return (int) $this->db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    }
 }
