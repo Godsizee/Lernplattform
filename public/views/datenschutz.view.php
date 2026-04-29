@@ -22,11 +22,12 @@ require_once __DIR__ . '/../includes/header.php';
         <h3 style="margin-top: 1rem;">b) Benutzerkonten & Lernfortschritt</h3>
         <p>Auf dieser Plattform legst du ein Nutzerkonto an, um deinen Lernfortschritt zu speichern. Dabei speichern wir deinen Namen, deine E-Mail-Adresse und ein verschlüsseltes Passwort. Wir verarbeiten diese Daten ausschließlich, um dir den Zugang zur Plattform zu ermöglichen und deinen individuellen Lern- und Quizfortschritt in unserer Datenbank zu sichern.</p>
 
-        <h2 style="margin-top: 1.5rem;">3. Lokale Speicherung (LocalStorage) statt Cookies</h2>
+        <h2 style="margin-top: 1.5rem;">3. Lokale Speicherung (LocalStorage) & Funktionale Cookies</h2>
         <p>Diese Webseite verwendet <strong>keine Tracking-Cookies</strong> (wie z.B. Google Analytics). Für die Funktionalität nutzen wir LocalStorage in deinem Browser. Dort speichern wir ausschließlich technisch notwendige Informationen:</p>
         <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
             <li>Deine visuellen Einstellungen (z.B. Dark Mode).</li>
         </ul>
+        <p><em>Hinweis zur Login-Funktion:</em> Wenn Sie beim Login die Funktion „Angemeldet bleiben“ aktivieren, wird ein funktionaler Cookie (<code>lern_remember</code>) in Ihrem Browser gespeichert. Dieser enthält ein verschlüsseltes Token, um Sie bei zukünftigen Besuchen automatisch einzuloggen. Dieser Cookie verfällt nach 30 Tagen oder wenn Sie sich ausloggen. Es findet kein websiteübergreifendes Tracking statt.</p>
 
         <h2 style="margin-top: 1.5rem;">4. Deine Rechte</h2>
         <p>Du hast jederzeit das Recht auf unentgeltliche Auskunft über deine gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung oder Löschung dieser Daten. Du kannst deine kompletten Daten in den Profileinstellungen herunterladen (JSON-Export) oder dein Konto dort jederzeit unwiderruflich löschen.</p>

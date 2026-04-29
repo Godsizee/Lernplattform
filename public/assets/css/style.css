@@ -1,4 +1,7 @@
 /* public/assets/css/style.css */
+/* 0. Fonts (Local Hosting) */
+@import url('fonts.css');
+
 /* 1. Settings (Variables) */
 @import url('variables.css');
 

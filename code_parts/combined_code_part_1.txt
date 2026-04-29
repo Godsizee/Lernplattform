@@ -6,7 +6,13 @@ use App\Core\Controller;
 use Exception;
 
 class AdminController extends Controller {
-    public function __construct() {
+    private $userRepo;
+    private $auditRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->userRepo = $container->get('UserRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
         $this->requireAdmin();
     }
 
@@ -14,23 +20,21 @@ class AdminController extends Controller {
      * Liste aller Nutzer
      */
     public function users() {
-        global $userRepo;
-        return $this->json($userRepo->getAllUsers());
+        return $this->json($this->userRepo->getAllUsers());
     }
 
     /**
      * Rolle eines Nutzers ändern
      */
     public function setRole() {
-        global $userRepo, $auditRepo;
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         
         $targetId = $input['user_id'] ?? 0;
         $role = $input['role'] ?? '';
         
         if (in_array($role, ['student', 'admin'])) {
-            $userRepo->setRole($targetId, $role);
-            $auditRepo->log($_SESSION['user_id'], 'ADMIN_SET_ROLE', "Hat die Rolle von User ID $targetId auf $role geändert.");
+            $this->userRepo->setRole($targetId, $role);
+            $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SET_ROLE', "Hat die Rolle von User ID $targetId auf $role geändert.");
             return $this->json(['success' => true]);
         }
         return $this->json(['error' => 'Ungültige Rolle'], 400);
@@ -40,12 +44,11 @@ class AdminController extends Controller {
      * Nutzer löschen
      */
     public function deleteUser() {
-        global $userRepo, $auditRepo;
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         
         $targetId = $input['user_id'] ?? 0;
-        $userRepo->delete($targetId, $_SESSION['user_id']);
-        $auditRepo->log($_SESSION['user_id'], 'ADMIN_DELETE_USER', "Hat den Nutzer mit ID $targetId gelöscht.");
+        $this->userRepo->delete($targetId, $_SESSION['user_id']);
+        $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_DELETE_USER', "Hat den Nutzer mit ID $targetId gelöscht.");
         return $this->json(['success' => true]);
     }
 
@@ -53,9 +56,8 @@ class AdminController extends Controller {
      * Audit Logs abrufen
      */
     public function audit() {
-        global $auditRepo;
         $filterUser = filter_var($_GET['user_id'] ?? '', FILTER_VALIDATE_INT) ?: null;
-        return $this->json($auditRepo->getLogs($filterUser));
+        return $this->json($this->auditRepo->getLogs($filterUser));
     }
 }
 
@@ -68,7 +70,13 @@ use App\Core\Controller;
 use Exception;
 
 class ArticleController extends Controller {
-    public function __construct() {
+    private $lessonRepo;
+    private $auditRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->lessonRepo = $container->get('LessonRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
         $this->requireAuth();
     }
 
@@ -76,7 +84,6 @@ class ArticleController extends Controller {
      * Beitrag erstellen
      */
     public function create() {
-        global $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -89,10 +96,10 @@ class ArticleController extends Controller {
             return $this->json(['error' => 'Bitte alle Felder ausfüllen.'], 400);
         }
 
-        $articleId = $lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status);
+        $articleId = $this->lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status);
         
         $statusLabel = $status === 'draft' ? 'als Entwurf ' : '';
-        $auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel}erstellt. {{article:{$articleId}}}");
+        $this->auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel}erstellt. {{article:{$articleId}}}");
 
         return $this->json(['success' => true, 'id' => $articleId]);
     }
@@ -100,24 +107,24 @@ class ArticleController extends Controller {
     /**
      * Beitrag aktualisieren
      */
-    public function update() {
-        global $lessonRepo, $auditRepo;
+    public function update($articleId = null) {
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        $articleId = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
+        // Priorisiere ID aus URL (REST), Fallback auf Body (Legacy)
+        $articleId = $articleId ?? filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
         $title = trim($input['title'] ?? '');
         $contentRaw = trim($input['content_raw'] ?? '');
         $status = in_array($input['status'] ?? '', ['draft', 'published']) ? $input['status'] : 'draft';
 
-        $article = $lessonRepo->getArticleForEdit($articleId);
+        $article = $this->lessonRepo->getArticleForEdit($articleId);
         if (!$article || (!$isAdmin && $article['author_id'] != $userId)) {
             return $this->json(['error' => 'Nicht autorisiert oder nicht gefunden.'], 403);
         }
 
-        $success = $lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin);
-        $auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' bearbeitet. {{article:{$articleId}}}");
+        $success = $this->lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin);
+        $this->auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' bearbeitet. {{article:{$articleId}}}");
 
         return $this->json(['success' => $success]);
     }
@@ -125,21 +132,21 @@ class ArticleController extends Controller {
     /**
      * Beitrag löschen
      */
-    public function delete() {
-        global $lessonRepo, $auditRepo;
+    public function delete($articleId = null) {
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        $articleId = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
-        $article = $lessonRepo->getArticleForEdit($articleId);
+        // Priorisiere ID aus URL (REST), Fallback auf Body (Legacy)
+        $articleId = $articleId ?? filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
+        $article = $this->lessonRepo->getArticleForEdit($articleId);
         
         if (!$article || (!$isAdmin && $article['author_id'] != $userId)) {
             return $this->json(['error' => 'Nicht autorisiert.'], 403);
         }
 
-        $lessonRepo->deleteArticle($articleId, $userId, $isAdmin);
-        $auditRepo->log($userId, 'ARTICLE_DELETE', "Hat den Beitrag '{$article['title']}' gelöscht.");
+        $this->lessonRepo->deleteArticle($articleId, $userId, $isAdmin);
+        $this->auditRepo->log($userId, 'ARTICLE_DELETE', "Hat den Beitrag '{$article['title']}' gelöscht.");
 
         return $this->json(['success' => true]);
     }
@@ -147,13 +154,13 @@ class ArticleController extends Controller {
     /**
      * Einzelnen Beitrag laden
      */
-    public function get() {
-        global $lessonRepo;
+    public function get($articleId = null) {
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         
-        $articleId = filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
-        $article = $lessonRepo->getArticleForEdit($articleId);
+        // Priorisiere ID aus URL (REST), Fallback auf Query-Param (Legacy)
+        $articleId = $articleId ?? filter_var($_GET['id'] ?? 0, FILTER_VALIDATE_INT);
+        $article = $this->lessonRepo->getArticleForEdit($articleId);
 
         if (!$article || (!$isAdmin && $article['author_id'] != $userId && $article['status'] === 'draft')) {
             return $this->json(['error' => 'Nicht gefunden.'], 404);
@@ -170,21 +177,19 @@ class ArticleController extends Controller {
      * Suche nach Beiträgen
      */
     public function search() {
-        global $lessonRepo;
         $userId = $_SESSION['user_id'];
         $isAdmin = $_SESSION['user_role'] === 'admin';
         
         $query = trim($_GET['q'] ?? '');
         if (strlen($query) < 2) return $this->json([]);
 
-        return $this->json($lessonRepo->searchLessons($query, $userId, $isAdmin));
+        return $this->json($this->lessonRepo->searchLessons($query, $userId, $isAdmin));
     }
 
     /**
      * Lernfortschritt speichern
      */
     public function saveProgress() {
-        global $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -193,11 +198,11 @@ class ArticleController extends Controller {
         
         if (!$lessonId) return $this->json(['error' => 'Ungültige ID.'], 400);
 
-        $lessonRepo->saveProgress($userId, $lessonId, $completed ? 'completed' : 'pending');
+        $this->lessonRepo->saveProgress($userId, $lessonId, $completed ? 'completed' : 'pending');
         
-        $lessonTitle = $lessonRepo->getLessonTitle($lessonId);
+        $lessonTitle = $this->lessonRepo->getLessonTitle($lessonId);
         $action = $completed ? 'LESSON_COMPLETED' : 'LESSON_RESET';
-        $auditRepo->log($userId, $action, "Status für '$lessonTitle' geändert.");
+        $this->auditRepo->log($userId, $action, "Status für '$lessonTitle' geändert.");
 
         return $this->json(['success' => true]);
     }
@@ -212,12 +217,19 @@ use App\Core\Controller;
 use Exception;
 
 class AuthController extends Controller {
+    private $userRepo;
+    private $auditRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->userRepo = $container->get('UserRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
+    }
+
     /**
      * Login via API
      */
     public function login() {
-        global $userRepo, $auditRepo;
-        
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         
         if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
@@ -237,7 +249,7 @@ class AuthController extends Controller {
             return $this->json(['error' => 'Bitte Benutzername/E-Mail und Passwort eingeben.'], 400);
         }
 
-        $user = $userRepo->findByLogin($login);
+        $user = $this->userRepo->findByLogin($login);
 
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['login_attempts'] = 0;
@@ -251,7 +263,7 @@ class AuthController extends Controller {
             if ($remember) {
                 $token = bin2hex(random_bytes(32));
                 $hashedToken = hash('sha256', $token);
-                $userRepo->setRememberToken($user['id'], $hashedToken);
+                $this->userRepo->setRememberToken($user['id'], $hashedToken);
                 
                 $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
                 setcookie('lern_remember', $token, [
@@ -263,19 +275,18 @@ class AuthController extends Controller {
                 ]);
             }
 
-            $auditRepo->log($user['id'], 'LOGIN', "Hat sich erfolgreich eingeloggt.");
+            $this->auditRepo->log($user['id'], 'LOGIN', "Hat sich erfolgreich eingeloggt.");
 
             return $this->json([
                 'success' => true, 
-                'user' => ['id' => $user['id'], 'name' => $user['name'], 'role' => $user['role']],
-                'csrf_token' => $_SESSION['csrf_token']
+                'user' => ['id' => $user['id'], 'name' => $user['name'], 'role' => $user['role']]
             ]);
         } else {
             $_SESSION['login_attempts']++;
             $_SESSION['last_login_attempt'] = time();
             
             if ($user) {
-                $auditRepo->log($user['id'], 'LOGIN_FAILED', "Fehlgeschlagener Login-Versuch (falsches Passwort).");
+                $this->auditRepo->log($user['id'], 'LOGIN_FAILED', "Fehlgeschlagener Login-Versuch (falsches Passwort).");
             }
             
             return $this->json(['error' => 'Falscher Benutzername/E-Mail oder Passwort.'], 401);
@@ -286,8 +297,6 @@ class AuthController extends Controller {
      * Registrierung via API
      */
     public function register() {
-        global $userRepo, $auditRepo;
-        
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         
         $name = trim(htmlspecialchars($input['name'] ?? '', ENT_QUOTES, 'UTF-8'));
@@ -302,24 +311,23 @@ class AuthController extends Controller {
             return $this->json(['error' => 'Passwort zu schwach.'], 400);
         }
 
-        if ($userRepo->findByEmail($email)) {
+        if ($this->userRepo->findByEmail($email)) {
             return $this->json(['error' => 'Diese E-Mail-Adresse wird bereits verwendet.'], 409);
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $userId = $userRepo->create($name, $email, $hash);
+        $userId = $this->userRepo->create($name, $email, $hash);
         
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_name'] = $name;
         $_SESSION['user_role'] = 'student';
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-        $auditRepo->log($userId, 'REGISTER', "Hat sich neu auf der Plattform registriert.");
+        $this->auditRepo->log($userId, 'REGISTER', "Hat sich neu auf der Plattform registriert.");
 
         return $this->json([
             'success' => true, 
-            'user' => ['id' => $userId, 'name' => $name, 'role' => 'student'],
-            'csrf_token' => $_SESSION['csrf_token']
+            'user' => ['id' => $userId, 'name' => $name, 'role' => 'student']
         ]);
     }
 
@@ -327,11 +335,9 @@ class AuthController extends Controller {
      * Logout
      */
     public function logout() {
-        global $userRepo, $auditRepo;
-        
         if (isset($_SESSION['user_id'])) {
-            $auditRepo->log($_SESSION['user_id'], 'LOGOUT', "Hat sich ausgeloggt.");
-            $userRepo->setRememberToken($_SESSION['user_id'], null);
+            $this->auditRepo->log($_SESSION['user_id'], 'LOGOUT', "Hat sich ausgeloggt.");
+            $this->userRepo->setRememberToken($_SESSION['user_id'], null);
         }
         
         setcookie('lern_remember', '', time() - 3600, '/');
@@ -350,16 +356,24 @@ use App\Core\Controller;
 use Exception;
 
 class ContentController extends Controller {
+    private $lessonRepo;
+    private $userRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->lessonRepo = $container->get('LessonRepository');
+        $this->userRepo = $container->get('UserRepository');
+    }
+
     /**
      * Dashboard Daten für SPA
      */
     public function dashboard() {
-        global $lessonRepo, $userRepo;
         $userId = $this->requireAuth();
         
-        $subjects = $lessonRepo->getAllSubjects();
-        $progressMap = $lessonRepo->getProgress($userId);
-        $user = $userRepo->findById($userId);
+        $subjects = $this->lessonRepo->getAllSubjects();
+        $progressMap = $this->lessonRepo->getProgress($userId);
+        $user = $this->userRepo->findById($userId);
         
         return $this->json([
             'subjects' => $subjects,
@@ -372,22 +386,20 @@ class ContentController extends Controller {
      * Liste aller Fächer
      */
     public function subjects() {
-        global $lessonRepo;
         $this->requireAuth();
-        return $this->json($lessonRepo->getAllSubjects());
+        return $this->json($this->lessonRepo->getAllSubjects());
     }
 
     /**
      * Lektionen eines Fachs inkl. Fortschritt
      */
     public function lessons() {
-        global $lessonRepo;
         $userId = $this->requireAuth();
         $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
         
         $subjectId = filter_var($_GET['subject_id'] ?? null, FILTER_VALIDATE_INT) ?: null;
         $listOnly = isset($_GET['list_only']) && $_GET['list_only'] == '1';
-        $lessons = $lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin, !$listOnly);
+        $lessons = $this->lessonRepo->getLessonsWithProgress($userId, $subjectId, $isAdmin, !$listOnly);
         
         $completedIds = [];
         foreach ($lessons as &$l) {
@@ -512,7 +524,15 @@ use App\Core\Controller;
 use Exception;
 
 class UserController extends Controller {
-    public function __construct() {
+    private $userRepo;
+    private $auditRepo;
+    private $lessonRepo;
+
+    public function __construct($container) {
+        parent::__construct($container);
+        $this->userRepo = $container->get('UserRepository');
+        $this->auditRepo = $container->get('AuditLogRepository');
+        $this->lessonRepo = $container->get('LessonRepository');
         $this->requireAuth();
     }
 
@@ -520,8 +540,7 @@ class UserController extends Controller {
      * Profil laden
      */
     public function get() {
-        global $userRepo;
-        $user = $userRepo->findById($_SESSION['user_id']);
+        $user = $this->userRepo->findById($_SESSION['user_id']);
         if ($user) {
             unset($user['password_hash']);
             return $this->json($user);
@@ -533,7 +552,6 @@ class UserController extends Controller {
      * Profil aktualisieren
      */
     public function update() {
-        global $userRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -552,9 +570,9 @@ class UserController extends Controller {
             $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         }
 
-        $userRepo->updateProfile($userId, $name, $email, $passwordHash, $bio, null);
+        $this->userRepo->updateProfile($userId, $name, $email, $passwordHash, $bio, null);
         $_SESSION['user_name'] = $name;
-        $auditRepo->log($userId, 'PROFILE_UPDATE', "Hat Profildaten aktualisiert.");
+        $this->auditRepo->log($userId, 'PROFILE_UPDATE', "Hat Profildaten aktualisiert.");
 
         return $this->json(['success' => true, 'name' => $name]);
     }
@@ -563,10 +581,9 @@ class UserController extends Controller {
      * Theme Präferenz speichern
      */
     public function updateTheme() {
-        global $userRepo;
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $theme = in_array($input['theme'] ?? '', ['light', 'dark']) ? $input['theme'] : 'dark';
-        $userRepo->updateTheme($_SESSION['user_id'], $theme);
+        $this->userRepo->updateTheme($_SESSION['user_id'], $theme);
         return $this->json(['success' => true]);
     }
 
@@ -574,15 +591,14 @@ class UserController extends Controller {
      * DSGVO Daten Export
      */
     public function export() {
-        global $userRepo, $lessonRepo, $auditRepo;
         $userId = $_SESSION['user_id'];
         
-        $auditRepo->log($userId, 'PROFILE_EXPORT', "DSGVO Export angefordert.");
+        $this->auditRepo->log($userId, 'PROFILE_EXPORT', "DSGVO Export angefordert.");
         
-        $user = $userRepo->findById($userId);
+        $user = $this->userRepo->findById($userId);
         unset($user['password_hash']);
-        $progress = $lessonRepo->getLessonsWithProgress($userId);
-        $logs = $auditRepo->getLogs($userId);
+        $progress = $this->lessonRepo->getLessonsWithProgress($userId);
+        $logs = $this->auditRepo->getLogs($userId);
         
         return $this->json([
             'user' => $user,
@@ -596,22 +612,46 @@ class UserController extends Controller {
      * Aktivitäten loggen (Fire and forget)
      */
     public function logActivity() {
-        global $auditRepo;
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $action = $input['action'] ?? 'UNKNOWN';
         $details = $input['details'] ?? '';
         
-        $auditRepo->log($_SESSION['user_id'], $action, $details);
+        $this->auditRepo->log($_SESSION['user_id'], $action, $details);
         return $this->json(['success' => true]);
     }
 }
 
 --- END FILE: C:\xampp\htdocs\files\lernplattform\app\Controllers\UserController.php ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\app\Core\Container.php ---
+<?php
+namespace App\Core;
+
+class Container {
+    protected $services = [];
+
+    public function set($name, $service) {
+        $this->services[$name] = $service;
+    }
+
+    public function get($name) {
+        if (!isset($this->services[$name])) {
+            throw new \Exception("Service '{$name}' nicht im Container gefunden.");
+        }
+        return $this->services[$name];
+    }
+}
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\app\Core\Container.php ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\app\Core\Controller.php ---
 <?php
 namespace App\Core;
 
 abstract class Controller {
+    protected $container;
+
+    public function __construct($container = null) {
+        $this->container = $container;
+    }
     /**
      * Rendert eine View-Datei und übergibt Daten
      */
@@ -619,8 +659,7 @@ abstract class Controller {
         // Daten in den lokalen Scope extrahieren, damit die View darauf zugreifen kann
         extract($data);
         
-        // Globale Repositories und User-Daten für Views bereitstellen (Kompatibilität)
-        global $userRepo, $lessonRepo, $auditRepo;
+        // User-Daten für Views bereitstellen
         $user = null;
         if (isset($_SESSION['user_id'])) {
             $user = [
@@ -755,8 +794,16 @@ namespace App\Core;
 class Router {
     protected $routes = [
         'GET' => [],
-        'POST' => []
+        'POST' => [],
+        'PUT' => [],
+        'DELETE' => []
     ];
+
+    protected $container;
+
+    public function __construct($container = null) {
+        $this->container = $container;
+    }
 
     public function get($uri, $action) {
         $this->routes['GET'][$uri] = $action;
@@ -766,10 +813,31 @@ class Router {
         $this->routes['POST'][$uri] = $action;
     }
 
+    public function put($uri, $action) {
+        $this->routes['PUT'][$uri] = $action;
+    }
+
+    public function delete($uri, $action) {
+        $this->routes['DELETE'][$uri] = $action;
+    }
+
     public function dispatch($uri, $requestType) {
-        if (array_key_exists($uri, $this->routes[$requestType])) {
-            $action = $this->routes[$requestType][$uri];
-            return $this->callAction($action);
+        // Method Spoofing unterstützen (falls POST mit _method=PUT/DELETE gesendet wird)
+        if ($requestType === 'POST' && isset($_POST['_method'])) {
+            $requestType = strtoupper($_POST['_method']);
+        }
+
+        foreach ($this->routes[$requestType] as $route => $action) {
+            // Konvertiere {param} zu Regex Capture Groups
+            // Wir erlauben Alphanumerische Zeichen und Unterstriche für Parameter-Namen
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route);
+            $pattern = "#^" . $pattern . "$#";
+
+            if (preg_match($pattern, $uri, $matches)) {
+                // Nur die benannten Matches extrahieren (Strings als Keys)
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                return $this->callAction($action, $params);
+            }
         }
 
         // 404 Not Found
@@ -782,9 +850,9 @@ class Router {
         exit;
     }
 
-    protected function callAction($action) {
+    protected function callAction($action, $params = []) {
         if (is_callable($action)) {
-            return call_user_func($action);
+            return call_user_func_array($action, array_values($params));
         }
 
         if (is_string($action)) {
@@ -794,9 +862,9 @@ class Router {
                 $fullControllerName = "\\App\\Controllers\\{$controllerName}";
                 
                 if (class_exists($fullControllerName)) {
-                    $controller = new $fullControllerName();
+                    $controller = new $fullControllerName($this->container);
                     if (method_exists($controller, $method)) {
-                        return $controller->$method();
+                        return call_user_func_array([$controller, $method], array_values($params));
                     }
                 }
                 throw new \Exception("Controller oder Methode nicht gefunden: {$action}");
@@ -1187,15 +1255,24 @@ spl_autoload_register(function ($class) {
 });
 
 use App\Core\Database;
+use App\Core\Container;
 use App\Repositories\UserRepository;
 use App\Repositories\LessonRepository;
 use App\Repositories\AuditLogRepository;
 
+$container = new Container();
+
 try {
     $db = Database::getInstance()->getConnection();
+    
     $userRepo = new UserRepository($db);
     $lessonRepo = new LessonRepository($db);
     $auditRepo = new AuditLogRepository($db);
+
+    $container->set('UserRepository', $userRepo);
+    $container->set('LessonRepository', $lessonRepo);
+    $container->set('AuditLogRepository', $auditRepo);
+    
 } catch (Exception $e) {
     error_log("Database Connection Error: " . $e->getMessage());
     http_response_code(500);
@@ -2344,6 +2421,185 @@ html:not(.light-mode) .lesson-body [style*="color: #856404"] { color: #fde047 !i
     }
 }
 --- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components\_lesson-content.css ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components\_modals.css ---
+/* components/_modals.css */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.active .modal-container {
+    transform: scale(1);
+}
+
+.modal-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.modal-header i {
+    font-size: 3rem;
+    color: var(--color-warning);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modal-body {
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-footer .btn {
+    flex: 1;
+    padding: 0.75rem;
+}
+
+@media (max-width: 480px) {
+    .modal-container {
+        padding: 1.5rem;
+    }
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+}
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components\_modals.css ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components\_notifications.css ---
+/* components/_notifications.css */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 400px;
+    padding: 1rem 1.25rem;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: toast-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transition: all 0.3s ease;
+}
+
+.toast.toast-out {
+    animation: toast-out 0.3s ease forwards;
+}
+
+.toast i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.toast-success {
+    border-left: 4px solid #10b981;
+}
+.toast-success i { color: #10b981; }
+
+.toast-error {
+    border-left: 4px solid #ef4444;
+}
+.toast-error i { color: #ef4444; }
+
+.toast-info {
+    border-left: 4px solid #3b82f6;
+}
+.toast-info i { color: #3b82f6; }
+
+@keyframes toast-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toast-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        left: 1.5rem;
+    }
+    .toast {
+        min-width: unset;
+        width: 100%;
+    }
+}
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components\_notifications.css ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components\_progress.css ---
 /* components/_progress.css */
 .progress-info {
@@ -3624,6 +3880,8 @@ a {
 @import url('components/_lesson-content.css');
 @import url('components/_editor.css');
 @import url('components/_theme-toggle.css');
+@import url('components/_notifications.css');
+@import url('components/_modals.css');
 
 --- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\components.css ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\css\layout.css ---
@@ -3924,10 +4182,125 @@ export class ThemeToggle {
 }
 
 --- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\components\ThemeToggle.js ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\helpers\Modal.js ---
+/* helpers/Modal.js */
+export const Modal = {
+    confirm(message, options = {}) {
+        const {
+            title = 'Bist du sicher?',
+            confirmText = 'Ja, löschen',
+            cancelText = 'Abbrechen',
+            icon = 'ph-warning-circle'
+        } = options;
+
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            overlay.innerHTML = `
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <i class="ph ${icon}"></i>
+                        <h3 class="modal-title">${title}</h3>
+                    </div>
+                    <div class="modal-body">${message}</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary modal-cancel">${cancelText}</button>
+                        <button class="btn btn-danger modal-confirm">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            
+            // Trigger animation
+            requestAnimationFrame(() => overlay.classList.add('active'));
+
+            const cleanup = (result) => {
+                overlay.classList.remove('active');
+                overlay.addEventListener('transitionend', () => {
+                    overlay.remove();
+                    resolve(result);
+                });
+            };
+
+            overlay.querySelector('.modal-confirm').onclick = () => cleanup(true);
+            overlay.querySelector('.modal-cancel').onclick = () => cleanup(false);
+            
+            // Close on backdrop click
+            overlay.onclick = (e) => {
+                if (e.target === overlay) cleanup(false);
+            };
+        });
+    }
+};
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\helpers\Modal.js ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\helpers\Toast.js ---
+/* helpers/Toast.js */
+export const Toast = {
+    container: null,
+
+    init() {
+        if (this.container) return;
+        this.container = document.createElement('div');
+        this.container.className = 'toast-container';
+        document.body.appendChild(this.container);
+    },
+
+    show(msg, type = 'info', duration = 4000) {
+        this.init();
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icon = this.getIcon(type);
+        
+        toast.innerHTML = `
+            <i class="ph ${icon}"></i>
+            <span>${msg}</span>
+        `;
+
+        this.container.appendChild(toast);
+
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            toast.addEventListener('animationend', () => {
+                toast.remove();
+            });
+        }, duration);
+    },
+
+    success(msg) {
+        this.show(msg, 'success');
+    },
+
+    error(msg) {
+        this.show(msg, 'error');
+    },
+
+    info(msg) {
+        this.show(msg, 'info');
+    },
+
+    getIcon(type) {
+        switch (type) {
+            case 'success': return 'ph-check-circle';
+            case 'error': return 'ph-x-circle';
+            case 'info': return 'ph-info';
+            default: return 'ph-bell';
+        }
+    }
+};
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\helpers\Toast.js ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\modules\Admin.js ---
 /* modules/Admin.js */
 import { ApiService } from '../services/ApiService.js';
 import { escapeHTML } from '../utils/Helpers.js';
+import { Toast } from '../helpers/Toast.js';
+import { Modal } from '../helpers/Modal.js';
 
 export class Admin {
     constructor() { }
@@ -3941,6 +4314,7 @@ export class Admin {
             await this.loadAuditLogs();
         } catch (error) {
             console.error('Error loading admin data:', error);
+            Toast.error('Fehler beim Laden der Admin-Daten.');
         }
     }
 
@@ -3977,22 +4351,34 @@ export class Admin {
     }
 
     async adminSetRole(userId, role) {
-        if (!confirm('Rolle wirklich ändern?')) return;
+        const confirmed = await Modal.confirm('Soll die Rolle dieses Nutzers wirklich geändert werden?', {
+            confirmText: 'Ja, ändern',
+            icon: 'ph-user-gear'
+        });
+        if (!confirmed) return;
+
         try {
             await ApiService.admin.setRole(userId, role);
+            Toast.success('Rolle erfolgreich aktualisiert.');
             await this.loadAuditLogs();
         } catch (error) {
-            alert(error.message || 'Verbindungsfehler.');
+            Toast.error(error.message || 'Verbindungsfehler.');
         }
     }
 
     async adminDeleteUser(userId) {
-        if (!confirm('Nutzer und ALLE seine Daten wirklich löschen?')) return;
+        const confirmed = await Modal.confirm('Möchtest du diesen Nutzer und ALLE seine zugehörigen Daten wirklich unwiderruflich löschen?', {
+            confirmText: 'Ja, Nutzer löschen',
+            icon: 'ph-user-minus'
+        });
+        if (!confirmed) return;
+
         try {
             await ApiService.admin.deleteUser(userId);
+            Toast.success('Nutzer wurde erfolgreich gelöscht.');
             await this.loadAdminData();
         } catch (error) {
-            alert(error.message || 'Verbindungsfehler.');
+            Toast.error(error.message || 'Verbindungsfehler.');
         }
     }
 
@@ -4045,6 +4431,7 @@ export class Admin {
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\modules\Auth.js ---
 /* modules/Auth.js */
 import { ApiService } from '../services/ApiService.js';
+import { UI } from '../utils/UI.js';
 
 export class Auth {
     constructor() {
@@ -4096,7 +4483,7 @@ export class Auth {
         const origText = btn.innerHTML;
         const errorDiv = document.getElementById(errorElementId);
 
-        this.setLoading(btn, true);
+        UI.setLoading(btn, true);
         if (errorDiv) errorDiv.textContent = '';
 
         try {
@@ -4105,7 +4492,6 @@ export class Auth {
                 : ApiService.auth.register(payload));
 
             if (data.success) {
-                if (data.csrf_token) localStorage.setItem('csrf_token', data.csrf_token);
                 return true;
             } else {
                 throw new Error(data.error || 'Fehler bei der Authentifizierung.');
@@ -4114,24 +4500,13 @@ export class Auth {
             if (errorDiv) errorDiv.textContent = error.message;
             return false;
         } finally {
-            this.setLoading(btn, false, origText);
-        }
-    }
-
-    setLoading(btn, isLoading, originalText = '') {
-        if (isLoading) {
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i>';
-            btn.disabled = true;
-        } else {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            UI.setLoading(btn, false, origText);
         }
     }
 
     static async logout() {
         try {
             await ApiService.auth.logout();
-            localStorage.removeItem('csrf_token');
             window.location.href = `${window.BASE_URL}/login`;
         } catch (error) {
             console.error('Logout failed:', error);
@@ -4479,6 +4854,8 @@ export class Editor {
 import { ApiService } from '../services/ApiService.js';
 import { MarkdownParser } from './MarkdownParser.js';
 import { escapeHTML } from '../utils/Helpers.js';
+import { Toast } from '../helpers/Toast.js';
+import { Modal } from '../helpers/Modal.js';
 
 export class Learning {
     constructor() {
@@ -4511,6 +4888,7 @@ export class Learning {
             }
         } catch (error) {
             console.error('Error loading subjects:', error);
+            Toast.error('Fehler beim Laden der Fächer.');
         }
     }
 
@@ -4566,6 +4944,7 @@ export class Learning {
         } catch (error) {
             console.error('Error switching tab:', error);
             container.innerHTML = `<div class="form-error">Fehler beim Laden der Themen.</div>`;
+            Toast.error('Themenübersicht konnte nicht geladen werden.');
         }
     }
 
@@ -4669,6 +5048,7 @@ export class Learning {
         } catch (error) {
             console.error('Error loading lesson:', error);
             mainContainer.innerHTML = `<div class="form-error">Fehler beim Laden des Inhalts.</div>`;
+            Toast.error('Lektion konnte nicht geladen werden.');
         }
     }
 
@@ -4749,8 +5129,10 @@ export class Learning {
             // Update Progress State
             if (markAsCompleted) {
                 if (!this.progress.includes(parseInt(lessonId))) this.progress.push(parseInt(lessonId));
+                Toast.success('Lektion als abgeschlossen markiert.');
             } else {
                 this.progress = this.progress.filter(id => id != lessonId);
+                Toast.info('Lektion als ungelesen markiert.');
             }
 
             // Update Current View for BOTH buttons
@@ -4771,126 +5153,72 @@ export class Learning {
             this.renderTOC();
         } catch (error) {
             console.error('Error toggling progress:', error);
+            Toast.error('Fehler beim Aktualisieren des Fortschritts.');
         }
     }
 
     async deleteArticle(articleId, title) {
-        if (!confirm(`Beitrag "${title}" wirklich löschen?`)) return;
+        const confirmed = await Modal.confirm(`Möchtest du den Beitrag "${title}" wirklich unwiderruflich löschen?`, {
+            confirmText: 'Ja, Beitrag löschen',
+            icon: 'ph-trash'
+        });
+        if (!confirmed) return;
+
         try {
             await ApiService.articles.delete(articleId);
+            Toast.success('Beitrag wurde erfolgreich gelöscht.');
             this.switchTab(this.currentSubjectId, '');
         } catch (e) {
-            alert(e.message || 'Fehler beim Löschen.');
+            Toast.error(e.message || 'Fehler beim Löschen.');
         }
     }
 }
 --- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\modules\Learning.js ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\modules\MarkdownParser.js ---
-export class MarkdownParser {
+/* modules/MarkdownParser.js */
+// DSGVO-konform: Wir importieren die kampferprobten Bibliotheken lokal vom eigenen Server
+import { marked } from '../vendor/marked.esm.js';
+import DOMPurify from '../vendor/purify.es.js';
 
+// Globale Konfiguration für den Markdown-Parser
+marked.use({
+    breaks: true, // Zeilenumbrüche wie im Originaltext übernehmen (erfordert kein doppeltes Enter)
+    gfm: true     // GitHub Flavored Markdown (für Tabellen, saubere Listen etc.)
+});
+
+export class MarkdownParser {
+    
+    /**
+     * Wandelt Markdown sicher in HTML um.
+     * @param {string} markdown - Der rohe Markdown-Text
+     * @returns {string} - Das sichere, bereinigte HTML
+     */
     parse(markdown) {
         if (!markdown) return '';
 
-        let text = markdown.replace(/\r\n/g, '\n');
+        // 1. Markdown in rohes HTML umwandeln
+        // Hinweis: marked.parse() parst synchron, wenn keine asynchronen Erweiterungen genutzt werden
+        const rawHtml = marked.parse(markdown);
 
-        const codeBlocks = [];
-        text = text.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, lang, code) => {
-            codeBlocks.push({ lang, code: this.escapeHtml(code.trimEnd()) });
-            return `\n%%CODE_${codeBlocks.length - 1}%%\n`;
+        // 2. XSS-Schutz: Das generierte HTML strikt bereinigen
+        const safeHtml = DOMPurify.sanitize(rawHtml, {
+            // Wir erlauben das 'class' Attribut ausdrücklich, damit die Code-Blöcke 
+            // ihre <code class="language-xyz"> Formatierung für das CSS behalten.
+            // 'target' erlauben wir für eventuelle Links.
+            ADD_ATTR: ['target', 'class'] 
         });
 
-        const inlineCodes = [];
-        text = text.replace(/`([^`\n]+)`/g, (_match, code) => {
-            inlineCodes.push(this.escapeHtml(code));
-            return `%%INLINE_${inlineCodes.length - 1}%%`;
-        });
-
-        const blocks = text.split(/\n{2,}/);
-        const htmlParts = [];
-
-        for (let block of blocks) {
-            block = block.trim();
-            if (!block) continue;
-
-            const codePlaceholder = block.match(/^%%CODE_(\d+)%%$/);
-            if (codePlaceholder) {
-                const cb = codeBlocks[parseInt(codePlaceholder[1])];
-                const langAttr = cb.lang ? ` class="language-${cb.lang}"` : '';
-                htmlParts.push(`<div class="code-block"><pre><code${langAttr}>${cb.code}</code></pre></div>`);
-                continue;
-            }
-
-            if (/^---+$/.test(block)) {
-                htmlParts.push('<hr>');
-                continue;
-            }
-
-            const headingMatch = block.match(/^(#{1,4})\s+(.+)$/);
-            if (headingMatch) {
-                const level = headingMatch[1].length;
-                htmlParts.push(`<h${level}>${this.inlineFormat(headingMatch[2], inlineCodes)}</h${level}>`);
-                continue;
-            }
-
-            if (/^>\s/.test(block)) {
-                const lines = block.split('\n').map(l => l.replace(/^>\s?/, '')).join('<br>');
-                htmlParts.push(`<blockquote>${this.inlineFormat(lines, inlineCodes)}</blockquote>`);
-                continue;
-            }
-
-            const ulLines = block.split('\n');
-            if (ulLines.every(l => /^[-*]\s/.test(l.trim()) || !l.trim())) {
-                const items = ulLines
-                    .filter(l => /^[-*]\s/.test(l.trim()))
-                    .map(l => `<li>${this.inlineFormat(l.trim().replace(/^[-*]\s/, ''), inlineCodes)}</li>`)
-                    .join('');
-                htmlParts.push(`<ul>${items}</ul>`);
-                continue;
-            }
-
-            const olLines = block.split('\n');
-            if (olLines.every(l => /^\d+\.\s/.test(l.trim()) || !l.trim())) {
-                const items = olLines
-                    .filter(l => /^\d+\.\s/.test(l.trim()))
-                    .map(l => `<li>${this.inlineFormat(l.trim().replace(/^\d+\.\s/, ''), inlineCodes)}</li>`)
-                    .join('');
-                htmlParts.push(`<ol>${items}</ol>`);
-                continue;
-            }
-
-            const paragraphContent = block.split('\n').join('<br>');
-            htmlParts.push(`<p>${this.inlineFormat(paragraphContent, inlineCodes)}</p>`);
-        }
-
-        return htmlParts.join('\n');
-    }
-
-    inlineFormat(text, inlineCodes) {
-        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-        text = text.replace(/%%INLINE_(\d+)%%/g, (_match, idx) => {
-            return `<code>${inlineCodes[parseInt(idx)]}</code>`;
-        });
-
-        return text;
-    }
-
-    escapeHtml(str) {
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+        return safeHtml;
     }
 }
-
 --- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\modules\MarkdownParser.js ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\modules\Profile.js ---
 /* modules/Profile.js */
 import { ApiService } from '../services/ApiService.js';
 import { Auth } from './Auth.js';
+import { Toast } from '../helpers/Toast.js';
+import { Modal } from '../helpers/Modal.js';
+import { UI } from '../utils/UI.js';
 
 export class Profile {
     constructor() {
@@ -4920,6 +5248,7 @@ export class Profile {
             });
         } catch (error) {
             console.error('Error loading profile data:', error);
+            Toast.error('Fehler beim Laden der Profil-Daten.');
         }
     }
 
@@ -4929,7 +5258,7 @@ export class Profile {
         const err = document.getElementById('profile-error');
         const origHtml = btn.innerHTML;
         
-        this.setLoading(btn, true);
+        UI.setLoading(btn, true);
         if (err) err.textContent = '';
 
         try {
@@ -4945,34 +5274,31 @@ export class Profile {
             if (data.success) {
                 document.getElementById('profile-password').value = '';
                 btn.innerHTML = '<i class="ph ph-check"></i> Gespeichert';
-                setTimeout(() => this.setLoading(btn, false, origHtml), 2000);
+                Toast.success('Profil erfolgreich aktualisiert.');
+                setTimeout(() => UI.setLoading(btn, false, origHtml), 2000);
             } else {
                 throw new Error(data.error || 'Fehler beim Speichern.');
             }
         } catch (error) {
             if (err) err.textContent = error.message;
-            this.setLoading(btn, false, origHtml);
-        }
-    }
-
-    setLoading(btn, isLoading, originalText = '') {
-        if (isLoading) {
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
-            btn.disabled = true;
-        } else {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            Toast.error(error.message || 'Fehler beim Speichern.');
+            UI.setLoading(btn, false, origHtml);
         }
     }
 
     async deleteAccount() {
-        if (!confirm('Achtung! Dies löscht dein Konto unwiderruflich! Bist du sicher?')) return;
+        const confirmed = await Modal.confirm('Achtung! Dies löscht dein Konto unwiderruflich! Bist du sicher?', {
+            confirmText: 'Ja, Konto löschen',
+            icon: 'ph-warning'
+        });
+        if (!confirmed) return;
         
         try {
             await ApiService.request('profile.php?action=delete', { method: 'POST' });
-            Auth.logout();
+            Toast.success('Konto erfolgreich gelöscht. Auf Wiedersehen!');
+            setTimeout(() => Auth.logout(), 2000);
         } catch (error) {
-            alert('Fehler beim Löschen des Accounts.');
+            Toast.error('Fehler beim Löschen des Accounts.');
         }
     }
 
@@ -4990,8 +5316,9 @@ export class Profile {
             
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+            Toast.success('Daten erfolgreich exportiert.');
         } catch (error) {
-            alert('Fehler beim Exportieren der Daten.');
+            Toast.error('Fehler beim Exportieren der Daten.');
         }
     }
 }
@@ -5067,6 +5394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* pages/editor.js */
 import { Editor } from '../modules/Editor.js';
 import { ApiService } from '../services/ApiService.js';
+import { UI } from '../utils/UI.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
@@ -5130,7 +5458,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const origHtml = activeBtn.innerHTML;
-        setLoading(activeBtn, true);
+        UI.setLoading(activeBtn, true);
+        if (btnSaveDraft) btnSaveDraft.disabled = true;
+        if (btnPublish) btnPublish.disabled = true;
 
         try {
             const payload = {
@@ -5140,11 +5470,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 status: targetStatus
             };
 
+            let data;
             if (isEditing) {
-                payload.id = parseInt(editId);
+                data = await ApiService.articles.update(editId, payload);
+            } else {
+                data = await ApiService.articles.save(payload);
             }
-
-            const data = await ApiService.articles.save(payload);
 
             if (data.success) {
                 const verb = isEditing ? 'aktualisiert' : 'erstellt';
@@ -5162,19 +5493,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             showMessage(e.message || 'Verbindungsfehler.', false);
         } finally {
-            setLoading(activeBtn, false, origHtml);
-        }
-    }
-
-    function setLoading(btn, isLoading, originalText = '') {
-        if (isLoading) {
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> <span>Speichert...</span>';
-            btnSaveDraft.disabled = true;
-            btnPublish.disabled = true;
-        } else {
-            btn.innerHTML = originalText;
-            btnSaveDraft.disabled = false;
-            btnPublish.disabled = false;
+            UI.setLoading(activeBtn, false, origHtml);
+            if (btnSaveDraft) btnSaveDraft.disabled = false;
+            if (btnPublish) btnPublish.disabled = false;
         }
     }
 
@@ -5240,7 +5561,7 @@ export class ApiService {
 
         // CSRF Token automatisch hinzufügen, falls vorhanden
         if (config.method && config.method.toUpperCase() !== 'GET') {
-            const token = localStorage.getItem('csrf_token');
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
             if (token) {
                 config.headers['X-CSRF-Token'] = token;
             }
@@ -5320,19 +5641,18 @@ export class ApiService {
     };
 
     static articles = {
-        save: (data) => this.request('articles/save', {
+        save: (data) => this.request('articles', {
             method: 'POST',
             body: JSON.stringify(data)
         }),
-        update: (data) => this.request('articles/update', {
-            method: 'POST',
+        update: (id, data) => this.request(`articles/${id}`, {
+            method: 'PUT',
             body: JSON.stringify(data)
         }),
-        delete: (id) => this.request('articles/delete', {
-            method: 'POST',
-            body: JSON.stringify({ id })
+        delete: (id) => this.request(`articles/${id}`, {
+            method: 'DELETE'
         }),
-        get: (id) => this.request(`articles/get?id=${id}`)
+        get: (id) => this.request(`articles/${id}`)
     };
 
     static log = {
@@ -5369,6 +5689,1780 @@ export const debounce = (func, wait) => {
 };
 
 --- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\utils\Helpers.js ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\utils\UI.js ---
+/* utils/UI.js */
+export class UI {
+    /**
+     * Toggles a loading spinner on a button.
+     * @param {HTMLButtonElement} button 
+     * @param {boolean} isLoading 
+     * @param {string} [originalText] - Optional fallback if dataset is not used.
+     */
+    static setLoading(button, isLoading, originalText = '') {
+        if (!button) return;
+
+        if (isLoading) {
+            // Save current content if not already saved
+            button.dataset.origText = button.innerHTML;
+            button.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i>';
+            button.disabled = true;
+        } else {
+            // Restore original content
+            button.innerHTML = originalText || button.dataset.origText || 'Speichern';
+            button.disabled = false;
+        }
+    }
+}
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\utils\UI.js ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\vendor\marked.esm.js ---
+/**
+ * marked v18.0.2 - a markdown parser
+ * Copyright (c) 2018-2026, MarkedJS. (MIT License)
+ * Copyright (c) 2011-2018, Christopher Jeffrey. (MIT License)
+ * https://github.com/markedjs/marked
+ */
+
+/**
+ * DO NOT EDIT THIS FILE
+ * The code in this file is generated from files in ./src/
+ */
+
+function z(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}var T=z();function G(l){T=l}var _={exec:()=>null};function k(l,e=""){let t=typeof l=="string"?l:l.source,n={replace:(s,r)=>{let i=typeof r=="string"?r:r.source;return i=i.replace(m.caret,"$1"),t=t.replace(s,i),n},getRegex:()=>new RegExp(t,e)};return n}var Re=((l="")=>{try{return!!new RegExp("(?<=1)(?<!1)"+l)}catch{return!1}})(),m={codeRemoveIndent:/^(?: {1,4}| {0,3}\t)/gm,outputLinkReplace:/\\([\[\]])/g,indentCodeCompensation:/^(\s+)(?:```)/,beginningSpace:/^\s+/,endingHash:/#$/,startingSpaceChar:/^ /,endingSpaceChar:/ $/,nonSpaceChar:/[^ ]/,newLineCharGlobal:/\n/g,tabCharGlobal:/\t/g,multipleSpaceGlobal:/\s+/g,blankLine:/^[ \t]*$/,doubleBlankLine:/\n[ \t]*\n[ \t]*$/,blockquoteStart:/^ {0,3}>/,blockquoteSetextReplace:/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,blockquoteSetextReplace2:/^ {0,3}>[ \t]?/gm,listReplaceNesting:/^ {1,4}(?=( {4})*[^ ])/g,listIsTask:/^\[[ xX]\] +\S/,listReplaceTask:/^\[[ xX]\] +/,listTaskCheckbox:/\[[ xX]\]/,anyLine:/\n.*\n/,hrefBrackets:/^<(.*)>$/,tableDelimiter:/[:|]/,tableAlignChars:/^\||\| *$/g,tableRowBlankLine:/\n[ \t]*$/,tableAlignRight:/^ *-+: *$/,tableAlignCenter:/^ *:-+: *$/,tableAlignLeft:/^ *:-+ *$/,startATag:/^<a /i,endATag:/^<\/a>/i,startPreScriptTag:/^<(pre|code|kbd|script)(\s|>)/i,endPreScriptTag:/^<\/(pre|code|kbd|script)(\s|>)/i,startAngleBracket:/^</,endAngleBracket:/>$/,pedanticHrefTitle:/^([^'"]*[^\s])\s+(['"])(.*)\2/,unicodeAlphaNumeric:/[\p{L}\p{N}]/u,escapeTest:/[&<>"']/,escapeReplace:/[&<>"']/g,escapeTestNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,escapeReplaceNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g,caret:/(^|[^\[])\^/g,percentDecode:/%25/g,findPipe:/\|/g,splitPipe:/ \|/,slashPipe:/\\\|/g,carriageReturn:/\r\n|\r/g,spaceLine:/^ +$/gm,notSpaceStart:/^\S*/,endingNewline:/\n$/,listItemRegex:l=>new RegExp(`^( {0,3}${l})((?:[	 ][^\\n]*)?(?:\\n|$))`),nextBulletRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`),hrRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),fencesBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}(?:\`\`\`|~~~)`),headingBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}#`),htmlBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}<(?:[a-z].*>|!--)`,"i"),blockquoteBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}>`)},Te=/^(?:[ \t]*(?:\n|$))+/,Oe=/^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/,we=/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,I=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,ye=/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,Q=/ {0,3}(?:[*+-]|\d{1,9}[.)])/,ie=/^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/,oe=k(ie).replace(/bull/g,Q).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/\|table/g,"").getRegex(),Pe=k(ie).replace(/bull/g,Q).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/table/g,/ {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex(),j=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,Se=/^[^\n]+/,F=/(?!\s*\])(?:\\[\s\S]|[^\[\]\\])+/,$e=k(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace("label",F).replace("title",/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),Le=k(/^(bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,Q).getRegex(),v="address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul",U=/<!--(?:-?>|[\s\S]*?(?:-->|$))/,_e=k("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))","i").replace("comment",U).replace("tag",v).replace("attribute",/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),ae=k(j).replace("hr",I).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("|table","").replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",v).getRegex(),Me=k(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph",ae).getRegex(),K={blockquote:Me,code:Oe,def:$e,fences:we,heading:ye,hr:I,html:_e,lheading:oe,list:Le,newline:Te,paragraph:ae,table:_,text:Se},re=k("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr",I).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("blockquote"," {0,3}>").replace("code","(?: {4}| {0,3}	)[^\\n]").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",v).getRegex(),ze={...K,lheading:Pe,table:re,paragraph:k(j).replace("hr",I).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("table",re).replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",v).getRegex()},Ee={...K,html:k(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment",U).replace(/tag/g,"(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:_,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:k(j).replace("hr",I).replace("heading",` *#{1,6} *[^
+]`).replace("lheading",oe).replace("|table","").replace("blockquote"," {0,3}>").replace("|fences","").replace("|list","").replace("|html","").replace("|tag","").getRegex()},Ae=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,Ce=/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,le=/^( {2,}|\\)\n(?!\s*$)/,Ie=/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,E=/[\p{P}\p{S}]/u,H=/[\s\p{P}\p{S}]/u,W=/[^\s\p{P}\p{S}]/u,Be=k(/^((?![*_])punctSpace)/,"u").replace(/punctSpace/g,H).getRegex(),ue=/(?!~)[\p{P}\p{S}]/u,De=/(?!~)[\s\p{P}\p{S}]/u,qe=/(?:[^\s\p{P}\p{S}]|~)/u,ve=k(/link|precode-code|html/,"g").replace("link",/\[(?:[^\[\]`]|(?<a>`+)[^`]+\k<a>(?!`))*?\]\((?:\\[\s\S]|[^\\\(\)]|\((?:\\[\s\S]|[^\\\(\)])*\))*\)/).replace("precode-",Re?"(?<!`)()":"(^^|[^`])").replace("code",/(?<b>`+)[^`]+\k<b>(?!`)/).replace("html",/<(?! )[^<>]*?>/).getRegex(),pe=/^(?:\*+(?:((?!\*)punct)|([^\s*]))?)|^_+(?:((?!_)punct)|([^\s_]))?/,He=k(pe,"u").replace(/punct/g,E).getRegex(),Ze=k(pe,"u").replace(/punct/g,ue).getRegex(),ce="^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)",Ge=k(ce,"gu").replace(/notPunctSpace/g,W).replace(/punctSpace/g,H).replace(/punct/g,E).getRegex(),Ne=k(ce,"gu").replace(/notPunctSpace/g,qe).replace(/punctSpace/g,De).replace(/punct/g,ue).getRegex(),Qe=k("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)","gu").replace(/notPunctSpace/g,W).replace(/punctSpace/g,H).replace(/punct/g,E).getRegex(),je=k(/^~~?(?:((?!~)punct)|[^\s~])/,"u").replace(/punct/g,E).getRegex(),Fe="^[^~]+(?=[^~])|(?!~)punct(~~?)(?=[\\s]|$)|notPunctSpace(~~?)(?!~)(?=punctSpace|$)|(?!~)punctSpace(~~?)(?=notPunctSpace)|[\\s](~~?)(?!~)(?=punct)|(?!~)punct(~~?)(?!~)(?=punct)|notPunctSpace(~~?)(?=notPunctSpace)",Ue=k(Fe,"gu").replace(/notPunctSpace/g,W).replace(/punctSpace/g,H).replace(/punct/g,E).getRegex(),Ke=k(/\\(punct)/,"gu").replace(/punct/g,E).getRegex(),We=k(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme",/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email",/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),Xe=k(U).replace("(?:-->|$)","-->").getRegex(),Je=k("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment",Xe).replace("attribute",/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),q=/(?:\[(?:\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/,Ve=k(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/).replace("label",q).replace("href",/<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace("title",/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),he=k(/^!?\[(label)\]\[(ref)\]/).replace("label",q).replace("ref",F).getRegex(),ke=k(/^!?\[(ref)\](?:\[\])?/).replace("ref",F).getRegex(),Ye=k("reflink|nolink(?!\\()","g").replace("reflink",he).replace("nolink",ke).getRegex(),se=/[hH][tT][tT][pP][sS]?|[fF][tT][pP]/,X={_backpedal:_,anyPunctuation:Ke,autolink:We,blockSkip:ve,br:le,code:Ce,del:_,delLDelim:_,delRDelim:_,emStrongLDelim:He,emStrongRDelimAst:Ge,emStrongRDelimUnd:Qe,escape:Ae,link:Ve,nolink:ke,punctuation:Be,reflink:he,reflinkSearch:Ye,tag:Je,text:Ie,url:_},et={...X,link:k(/^!?\[(label)\]\((.*?)\)/).replace("label",q).getRegex(),reflink:k(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label",q).getRegex()},N={...X,emStrongRDelimAst:Ne,emStrongLDelim:Ze,delLDelim:je,delRDelim:Ue,url:k(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace("protocol",se).replace("email",/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/,text:k(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace("protocol",se).getRegex()},tt={...N,br:k(le).replace("{2,}","*").getRegex(),text:k(N.text).replace("\\b_","\\b_| {2,}\\n").replace(/\{2,\}/g,"*").getRegex()},B={normal:K,gfm:ze,pedantic:Ee},A={normal:X,gfm:N,breaks:tt,pedantic:et};var nt={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},de=l=>nt[l];function O(l,e){if(e){if(m.escapeTest.test(l))return l.replace(m.escapeReplace,de)}else if(m.escapeTestNoEncode.test(l))return l.replace(m.escapeReplaceNoEncode,de);return l}function J(l){try{l=encodeURI(l).replace(m.percentDecode,"%")}catch{return null}return l}function V(l,e){let t=l.replace(m.findPipe,(r,i,o)=>{let u=!1,a=i;for(;--a>=0&&o[a]==="\\";)u=!u;return u?"|":" |"}),n=t.split(m.splitPipe),s=0;if(n[0].trim()||n.shift(),n.length>0&&!n.at(-1)?.trim()&&n.pop(),e)if(n.length>e)n.splice(e);else for(;n.length<e;)n.push("");for(;s<n.length;s++)n[s]=n[s].trim().replace(m.slashPipe,"|");return n}function $(l,e,t){let n=l.length;if(n===0)return"";let s=0;for(;s<n;){let r=l.charAt(n-s-1);if(r===e&&!t)s++;else if(r!==e&&t)s++;else break}return l.slice(0,n-s)}function Y(l){let e=l.split(`
+`),t=e.length-1;for(;t>=0&&m.blankLine.test(e[t]);)t--;return e.length-t<=2?l:e.slice(0,t+1).join(`
+`)}function ge(l,e){if(l.indexOf(e[1])===-1)return-1;let t=0;for(let n=0;n<l.length;n++)if(l[n]==="\\")n++;else if(l[n]===e[0])t++;else if(l[n]===e[1]&&(t--,t<0))return n;return t>0?-2:-1}function fe(l,e=0){let t=e,n="";for(let s of l)if(s==="	"){let r=4-t%4;n+=" ".repeat(r),t+=r}else n+=s,t++;return n}function me(l,e,t,n,s){let r=e.href,i=e.title||null,o=l[1].replace(s.other.outputLinkReplace,"$1");n.state.inLink=!0;let u={type:l[0].charAt(0)==="!"?"image":"link",raw:t,href:r,title:i,text:o,tokens:n.inlineTokens(o)};return n.state.inLink=!1,u}function rt(l,e,t){let n=l.match(t.other.indentCodeCompensation);if(n===null)return e;let s=n[1];return e.split(`
+`).map(r=>{let i=r.match(t.other.beginningSpace);if(i===null)return r;let[o]=i;return o.length>=s.length?r.slice(s.length):r}).join(`
+`)}var w=class{options;rules;lexer;constructor(e){this.options=e||T}space(e){let t=this.rules.block.newline.exec(e);if(t&&t[0].length>0)return{type:"space",raw:t[0]}}code(e){let t=this.rules.block.code.exec(e);if(t){let n=this.options.pedantic?t[0]:Y(t[0]),s=n.replace(this.rules.other.codeRemoveIndent,"");return{type:"code",raw:n,codeBlockStyle:"indented",text:s}}}fences(e){let t=this.rules.block.fences.exec(e);if(t){let n=t[0],s=rt(n,t[3]||"",this.rules);return{type:"code",raw:n,lang:t[2]?t[2].trim().replace(this.rules.inline.anyPunctuation,"$1"):t[2],text:s}}}heading(e){let t=this.rules.block.heading.exec(e);if(t){let n=t[2].trim();if(this.rules.other.endingHash.test(n)){let s=$(n,"#");(this.options.pedantic||!s||this.rules.other.endingSpaceChar.test(s))&&(n=s.trim())}return{type:"heading",raw:$(t[0],`
+`),depth:t[1].length,text:n,tokens:this.lexer.inline(n)}}}hr(e){let t=this.rules.block.hr.exec(e);if(t)return{type:"hr",raw:$(t[0],`
+`)}}blockquote(e){let t=this.rules.block.blockquote.exec(e);if(t){let n=$(t[0],`
+`).split(`
+`),s="",r="",i=[];for(;n.length>0;){let o=!1,u=[],a;for(a=0;a<n.length;a++)if(this.rules.other.blockquoteStart.test(n[a]))u.push(n[a]),o=!0;else if(!o)u.push(n[a]);else break;n=n.slice(a);let c=u.join(`
+`),p=c.replace(this.rules.other.blockquoteSetextReplace,`
+    $1`).replace(this.rules.other.blockquoteSetextReplace2,"");s=s?`${s}
+${c}`:c,r=r?`${r}
+${p}`:p;let d=this.lexer.state.top;if(this.lexer.state.top=!0,this.lexer.blockTokens(p,i,!0),this.lexer.state.top=d,n.length===0)break;let h=i.at(-1);if(h?.type==="code")break;if(h?.type==="blockquote"){let R=h,f=R.raw+`
+`+n.join(`
+`),S=this.blockquote(f);i[i.length-1]=S,s=s.substring(0,s.length-R.raw.length)+S.raw,r=r.substring(0,r.length-R.text.length)+S.text;break}else if(h?.type==="list"){let R=h,f=R.raw+`
+`+n.join(`
+`),S=this.list(f);i[i.length-1]=S,s=s.substring(0,s.length-h.raw.length)+S.raw,r=r.substring(0,r.length-R.raw.length)+S.raw,n=f.substring(i.at(-1).raw.length).split(`
+`);continue}}return{type:"blockquote",raw:s,tokens:i,text:r}}}list(e){let t=this.rules.block.list.exec(e);if(t){let n=t[1].trim(),s=n.length>1,r={type:"list",raw:"",ordered:s,start:s?+n.slice(0,-1):"",loose:!1,items:[]};n=s?`\\d{1,9}\\${n.slice(-1)}`:`\\${n}`,this.options.pedantic&&(n=s?n:"[*+-]");let i=this.rules.other.listItemRegex(n),o=!1;for(;e;){let a=!1,c="",p="";if(!(t=i.exec(e))||this.rules.block.hr.test(e))break;c=t[0],e=e.substring(c.length);let d=fe(t[2].split(`
+`,1)[0],t[1].length),h=e.split(`
+`,1)[0],R=!d.trim(),f=0;if(this.options.pedantic?(f=2,p=d.trimStart()):R?f=t[1].length+1:(f=d.search(this.rules.other.nonSpaceChar),f=f>4?1:f,p=d.slice(f),f+=t[1].length),R&&this.rules.other.blankLine.test(h)&&(c+=h+`
+`,e=e.substring(h.length+1),a=!0),!a){let S=this.rules.other.nextBulletRegex(f),ee=this.rules.other.hrRegex(f),te=this.rules.other.fencesBeginRegex(f),ne=this.rules.other.headingBeginRegex(f),xe=this.rules.other.htmlBeginRegex(f),be=this.rules.other.blockquoteBeginRegex(f);for(;e;){let Z=e.split(`
+`,1)[0],C;if(h=Z,this.options.pedantic?(h=h.replace(this.rules.other.listReplaceNesting,"  "),C=h):C=h.replace(this.rules.other.tabCharGlobal,"    "),te.test(h)||ne.test(h)||xe.test(h)||be.test(h)||S.test(h)||ee.test(h))break;if(C.search(this.rules.other.nonSpaceChar)>=f||!h.trim())p+=`
+`+C.slice(f);else{if(R||d.replace(this.rules.other.tabCharGlobal,"    ").search(this.rules.other.nonSpaceChar)>=4||te.test(d)||ne.test(d)||ee.test(d))break;p+=`
+`+h}R=!h.trim(),c+=Z+`
+`,e=e.substring(Z.length+1),d=C.slice(f)}}r.loose||(o?r.loose=!0:this.rules.other.doubleBlankLine.test(c)&&(o=!0)),r.items.push({type:"list_item",raw:c,task:!!this.options.gfm&&this.rules.other.listIsTask.test(p),loose:!1,text:p,tokens:[]}),r.raw+=c}let u=r.items.at(-1);if(u)u.raw=u.raw.trimEnd(),u.text=u.text.trimEnd();else return;r.raw=r.raw.trimEnd();for(let a of r.items){if(this.lexer.state.top=!1,a.tokens=this.lexer.blockTokens(a.text,[]),a.task){if(a.text=a.text.replace(this.rules.other.listReplaceTask,""),a.tokens[0]?.type==="text"||a.tokens[0]?.type==="paragraph"){a.tokens[0].raw=a.tokens[0].raw.replace(this.rules.other.listReplaceTask,""),a.tokens[0].text=a.tokens[0].text.replace(this.rules.other.listReplaceTask,"");for(let p=this.lexer.inlineQueue.length-1;p>=0;p--)if(this.rules.other.listIsTask.test(this.lexer.inlineQueue[p].src)){this.lexer.inlineQueue[p].src=this.lexer.inlineQueue[p].src.replace(this.rules.other.listReplaceTask,"");break}}let c=this.rules.other.listTaskCheckbox.exec(a.raw);if(c){let p={type:"checkbox",raw:c[0]+" ",checked:c[0]!=="[ ]"};a.checked=p.checked,r.loose?a.tokens[0]&&["paragraph","text"].includes(a.tokens[0].type)&&"tokens"in a.tokens[0]&&a.tokens[0].tokens?(a.tokens[0].raw=p.raw+a.tokens[0].raw,a.tokens[0].text=p.raw+a.tokens[0].text,a.tokens[0].tokens.unshift(p)):a.tokens.unshift({type:"paragraph",raw:p.raw,text:p.raw,tokens:[p]}):a.tokens.unshift(p)}}if(!r.loose){let c=a.tokens.filter(d=>d.type==="space"),p=c.length>0&&c.some(d=>this.rules.other.anyLine.test(d.raw));r.loose=p}}if(r.loose)for(let a of r.items){a.loose=!0;for(let c of a.tokens)c.type==="text"&&(c.type="paragraph")}return r}}html(e){let t=this.rules.block.html.exec(e);if(t){let n=Y(t[0]);return{type:"html",block:!0,raw:n,pre:t[1]==="pre"||t[1]==="script"||t[1]==="style",text:n}}}def(e){let t=this.rules.block.def.exec(e);if(t){let n=t[1].toLowerCase().replace(this.rules.other.multipleSpaceGlobal," "),s=t[2]?t[2].replace(this.rules.other.hrefBrackets,"$1").replace(this.rules.inline.anyPunctuation,"$1"):"",r=t[3]?t[3].substring(1,t[3].length-1).replace(this.rules.inline.anyPunctuation,"$1"):t[3];return{type:"def",tag:n,raw:$(t[0],`
+`),href:s,title:r}}}table(e){let t=this.rules.block.table.exec(e);if(!t||!this.rules.other.tableDelimiter.test(t[2]))return;let n=V(t[1]),s=t[2].replace(this.rules.other.tableAlignChars,"").split("|"),r=t[3]?.trim()?t[3].replace(this.rules.other.tableRowBlankLine,"").split(`
+`):[],i={type:"table",raw:$(t[0],`
+`),header:[],align:[],rows:[]};if(n.length===s.length){for(let o of s)this.rules.other.tableAlignRight.test(o)?i.align.push("right"):this.rules.other.tableAlignCenter.test(o)?i.align.push("center"):this.rules.other.tableAlignLeft.test(o)?i.align.push("left"):i.align.push(null);for(let o=0;o<n.length;o++)i.header.push({text:n[o],tokens:this.lexer.inline(n[o]),header:!0,align:i.align[o]});for(let o of r)i.rows.push(V(o,i.header.length).map((u,a)=>({text:u,tokens:this.lexer.inline(u),header:!1,align:i.align[a]})));return i}}lheading(e){let t=this.rules.block.lheading.exec(e);if(t){let n=t[1].trim();return{type:"heading",raw:$(t[0],`
+`),depth:t[2].charAt(0)==="="?1:2,text:n,tokens:this.lexer.inline(n)}}}paragraph(e){let t=this.rules.block.paragraph.exec(e);if(t){let n=t[1].charAt(t[1].length-1)===`
+`?t[1].slice(0,-1):t[1];return{type:"paragraph",raw:t[0],text:n,tokens:this.lexer.inline(n)}}}text(e){let t=this.rules.block.text.exec(e);if(t)return{type:"text",raw:t[0],text:t[0],tokens:this.lexer.inline(t[0])}}escape(e){let t=this.rules.inline.escape.exec(e);if(t)return{type:"escape",raw:t[0],text:t[1]}}tag(e){let t=this.rules.inline.tag.exec(e);if(t)return!this.lexer.state.inLink&&this.rules.other.startATag.test(t[0])?this.lexer.state.inLink=!0:this.lexer.state.inLink&&this.rules.other.endATag.test(t[0])&&(this.lexer.state.inLink=!1),!this.lexer.state.inRawBlock&&this.rules.other.startPreScriptTag.test(t[0])?this.lexer.state.inRawBlock=!0:this.lexer.state.inRawBlock&&this.rules.other.endPreScriptTag.test(t[0])&&(this.lexer.state.inRawBlock=!1),{type:"html",raw:t[0],inLink:this.lexer.state.inLink,inRawBlock:this.lexer.state.inRawBlock,block:!1,text:t[0]}}link(e){let t=this.rules.inline.link.exec(e);if(t){let n=t[2].trim();if(!this.options.pedantic&&this.rules.other.startAngleBracket.test(n)){if(!this.rules.other.endAngleBracket.test(n))return;let i=$(n.slice(0,-1),"\\");if((n.length-i.length)%2===0)return}else{let i=ge(t[2],"()");if(i===-2)return;if(i>-1){let u=(t[0].indexOf("!")===0?5:4)+t[1].length+i;t[2]=t[2].substring(0,i),t[0]=t[0].substring(0,u).trim(),t[3]=""}}let s=t[2],r="";if(this.options.pedantic){let i=this.rules.other.pedanticHrefTitle.exec(s);i&&(s=i[1],r=i[3])}else r=t[3]?t[3].slice(1,-1):"";return s=s.trim(),this.rules.other.startAngleBracket.test(s)&&(this.options.pedantic&&!this.rules.other.endAngleBracket.test(n)?s=s.slice(1):s=s.slice(1,-1)),me(t,{href:s&&s.replace(this.rules.inline.anyPunctuation,"$1"),title:r&&r.replace(this.rules.inline.anyPunctuation,"$1")},t[0],this.lexer,this.rules)}}reflink(e,t){let n;if((n=this.rules.inline.reflink.exec(e))||(n=this.rules.inline.nolink.exec(e))){let s=(n[2]||n[1]).replace(this.rules.other.multipleSpaceGlobal," "),r=t[s.toLowerCase()];if(!r){let i=n[0].charAt(0);return{type:"text",raw:i,text:i}}return me(n,r,n[0],this.lexer,this.rules)}}emStrong(e,t,n=""){let s=this.rules.inline.emStrongLDelim.exec(e);if(!s||!s[1]&&!s[2]&&!s[3]&&!s[4]||s[4]&&n.match(this.rules.other.unicodeAlphaNumeric))return;if(!(s[1]||s[3]||"")||!n||this.rules.inline.punctuation.exec(n)){let i=[...s[0]].length-1,o,u,a=i,c=0,p=s[0][0]==="*"?this.rules.inline.emStrongRDelimAst:this.rules.inline.emStrongRDelimUnd;for(p.lastIndex=0,t=t.slice(-1*e.length+i);(s=p.exec(t))!==null;){if(o=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!o)continue;if(u=[...o].length,s[3]||s[4]){a+=u;continue}else if((s[5]||s[6])&&i%3&&!((i+u)%3)){c+=u;continue}if(a-=u,a>0)continue;u=Math.min(u,u+a+c);let d=[...s[0]][0].length,h=e.slice(0,i+s.index+d+u);if(Math.min(i,u)%2){let f=h.slice(1,-1);return{type:"em",raw:h,text:f,tokens:this.lexer.inlineTokens(f)}}let R=h.slice(2,-2);return{type:"strong",raw:h,text:R,tokens:this.lexer.inlineTokens(R)}}}}codespan(e){let t=this.rules.inline.code.exec(e);if(t){let n=t[2].replace(this.rules.other.newLineCharGlobal," "),s=this.rules.other.nonSpaceChar.test(n),r=this.rules.other.startingSpaceChar.test(n)&&this.rules.other.endingSpaceChar.test(n);return s&&r&&(n=n.substring(1,n.length-1)),{type:"codespan",raw:t[0],text:n}}}br(e){let t=this.rules.inline.br.exec(e);if(t)return{type:"br",raw:t[0]}}del(e,t,n=""){let s=this.rules.inline.delLDelim.exec(e);if(!s)return;if(!(s[1]||"")||!n||this.rules.inline.punctuation.exec(n)){let i=[...s[0]].length-1,o,u,a=i,c=this.rules.inline.delRDelim;for(c.lastIndex=0,t=t.slice(-1*e.length+i);(s=c.exec(t))!==null;){if(o=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!o||(u=[...o].length,u!==i))continue;if(s[3]||s[4]){a+=u;continue}if(a-=u,a>0)continue;u=Math.min(u,u+a);let p=[...s[0]][0].length,d=e.slice(0,i+s.index+p+u),h=d.slice(i,-i);return{type:"del",raw:d,text:h,tokens:this.lexer.inlineTokens(h)}}}}autolink(e){let t=this.rules.inline.autolink.exec(e);if(t){let n,s;return t[2]==="@"?(n=t[1],s="mailto:"+n):(n=t[1],s=n),{type:"link",raw:t[0],text:n,href:s,tokens:[{type:"text",raw:n,text:n}]}}}url(e){let t;if(t=this.rules.inline.url.exec(e)){let n,s;if(t[2]==="@")n=t[0],s="mailto:"+n;else{let r;do r=t[0],t[0]=this.rules.inline._backpedal.exec(t[0])?.[0]??"";while(r!==t[0]);n=t[0],t[1]==="www."?s="http://"+t[0]:s=t[0]}return{type:"link",raw:t[0],text:n,href:s,tokens:[{type:"text",raw:n,text:n}]}}}inlineText(e){let t=this.rules.inline.text.exec(e);if(t){let n=this.lexer.state.inRawBlock;return{type:"text",raw:t[0],text:t[0],escaped:n}}}};var x=class l{tokens;options;state;inlineQueue;tokenizer;constructor(e){this.tokens=[],this.tokens.links=Object.create(null),this.options=e||T,this.options.tokenizer=this.options.tokenizer||new w,this.tokenizer=this.options.tokenizer,this.tokenizer.options=this.options,this.tokenizer.lexer=this,this.inlineQueue=[],this.state={inLink:!1,inRawBlock:!1,top:!0};let t={other:m,block:B.normal,inline:A.normal};this.options.pedantic?(t.block=B.pedantic,t.inline=A.pedantic):this.options.gfm&&(t.block=B.gfm,this.options.breaks?t.inline=A.breaks:t.inline=A.gfm),this.tokenizer.rules=t}static get rules(){return{block:B,inline:A}}static lex(e,t){return new l(t).lex(e)}static lexInline(e,t){return new l(t).inlineTokens(e)}lex(e){e=e.replace(m.carriageReturn,`
+`),this.blockTokens(e,this.tokens);for(let t=0;t<this.inlineQueue.length;t++){let n=this.inlineQueue[t];this.inlineTokens(n.src,n.tokens)}return this.inlineQueue=[],this.tokens}blockTokens(e,t=[],n=!1){this.tokenizer.lexer=this,this.options.pedantic&&(e=e.replace(m.tabCharGlobal,"    ").replace(m.spaceLine,""));let s=1/0;for(;e;){if(e.length<s)s=e.length;else{this.infiniteLoopError(e.charCodeAt(0));break}let r;if(this.options.extensions?.block?.some(o=>(r=o.call({lexer:this},e,t))?(e=e.substring(r.raw.length),t.push(r),!0):!1))continue;if(r=this.tokenizer.space(e)){e=e.substring(r.raw.length);let o=t.at(-1);r.raw.length===1&&o!==void 0?o.raw+=`
+`:t.push(r);continue}if(r=this.tokenizer.code(e)){e=e.substring(r.raw.length);let o=t.at(-1);o?.type==="paragraph"||o?.type==="text"?(o.raw+=(o.raw.endsWith(`
+`)?"":`
+`)+r.raw,o.text+=`
+`+r.text,this.inlineQueue.at(-1).src=o.text):t.push(r);continue}if(r=this.tokenizer.fences(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.heading(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.hr(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.blockquote(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.list(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.html(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.def(e)){e=e.substring(r.raw.length);let o=t.at(-1);o?.type==="paragraph"||o?.type==="text"?(o.raw+=(o.raw.endsWith(`
+`)?"":`
+`)+r.raw,o.text+=`
+`+r.raw,this.inlineQueue.at(-1).src=o.text):this.tokens.links[r.tag]||(this.tokens.links[r.tag]={href:r.href,title:r.title},t.push(r));continue}if(r=this.tokenizer.table(e)){e=e.substring(r.raw.length),t.push(r);continue}if(r=this.tokenizer.lheading(e)){e=e.substring(r.raw.length),t.push(r);continue}let i=e;if(this.options.extensions?.startBlock){let o=1/0,u=e.slice(1),a;this.options.extensions.startBlock.forEach(c=>{a=c.call({lexer:this},u),typeof a=="number"&&a>=0&&(o=Math.min(o,a))}),o<1/0&&o>=0&&(i=e.substring(0,o+1))}if(this.state.top&&(r=this.tokenizer.paragraph(i))){let o=t.at(-1);n&&o?.type==="paragraph"?(o.raw+=(o.raw.endsWith(`
+`)?"":`
+`)+r.raw,o.text+=`
+`+r.text,this.inlineQueue.pop(),this.inlineQueue.at(-1).src=o.text):t.push(r),n=i.length!==e.length,e=e.substring(r.raw.length);continue}if(r=this.tokenizer.text(e)){e=e.substring(r.raw.length);let o=t.at(-1);o?.type==="text"?(o.raw+=(o.raw.endsWith(`
+`)?"":`
+`)+r.raw,o.text+=`
+`+r.text,this.inlineQueue.pop(),this.inlineQueue.at(-1).src=o.text):t.push(r);continue}if(e){this.infiniteLoopError(e.charCodeAt(0));break}}return this.state.top=!0,t}inline(e,t=[]){return this.inlineQueue.push({src:e,tokens:t}),t}inlineTokens(e,t=[]){this.tokenizer.lexer=this;let n=e,s=null;if(this.tokens.links){let a=Object.keys(this.tokens.links);if(a.length>0)for(;(s=this.tokenizer.rules.inline.reflinkSearch.exec(n))!==null;)a.includes(s[0].slice(s[0].lastIndexOf("[")+1,-1))&&(n=n.slice(0,s.index)+"["+"a".repeat(s[0].length-2)+"]"+n.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex))}for(;(s=this.tokenizer.rules.inline.anyPunctuation.exec(n))!==null;)n=n.slice(0,s.index)+"++"+n.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);let r;for(;(s=this.tokenizer.rules.inline.blockSkip.exec(n))!==null;)r=s[2]?s[2].length:0,n=n.slice(0,s.index+r)+"["+"a".repeat(s[0].length-r-2)+"]"+n.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);n=this.options.hooks?.emStrongMask?.call({lexer:this},n)??n;let i=!1,o="",u=1/0;for(;e;){if(e.length<u)u=e.length;else{this.infiniteLoopError(e.charCodeAt(0));break}i||(o=""),i=!1;let a;if(this.options.extensions?.inline?.some(p=>(a=p.call({lexer:this},e,t))?(e=e.substring(a.raw.length),t.push(a),!0):!1))continue;if(a=this.tokenizer.escape(e)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.tag(e)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.link(e)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.reflink(e,this.tokens.links)){e=e.substring(a.raw.length);let p=t.at(-1);a.type==="text"&&p?.type==="text"?(p.raw+=a.raw,p.text+=a.text):t.push(a);continue}if(a=this.tokenizer.emStrong(e,n,o)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.codespan(e)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.br(e)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.del(e,n,o)){e=e.substring(a.raw.length),t.push(a);continue}if(a=this.tokenizer.autolink(e)){e=e.substring(a.raw.length),t.push(a);continue}if(!this.state.inLink&&(a=this.tokenizer.url(e))){e=e.substring(a.raw.length),t.push(a);continue}let c=e;if(this.options.extensions?.startInline){let p=1/0,d=e.slice(1),h;this.options.extensions.startInline.forEach(R=>{h=R.call({lexer:this},d),typeof h=="number"&&h>=0&&(p=Math.min(p,h))}),p<1/0&&p>=0&&(c=e.substring(0,p+1))}if(a=this.tokenizer.inlineText(c)){e=e.substring(a.raw.length),a.raw.slice(-1)!=="_"&&(o=a.raw.slice(-1)),i=!0;let p=t.at(-1);p?.type==="text"?(p.raw+=a.raw,p.text+=a.text):t.push(a);continue}if(e){this.infiniteLoopError(e.charCodeAt(0));break}}return t}infiniteLoopError(e){let t="Infinite loop on byte: "+e;if(this.options.silent)console.error(t);else throw new Error(t)}};var y=class{options;parser;constructor(e){this.options=e||T}space(e){return""}code({text:e,lang:t,escaped:n}){let s=(t||"").match(m.notSpaceStart)?.[0],r=e.replace(m.endingNewline,"")+`
+`;return s?'<pre><code class="language-'+O(s)+'">'+(n?r:O(r,!0))+`</code></pre>
+`:"<pre><code>"+(n?r:O(r,!0))+`</code></pre>
+`}blockquote({tokens:e}){return`<blockquote>
+${this.parser.parse(e)}</blockquote>
+`}html({text:e}){return e}def(e){return""}heading({tokens:e,depth:t}){return`<h${t}>${this.parser.parseInline(e)}</h${t}>
+`}hr(e){return`<hr>
+`}list(e){let t=e.ordered,n=e.start,s="";for(let o=0;o<e.items.length;o++){let u=e.items[o];s+=this.listitem(u)}let r=t?"ol":"ul",i=t&&n!==1?' start="'+n+'"':"";return"<"+r+i+`>
+`+s+"</"+r+`>
+`}listitem(e){return`<li>${this.parser.parse(e.tokens)}</li>
+`}checkbox({checked:e}){return"<input "+(e?'checked="" ':"")+'disabled="" type="checkbox"> '}paragraph({tokens:e}){return`<p>${this.parser.parseInline(e)}</p>
+`}table(e){let t="",n="";for(let r=0;r<e.header.length;r++)n+=this.tablecell(e.header[r]);t+=this.tablerow({text:n});let s="";for(let r=0;r<e.rows.length;r++){let i=e.rows[r];n="";for(let o=0;o<i.length;o++)n+=this.tablecell(i[o]);s+=this.tablerow({text:n})}return s&&(s=`<tbody>${s}</tbody>`),`<table>
+<thead>
+`+t+`</thead>
+`+s+`</table>
+`}tablerow({text:e}){return`<tr>
+${e}</tr>
+`}tablecell(e){let t=this.parser.parseInline(e.tokens),n=e.header?"th":"td";return(e.align?`<${n} align="${e.align}">`:`<${n}>`)+t+`</${n}>
+`}strong({tokens:e}){return`<strong>${this.parser.parseInline(e)}</strong>`}em({tokens:e}){return`<em>${this.parser.parseInline(e)}</em>`}codespan({text:e}){return`<code>${O(e,!0)}</code>`}br(e){return"<br>"}del({tokens:e}){return`<del>${this.parser.parseInline(e)}</del>`}link({href:e,title:t,tokens:n}){let s=this.parser.parseInline(n),r=J(e);if(r===null)return s;e=r;let i='<a href="'+e+'"';return t&&(i+=' title="'+O(t)+'"'),i+=">"+s+"</a>",i}image({href:e,title:t,text:n,tokens:s}){s&&(n=this.parser.parseInline(s,this.parser.textRenderer));let r=J(e);if(r===null)return O(n);e=r;let i=`<img src="${e}" alt="${O(n)}"`;return t&&(i+=` title="${O(t)}"`),i+=">",i}text(e){return"tokens"in e&&e.tokens?this.parser.parseInline(e.tokens):"escaped"in e&&e.escaped?e.text:O(e.text)}};var L=class{strong({text:e}){return e}em({text:e}){return e}codespan({text:e}){return e}del({text:e}){return e}html({text:e}){return e}text({text:e}){return e}link({text:e}){return""+e}image({text:e}){return""+e}br(){return""}checkbox({raw:e}){return e}};var b=class l{options;renderer;textRenderer;constructor(e){this.options=e||T,this.options.renderer=this.options.renderer||new y,this.renderer=this.options.renderer,this.renderer.options=this.options,this.renderer.parser=this,this.textRenderer=new L}static parse(e,t){return new l(t).parse(e)}static parseInline(e,t){return new l(t).parseInline(e)}parse(e){this.renderer.parser=this;let t="";for(let n=0;n<e.length;n++){let s=e[n];if(this.options.extensions?.renderers?.[s.type]){let i=s,o=this.options.extensions.renderers[i.type].call({parser:this},i);if(o!==!1||!["space","hr","heading","code","table","blockquote","list","html","def","paragraph","text"].includes(i.type)){t+=o||"";continue}}let r=s;switch(r.type){case"space":{t+=this.renderer.space(r);break}case"hr":{t+=this.renderer.hr(r);break}case"heading":{t+=this.renderer.heading(r);break}case"code":{t+=this.renderer.code(r);break}case"table":{t+=this.renderer.table(r);break}case"blockquote":{t+=this.renderer.blockquote(r);break}case"list":{t+=this.renderer.list(r);break}case"checkbox":{t+=this.renderer.checkbox(r);break}case"html":{t+=this.renderer.html(r);break}case"def":{t+=this.renderer.def(r);break}case"paragraph":{t+=this.renderer.paragraph(r);break}case"text":{t+=this.renderer.text(r);break}default:{let i='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(i),"";throw new Error(i)}}}return t}parseInline(e,t=this.renderer){this.renderer.parser=this;let n="";for(let s=0;s<e.length;s++){let r=e[s];if(this.options.extensions?.renderers?.[r.type]){let o=this.options.extensions.renderers[r.type].call({parser:this},r);if(o!==!1||!["escape","html","link","image","strong","em","codespan","br","del","text"].includes(r.type)){n+=o||"";continue}}let i=r;switch(i.type){case"escape":{n+=t.text(i);break}case"html":{n+=t.html(i);break}case"link":{n+=t.link(i);break}case"image":{n+=t.image(i);break}case"checkbox":{n+=t.checkbox(i);break}case"strong":{n+=t.strong(i);break}case"em":{n+=t.em(i);break}case"codespan":{n+=t.codespan(i);break}case"br":{n+=t.br(i);break}case"del":{n+=t.del(i);break}case"text":{n+=t.text(i);break}default:{let o='Token with "'+i.type+'" type was not found.';if(this.options.silent)return console.error(o),"";throw new Error(o)}}}return n}};var P=class{options;block;constructor(e){this.options=e||T}static passThroughHooks=new Set(["preprocess","postprocess","processAllTokens","emStrongMask"]);static passThroughHooksRespectAsync=new Set(["preprocess","postprocess","processAllTokens"]);preprocess(e){return e}postprocess(e){return e}processAllTokens(e){return e}emStrongMask(e){return e}provideLexer(e=this.block){return e?x.lex:x.lexInline}provideParser(e=this.block){return e?b.parse:b.parseInline}};var D=class{defaults=z();options=this.setOptions;parse=this.parseMarkdown(!0);parseInline=this.parseMarkdown(!1);Parser=b;Renderer=y;TextRenderer=L;Lexer=x;Tokenizer=w;Hooks=P;constructor(...e){this.use(...e)}walkTokens(e,t){let n=[];for(let s of e)switch(n=n.concat(t.call(this,s)),s.type){case"table":{let r=s;for(let i of r.header)n=n.concat(this.walkTokens(i.tokens,t));for(let i of r.rows)for(let o of i)n=n.concat(this.walkTokens(o.tokens,t));break}case"list":{let r=s;n=n.concat(this.walkTokens(r.items,t));break}default:{let r=s;this.defaults.extensions?.childTokens?.[r.type]?this.defaults.extensions.childTokens[r.type].forEach(i=>{let o=r[i].flat(1/0);n=n.concat(this.walkTokens(o,t))}):r.tokens&&(n=n.concat(this.walkTokens(r.tokens,t)))}}return n}use(...e){let t=this.defaults.extensions||{renderers:{},childTokens:{}};return e.forEach(n=>{let s={...n};if(s.async=this.defaults.async||s.async||!1,n.extensions&&(n.extensions.forEach(r=>{if(!r.name)throw new Error("extension name required");if("renderer"in r){let i=t.renderers[r.name];i?t.renderers[r.name]=function(...o){let u=r.renderer.apply(this,o);return u===!1&&(u=i.apply(this,o)),u}:t.renderers[r.name]=r.renderer}if("tokenizer"in r){if(!r.level||r.level!=="block"&&r.level!=="inline")throw new Error("extension level must be 'block' or 'inline'");let i=t[r.level];i?i.unshift(r.tokenizer):t[r.level]=[r.tokenizer],r.start&&(r.level==="block"?t.startBlock?t.startBlock.push(r.start):t.startBlock=[r.start]:r.level==="inline"&&(t.startInline?t.startInline.push(r.start):t.startInline=[r.start]))}"childTokens"in r&&r.childTokens&&(t.childTokens[r.name]=r.childTokens)}),s.extensions=t),n.renderer){let r=this.defaults.renderer||new y(this.defaults);for(let i in n.renderer){if(!(i in r))throw new Error(`renderer '${i}' does not exist`);if(["options","parser"].includes(i))continue;let o=i,u=n.renderer[o],a=r[o];r[o]=(...c)=>{let p=u.apply(r,c);return p===!1&&(p=a.apply(r,c)),p||""}}s.renderer=r}if(n.tokenizer){let r=this.defaults.tokenizer||new w(this.defaults);for(let i in n.tokenizer){if(!(i in r))throw new Error(`tokenizer '${i}' does not exist`);if(["options","rules","lexer"].includes(i))continue;let o=i,u=n.tokenizer[o],a=r[o];r[o]=(...c)=>{let p=u.apply(r,c);return p===!1&&(p=a.apply(r,c)),p}}s.tokenizer=r}if(n.hooks){let r=this.defaults.hooks||new P;for(let i in n.hooks){if(!(i in r))throw new Error(`hook '${i}' does not exist`);if(["options","block"].includes(i))continue;let o=i,u=n.hooks[o],a=r[o];P.passThroughHooks.has(i)?r[o]=c=>{if(this.defaults.async&&P.passThroughHooksRespectAsync.has(i))return(async()=>{let d=await u.call(r,c);return a.call(r,d)})();let p=u.call(r,c);return a.call(r,p)}:r[o]=(...c)=>{if(this.defaults.async)return(async()=>{let d=await u.apply(r,c);return d===!1&&(d=await a.apply(r,c)),d})();let p=u.apply(r,c);return p===!1&&(p=a.apply(r,c)),p}}s.hooks=r}if(n.walkTokens){let r=this.defaults.walkTokens,i=n.walkTokens;s.walkTokens=function(o){let u=[];return u.push(i.call(this,o)),r&&(u=u.concat(r.call(this,o))),u}}this.defaults={...this.defaults,...s}}),this}setOptions(e){return this.defaults={...this.defaults,...e},this}lexer(e,t){return x.lex(e,t??this.defaults)}parser(e,t){return b.parse(e,t??this.defaults)}parseMarkdown(e){return(n,s)=>{let r={...s},i={...this.defaults,...r},o=this.onError(!!i.silent,!!i.async);if(this.defaults.async===!0&&r.async===!1)return o(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));if(typeof n>"u"||n===null)return o(new Error("marked(): input parameter is undefined or null"));if(typeof n!="string")return o(new Error("marked(): input parameter is of type "+Object.prototype.toString.call(n)+", string expected"));if(i.hooks&&(i.hooks.options=i,i.hooks.block=e),i.async)return(async()=>{let u=i.hooks?await i.hooks.preprocess(n):n,c=await(i.hooks?await i.hooks.provideLexer(e):e?x.lex:x.lexInline)(u,i),p=i.hooks?await i.hooks.processAllTokens(c):c;i.walkTokens&&await Promise.all(this.walkTokens(p,i.walkTokens));let h=await(i.hooks?await i.hooks.provideParser(e):e?b.parse:b.parseInline)(p,i);return i.hooks?await i.hooks.postprocess(h):h})().catch(o);try{i.hooks&&(n=i.hooks.preprocess(n));let a=(i.hooks?i.hooks.provideLexer(e):e?x.lex:x.lexInline)(n,i);i.hooks&&(a=i.hooks.processAllTokens(a)),i.walkTokens&&this.walkTokens(a,i.walkTokens);let p=(i.hooks?i.hooks.provideParser(e):e?b.parse:b.parseInline)(a,i);return i.hooks&&(p=i.hooks.postprocess(p)),p}catch(u){return o(u)}}}onError(e,t){return n=>{if(n.message+=`
+Please report this to https://github.com/markedjs/marked.`,e){let s="<p>An error occurred:</p><pre>"+O(n.message+"",!0)+"</pre>";return t?Promise.resolve(s):s}if(t)return Promise.reject(n);throw n}}};var M=new D;function g(l,e){return M.parse(l,e)}g.options=g.setOptions=function(l){return M.setOptions(l),g.defaults=M.defaults,G(g.defaults),g};g.getDefaults=z;g.defaults=T;g.use=function(...l){return M.use(...l),g.defaults=M.defaults,G(g.defaults),g};g.walkTokens=function(l,e){return M.walkTokens(l,e)};g.parseInline=M.parseInline;g.Parser=b;g.parser=b.parse;g.Renderer=y;g.TextRenderer=L;g.Lexer=x;g.lexer=x.lex;g.Tokenizer=w;g.Hooks=P;g.parse=g;var jt=g.options,Ft=g.setOptions,Ut=g.use,Kt=g.walkTokens,Wt=g.parseInline,Xt=g,Jt=b.parse,Vt=x.lex;export{P as Hooks,x as Lexer,D as Marked,b as Parser,y as Renderer,L as TextRenderer,w as Tokenizer,T as defaults,z as getDefaults,Vt as lexer,g as marked,jt as options,Xt as parse,Wt as parseInline,Jt as parser,Ft as setOptions,Ut as use,Kt as walkTokens};
+//# sourceMappingURL=marked.esm.js.map
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\vendor\marked.esm.js ---
+--- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\vendor\purify.es.js ---
+/*! @license DOMPurify 3.0.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.6/LICENSE */
+
+const {
+  entries,
+  setPrototypeOf,
+  isFrozen,
+  getPrototypeOf,
+  getOwnPropertyDescriptor
+} = Object;
+let {
+  freeze,
+  seal,
+  create
+} = Object; // eslint-disable-line import/no-mutable-exports
+
+let {
+  apply,
+  construct
+} = typeof Reflect !== 'undefined' && Reflect;
+
+if (!freeze) {
+  freeze = function freeze(x) {
+    return x;
+  };
+}
+
+if (!seal) {
+  seal = function seal(x) {
+    return x;
+  };
+}
+
+if (!apply) {
+  apply = function apply(fun, thisValue, args) {
+    return fun.apply(thisValue, args);
+  };
+}
+
+if (!construct) {
+  construct = function construct(Func, args) {
+    return new Func(...args);
+  };
+}
+
+const arrayForEach = unapply(Array.prototype.forEach);
+const arrayPop = unapply(Array.prototype.pop);
+const arrayPush = unapply(Array.prototype.push);
+const stringToLowerCase = unapply(String.prototype.toLowerCase);
+const stringToString = unapply(String.prototype.toString);
+const stringMatch = unapply(String.prototype.match);
+const stringReplace = unapply(String.prototype.replace);
+const stringIndexOf = unapply(String.prototype.indexOf);
+const stringTrim = unapply(String.prototype.trim);
+const regExpTest = unapply(RegExp.prototype.test);
+const typeErrorCreate = unconstruct(TypeError);
+/**
+ * Creates a new function that calls the given function with a specified thisArg and arguments.
+ *
+ * @param {Function} func - The function to be wrapped and called.
+ * @returns {Function} A new function that calls the given function with a specified thisArg and arguments.
+ */
+
+function unapply(func) {
+  return function (thisArg) {
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    return apply(func, thisArg, args);
+  };
+}
+/**
+ * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
+ *
+ * @param {Function} func - The constructor function to be wrapped and called.
+ * @returns {Function} A new function that constructs an instance of the given constructor function with the provided arguments.
+ */
+
+
+function unconstruct(func) {
+  return function () {
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    return construct(func, args);
+  };
+}
+/**
+ * Add properties to a lookup table
+ *
+ * @param {Object} set - The set to which elements will be added.
+ * @param {Array} array - The array containing elements to be added to the set.
+ * @param {Function} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+ * @returns {Object} The modified set with added elements.
+ */
+
+
+function addToSet(set, array) {
+  let transformCaseFunc = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : stringToLowerCase;
+
+  if (setPrototypeOf) {
+    // Make 'in' and truthy checks like Boolean(set.constructor)
+    // independent of any properties defined on Object.prototype.
+    // Prevent prototype setters from intercepting set as a this value.
+    setPrototypeOf(set, null);
+  }
+
+  let l = array.length;
+
+  while (l--) {
+    let element = array[l];
+
+    if (typeof element === 'string') {
+      const lcElement = transformCaseFunc(element);
+
+      if (lcElement !== element) {
+        // Config presets (e.g. tags.js, attrs.js) are immutable.
+        if (!isFrozen(array)) {
+          array[l] = lcElement;
+        }
+
+        element = lcElement;
+      }
+    }
+
+    set[element] = true;
+  }
+
+  return set;
+}
+/**
+ * Shallow clone an object
+ *
+ * @param {Object} object - The object to be cloned.
+ * @returns {Object} A new object that copies the original.
+ */
+
+
+function clone(object) {
+  const newObject = create(null);
+
+  for (const [property, value] of entries(object)) {
+    if (getOwnPropertyDescriptor(object, property) !== undefined) {
+      newObject[property] = value;
+    }
+  }
+
+  return newObject;
+}
+/**
+ * This method automatically checks if the prop is function or getter and behaves accordingly.
+ *
+ * @param {Object} object - The object to look up the getter function in its prototype chain.
+ * @param {String} prop - The property name for which to find the getter function.
+ * @returns {Function} The getter function found in the prototype chain or a fallback function.
+ */
+
+function lookupGetter(object, prop) {
+  while (object !== null) {
+    const desc = getOwnPropertyDescriptor(object, prop);
+
+    if (desc) {
+      if (desc.get) {
+        return unapply(desc.get);
+      }
+
+      if (typeof desc.value === 'function') {
+        return unapply(desc.value);
+      }
+    }
+
+    object = getPrototypeOf(object);
+  }
+
+  function fallbackValue(element) {
+    console.warn('fallback value for', element);
+    return null;
+  }
+
+  return fallbackValue;
+}
+
+const html$1 = freeze(['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr']); // SVG
+
+const svg$1 = freeze(['svg', 'a', 'altglyph', 'altglyphdef', 'altglyphitem', 'animatecolor', 'animatemotion', 'animatetransform', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'filter', 'font', 'g', 'glyph', 'glyphref', 'hkern', 'image', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'style', 'switch', 'symbol', 'text', 'textpath', 'title', 'tref', 'tspan', 'view', 'vkern']);
+const svgFilters = freeze(['feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feDropShadow', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence']); // List of SVG elements that are disallowed by default.
+// We still need to know them so that we can do namespace
+// checks properly in case one wants to add them to
+// allow-list.
+
+const svgDisallowed = freeze(['animate', 'color-profile', 'cursor', 'discard', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignobject', 'hatch', 'hatchpath', 'mesh', 'meshgradient', 'meshpatch', 'meshrow', 'missing-glyph', 'script', 'set', 'solidcolor', 'unknown', 'use']);
+const mathMl$1 = freeze(['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'ms', 'mspace', 'msqrt', 'mstyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover', 'mprescripts']); // Similarly to SVG, we want to know all MathML elements,
+// even those that we disallow by default.
+
+const mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongdiv', 'mscarries', 'mscarry', 'msgroup', 'mstack', 'msline', 'msrow', 'semantics', 'annotation', 'annotation-xml', 'mprescripts', 'none']);
+const text = freeze(['#text']);
+
+const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'playsinline', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'xmlns', 'slot']);
+const svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
+const mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
+const xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
+
+const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
+
+const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+const TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
+const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
+
+const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
+
+const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+);
+const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
+const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
+);
+const DOCTYPE_NAME = seal(/^html$/i);
+
+var EXPRESSIONS = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  MUSTACHE_EXPR: MUSTACHE_EXPR,
+  ERB_EXPR: ERB_EXPR,
+  TMPLIT_EXPR: TMPLIT_EXPR,
+  DATA_ATTR: DATA_ATTR,
+  ARIA_ATTR: ARIA_ATTR,
+  IS_ALLOWED_URI: IS_ALLOWED_URI,
+  IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
+  ATTR_WHITESPACE: ATTR_WHITESPACE,
+  DOCTYPE_NAME: DOCTYPE_NAME
+});
+
+const getGlobal = function getGlobal() {
+  return typeof window === 'undefined' ? null : window;
+};
+/**
+ * Creates a no-op policy for internal use only.
+ * Don't export this function outside this module!
+ * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+ * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
+ * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * are not supported or creating the policy failed).
+ */
+
+
+const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement) {
+  if (typeof trustedTypes !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
+    return null;
+  } // Allow the callers to control the unique policy name
+  // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
+  // Policy creation with duplicate names throws in Trusted Types.
+
+
+  let suffix = null;
+  const ATTR_NAME = 'data-tt-policy-suffix';
+
+  if (purifyHostElement && purifyHostElement.hasAttribute(ATTR_NAME)) {
+    suffix = purifyHostElement.getAttribute(ATTR_NAME);
+  }
+
+  const policyName = 'dompurify' + (suffix ? '#' + suffix : '');
+
+  try {
+    return trustedTypes.createPolicy(policyName, {
+      createHTML(html) {
+        return html;
+      },
+
+      createScriptURL(scriptUrl) {
+        return scriptUrl;
+      }
+
+    });
+  } catch (_) {
+    // Policy creation failed (most likely another DOMPurify script has
+    // already run). Skip creating the policy, as this will only cause errors
+    // if TT are enforced.
+    console.warn('TrustedTypes policy ' + policyName + ' could not be created.');
+    return null;
+  }
+};
+
+function createDOMPurify() {
+  let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
+
+  const DOMPurify = root => createDOMPurify(root);
+  /**
+   * Version label, exposed for easier checks
+   * if DOMPurify is up to date or not
+   */
+
+
+  DOMPurify.version = '3.0.6';
+  /**
+   * Array of elements that DOMPurify removed during sanitation.
+   * Empty if nothing was removed.
+   */
+
+  DOMPurify.removed = [];
+
+  if (!window || !window.document || window.document.nodeType !== 9) {
+    // Not running in a browser, provide a factory function
+    // so that you can pass your own Window
+    DOMPurify.isSupported = false;
+    return DOMPurify;
+  }
+
+  let {
+    document
+  } = window;
+  const originalDocument = document;
+  const currentScript = originalDocument.currentScript;
+  const {
+    DocumentFragment,
+    HTMLTemplateElement,
+    Node,
+    Element,
+    NodeFilter,
+    NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
+    HTMLFormElement,
+    DOMParser,
+    trustedTypes
+  } = window;
+  const ElementPrototype = Element.prototype;
+  const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+  const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
+  const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
+  const getParentNode = lookupGetter(ElementPrototype, 'parentNode'); // As per issue #47, the web-components registry is inherited by a
+  // new document created via createHTMLDocument. As per the spec
+  // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
+  // a new empty registry is used when creating a template contents owner
+  // document, so we use that as our parent document to ensure nothing
+  // is inherited.
+
+  if (typeof HTMLTemplateElement === 'function') {
+    const template = document.createElement('template');
+
+    if (template.content && template.content.ownerDocument) {
+      document = template.content.ownerDocument;
+    }
+  }
+
+  let trustedTypesPolicy;
+  let emptyHTML = '';
+  const {
+    implementation,
+    createNodeIterator,
+    createDocumentFragment,
+    getElementsByTagName
+  } = document;
+  const {
+    importNode
+  } = originalDocument;
+  let hooks = {};
+  /**
+   * Expose whether this browser supports running the full DOMPurify.
+   */
+
+  DOMPurify.isSupported = typeof entries === 'function' && typeof getParentNode === 'function' && implementation && implementation.createHTMLDocument !== undefined;
+  const {
+    MUSTACHE_EXPR,
+    ERB_EXPR,
+    TMPLIT_EXPR,
+    DATA_ATTR,
+    ARIA_ATTR,
+    IS_SCRIPT_OR_DATA,
+    ATTR_WHITESPACE
+  } = EXPRESSIONS;
+  let {
+    IS_ALLOWED_URI: IS_ALLOWED_URI$1
+  } = EXPRESSIONS;
+  /**
+   * We consider the elements and attributes below to be safe. Ideally
+   * don't add any new ones but feel free to remove unwanted ones.
+   */
+
+  /* allowed element names */
+
+  let ALLOWED_TAGS = null;
+  const DEFAULT_ALLOWED_TAGS = addToSet({}, [...html$1, ...svg$1, ...svgFilters, ...mathMl$1, ...text]);
+  /* Allowed attribute names */
+
+  let ALLOWED_ATTR = null;
+  const DEFAULT_ALLOWED_ATTR = addToSet({}, [...html, ...svg, ...mathMl, ...xml]);
+  /*
+   * Configure how DOMPUrify should handle custom elements and their attributes as well as customized built-in elements.
+   * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
+   * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
+   * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
+   */
+
+  let CUSTOM_ELEMENT_HANDLING = Object.seal(create(null, {
+    tagNameCheck: {
+      writable: true,
+      configurable: false,
+      enumerable: true,
+      value: null
+    },
+    attributeNameCheck: {
+      writable: true,
+      configurable: false,
+      enumerable: true,
+      value: null
+    },
+    allowCustomizedBuiltInElements: {
+      writable: true,
+      configurable: false,
+      enumerable: true,
+      value: false
+    }
+  }));
+  /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
+
+  let FORBID_TAGS = null;
+  /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
+
+  let FORBID_ATTR = null;
+  /* Decide if ARIA attributes are okay */
+
+  let ALLOW_ARIA_ATTR = true;
+  /* Decide if custom data attributes are okay */
+
+  let ALLOW_DATA_ATTR = true;
+  /* Decide if unknown protocols are okay */
+
+  let ALLOW_UNKNOWN_PROTOCOLS = false;
+  /* Decide if self-closing tags in attributes are allowed.
+   * Usually removed due to a mXSS issue in jQuery 3.0 */
+
+  let ALLOW_SELF_CLOSE_IN_ATTR = true;
+  /* Output should be safe for common template engines.
+   * This means, DOMPurify removes data attributes, mustaches and ERB
+   */
+
+  let SAFE_FOR_TEMPLATES = false;
+  /* Decide if document with <html>... should be returned */
+
+  let WHOLE_DOCUMENT = false;
+  /* Track whether config is already set on this instance of DOMPurify. */
+
+  let SET_CONFIG = false;
+  /* Decide if all elements (e.g. style, script) must be children of
+   * document.body. By default, browsers might move them to document.head */
+
+  let FORCE_BODY = false;
+  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
+   * string (or a TrustedHTML object if Trusted Types are supported).
+   * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
+   */
+
+  let RETURN_DOM = false;
+  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
+   * string  (or a TrustedHTML object if Trusted Types are supported) */
+
+  let RETURN_DOM_FRAGMENT = false;
+  /* Try to return a Trusted Type object instead of a string, return a string in
+   * case Trusted Types are not supported  */
+
+  let RETURN_TRUSTED_TYPE = false;
+  /* Output should be free from DOM clobbering attacks?
+   * This sanitizes markups named with colliding, clobberable built-in DOM APIs.
+   */
+
+  let SANITIZE_DOM = true;
+  /* Achieve full DOM Clobbering protection by isolating the namespace of named
+   * properties and JS variables, mitigating attacks that abuse the HTML/DOM spec rules.
+   *
+   * HTML/DOM spec rules that enable DOM Clobbering:
+   *   - Named Access on Window (§7.3.3)
+   *   - DOM Tree Accessors (§3.1.5)
+   *   - Form Element Parent-Child Relations (§4.10.3)
+   *   - Iframe srcdoc / Nested WindowProxies (§4.8.5)
+   *   - HTMLCollection (§4.2.10.2)
+   *
+   * Namespace isolation is implemented by prefixing `id` and `name` attributes
+   * with a constant string, i.e., `user-content-`
+   */
+
+  let SANITIZE_NAMED_PROPS = false;
+  const SANITIZE_NAMED_PROPS_PREFIX = 'user-content-';
+  /* Keep element content when removing element? */
+
+  let KEEP_CONTENT = true;
+  /* If a `Node` is passed to sanitize(), then performs sanitization in-place instead
+   * of importing it into a new Document and returning a sanitized copy */
+
+  let IN_PLACE = false;
+  /* Allow usage of profiles like html, svg and mathMl */
+
+  let USE_PROFILES = {};
+  /* Tags to ignore content of when KEEP_CONTENT is true */
+
+  let FORBID_CONTENTS = null;
+  const DEFAULT_FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'noscript', 'plaintext', 'script', 'style', 'svg', 'template', 'thead', 'title', 'video', 'xmp']);
+  /* Tags that are safe for data: URIs */
+
+  let DATA_URI_TAGS = null;
+  const DEFAULT_DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image', 'track']);
+  /* Attributes safe for values like "javascript:" */
+
+  let URI_SAFE_ATTRIBUTES = null;
+  const DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'role', 'summary', 'title', 'value', 'style', 'xmlns']);
+  const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+  /* Document namespace */
+
+  let NAMESPACE = HTML_NAMESPACE;
+  let IS_EMPTY_INPUT = false;
+  /* Allowed XHTML+XML namespaces */
+
+  let ALLOWED_NAMESPACES = null;
+  const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
+  /* Parsing of strict XHTML documents */
+
+  let PARSER_MEDIA_TYPE = null;
+  const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
+  const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
+  let transformCaseFunc = null;
+  /* Keep a reference to config to pass to hooks */
+
+  let CONFIG = null;
+  /* Ideally, do not touch anything below this line */
+
+  /* ______________________________________________ */
+
+  const formElement = document.createElement('form');
+
+  const isRegexOrFunction = function isRegexOrFunction(testValue) {
+    return testValue instanceof RegExp || testValue instanceof Function;
+  };
+  /**
+   * _parseConfig
+   *
+   * @param  {Object} cfg optional config literal
+   */
+  // eslint-disable-next-line complexity
+
+
+  const _parseConfig = function _parseConfig() {
+    let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    if (CONFIG && CONFIG === cfg) {
+      return;
+    }
+    /* Shield configuration object from tampering */
+
+
+    if (!cfg || typeof cfg !== 'object') {
+      cfg = {};
+    }
+    /* Shield configuration object from prototype pollution */
+
+
+    cfg = clone(cfg);
+    PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
+    SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+
+    transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
+    /* Set configuration parameters */
+
+    ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
+    ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES = 'ALLOWED_NAMESPACES' in cfg ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
+    URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
+    cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
+    transformCaseFunc // eslint-disable-line indent
+    ) // eslint-disable-line indent
+    : DEFAULT_URI_SAFE_ATTRIBUTES;
+    DATA_URI_TAGS = 'ADD_DATA_URI_TAGS' in cfg ? addToSet(clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
+    cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
+    transformCaseFunc // eslint-disable-line indent
+    ) // eslint-disable-line indent
+    : DEFAULT_DATA_URI_TAGS;
+    FORBID_CONTENTS = 'FORBID_CONTENTS' in cfg ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
+    FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
+    FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
+    USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
+    ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
+
+    ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
+
+    ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
+
+    ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
+
+    SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
+
+    WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
+
+    RETURN_DOM = cfg.RETURN_DOM || false; // Default false
+
+    RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
+
+    RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
+
+    FORCE_BODY = cfg.FORCE_BODY || false; // Default false
+
+    SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
+
+    SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
+
+    KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
+
+    IN_PLACE = cfg.IN_PLACE || false; // Default false
+
+    IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
+    NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
+
+    if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
+      CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+    }
+
+    if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)) {
+      CUSTOM_ELEMENT_HANDLING.attributeNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+    }
+
+    if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === 'boolean') {
+      CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+    }
+
+    if (SAFE_FOR_TEMPLATES) {
+      ALLOW_DATA_ATTR = false;
+    }
+
+    if (RETURN_DOM_FRAGMENT) {
+      RETURN_DOM = true;
+    }
+    /* Parse profile info */
+
+
+    if (USE_PROFILES) {
+      ALLOWED_TAGS = addToSet({}, [...text]);
+      ALLOWED_ATTR = [];
+
+      if (USE_PROFILES.html === true) {
+        addToSet(ALLOWED_TAGS, html$1);
+        addToSet(ALLOWED_ATTR, html);
+      }
+
+      if (USE_PROFILES.svg === true) {
+        addToSet(ALLOWED_TAGS, svg$1);
+        addToSet(ALLOWED_ATTR, svg);
+        addToSet(ALLOWED_ATTR, xml);
+      }
+
+      if (USE_PROFILES.svgFilters === true) {
+        addToSet(ALLOWED_TAGS, svgFilters);
+        addToSet(ALLOWED_ATTR, svg);
+        addToSet(ALLOWED_ATTR, xml);
+      }
+
+      if (USE_PROFILES.mathMl === true) {
+        addToSet(ALLOWED_TAGS, mathMl$1);
+        addToSet(ALLOWED_ATTR, mathMl);
+        addToSet(ALLOWED_ATTR, xml);
+      }
+    }
+    /* Merge configuration parameters */
+
+
+    if (cfg.ADD_TAGS) {
+      if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
+        ALLOWED_TAGS = clone(ALLOWED_TAGS);
+      }
+
+      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
+    }
+
+    if (cfg.ADD_ATTR) {
+      if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
+        ALLOWED_ATTR = clone(ALLOWED_ATTR);
+      }
+
+      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+    }
+
+    if (cfg.ADD_URI_SAFE_ATTR) {
+      addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
+    }
+
+    if (cfg.FORBID_CONTENTS) {
+      if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+        FORBID_CONTENTS = clone(FORBID_CONTENTS);
+      }
+
+      addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
+    }
+    /* Add #text in case KEEP_CONTENT is set to true */
+
+
+    if (KEEP_CONTENT) {
+      ALLOWED_TAGS['#text'] = true;
+    }
+    /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
+
+
+    if (WHOLE_DOCUMENT) {
+      addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
+    }
+    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286, #365 */
+
+
+    if (ALLOWED_TAGS.table) {
+      addToSet(ALLOWED_TAGS, ['tbody']);
+      delete FORBID_TAGS.tbody;
+    }
+
+    if (cfg.TRUSTED_TYPES_POLICY) {
+      if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== 'function') {
+        throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.');
+      }
+
+      if (typeof cfg.TRUSTED_TYPES_POLICY.createScriptURL !== 'function') {
+        throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.');
+      } // Overwrite existing TrustedTypes policy.
+
+
+      trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY; // Sign local variables required by `sanitize`.
+
+      emptyHTML = trustedTypesPolicy.createHTML('');
+    } else {
+      // Uninitialized policy, attempt to initialize the internal dompurify policy.
+      if (trustedTypesPolicy === undefined) {
+        trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
+      } // If creating the internal policy succeeded sign internal variables.
+
+
+      if (trustedTypesPolicy !== null && typeof emptyHTML === 'string') {
+        emptyHTML = trustedTypesPolicy.createHTML('');
+      }
+    } // Prevent further manipulation of configuration.
+    // Not available in IE8, Safari 5, etc.
+
+
+    if (freeze) {
+      freeze(cfg);
+    }
+
+    CONFIG = cfg;
+  };
+
+  const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
+  const HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']); // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
+  /* Keep track of all possible SVG and MathML tags
+   * so that we can perform the namespace checks
+   * correctly. */
+
+  const ALL_SVG_TAGS = addToSet({}, svg$1);
+  addToSet(ALL_SVG_TAGS, svgFilters);
+  addToSet(ALL_SVG_TAGS, svgDisallowed);
+  const ALL_MATHML_TAGS = addToSet({}, mathMl$1);
+  addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
+  /**
+   * @param  {Element} element a DOM element whose namespace is being checked
+   * @returns {boolean} Return false if the element has a
+   *  namespace that a spec-compliant parser would never
+   *  return. Return true otherwise.
+   */
+
+  const _checkValidNamespace = function _checkValidNamespace(element) {
+    let parent = getParentNode(element); // In JSDOM, if we're inside shadow DOM, then parentNode
+    // can be null. We just simulate parent in this case.
+
+    if (!parent || !parent.tagName) {
+      parent = {
+        namespaceURI: NAMESPACE,
+        tagName: 'template'
+      };
+    }
+
+    const tagName = stringToLowerCase(element.tagName);
+    const parentTagName = stringToLowerCase(parent.tagName);
+
+    if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+      return false;
+    }
+
+    if (element.namespaceURI === SVG_NAMESPACE) {
+      // The only way to switch from HTML namespace to SVG
+      // is via <svg>. If it happens via any other tag, then
+      // it should be killed.
+      if (parent.namespaceURI === HTML_NAMESPACE) {
+        return tagName === 'svg';
+      } // The only way to switch from MathML to SVG is via`
+      // svg if parent is either <annotation-xml> or MathML
+      // text integration points.
+
+
+      if (parent.namespaceURI === MATHML_NAMESPACE) {
+        return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
+      } // We only allow elements that are defined in SVG
+      // spec. All others are disallowed in SVG namespace.
+
+
+      return Boolean(ALL_SVG_TAGS[tagName]);
+    }
+
+    if (element.namespaceURI === MATHML_NAMESPACE) {
+      // The only way to switch from HTML namespace to MathML
+      // is via <math>. If it happens via any other tag, then
+      // it should be killed.
+      if (parent.namespaceURI === HTML_NAMESPACE) {
+        return tagName === 'math';
+      } // The only way to switch from SVG to MathML is via
+      // <math> and HTML integration points
+
+
+      if (parent.namespaceURI === SVG_NAMESPACE) {
+        return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
+      } // We only allow elements that are defined in MathML
+      // spec. All others are disallowed in MathML namespace.
+
+
+      return Boolean(ALL_MATHML_TAGS[tagName]);
+    }
+
+    if (element.namespaceURI === HTML_NAMESPACE) {
+      // The only way to switch from SVG to HTML is via
+      // HTML integration points, and from MathML to HTML
+      // is via MathML text integration points
+      if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) {
+        return false;
+      }
+
+      if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) {
+        return false;
+      } // We disallow tags that are specific for MathML
+      // or SVG and should never appear in HTML namespace
+
+
+      return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+    } // For XHTML and XML documents that support custom namespaces
+
+
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ALLOWED_NAMESPACES[element.namespaceURI]) {
+      return true;
+    } // The code should never reach this place (this means
+    // that the element somehow got namespace that is not
+    // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
+    // Return false just in case.
+
+
+    return false;
+  };
+  /**
+   * _forceRemove
+   *
+   * @param  {Node} node a DOM node
+   */
+
+
+  const _forceRemove = function _forceRemove(node) {
+    arrayPush(DOMPurify.removed, {
+      element: node
+    });
+
+    try {
+      // eslint-disable-next-line unicorn/prefer-dom-node-remove
+      node.parentNode.removeChild(node);
+    } catch (_) {
+      node.remove();
+    }
+  };
+  /**
+   * _removeAttribute
+   *
+   * @param  {String} name an Attribute name
+   * @param  {Node} node a DOM node
+   */
+
+
+  const _removeAttribute = function _removeAttribute(name, node) {
+    try {
+      arrayPush(DOMPurify.removed, {
+        attribute: node.getAttributeNode(name),
+        from: node
+      });
+    } catch (_) {
+      arrayPush(DOMPurify.removed, {
+        attribute: null,
+        from: node
+      });
+    }
+
+    node.removeAttribute(name); // We void attribute values for unremovable "is"" attributes
+
+    if (name === 'is' && !ALLOWED_ATTR[name]) {
+      if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
+        try {
+          _forceRemove(node);
+        } catch (_) {}
+      } else {
+        try {
+          node.setAttribute(name, '');
+        } catch (_) {}
+      }
+    }
+  };
+  /**
+   * _initDocument
+   *
+   * @param  {String} dirty a string of dirty markup
+   * @return {Document} a DOM, filled with the dirty markup
+   */
+
+
+  const _initDocument = function _initDocument(dirty) {
+    /* Create a HTML document */
+    let doc = null;
+    let leadingWhitespace = null;
+
+    if (FORCE_BODY) {
+      dirty = '<remove></remove>' + dirty;
+    } else {
+      /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
+      const matches = stringMatch(dirty, /^[\r\n\t ]+/);
+      leadingWhitespace = matches && matches[0];
+    }
+
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
+      // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
+      dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
+    }
+
+    const dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+    /*
+     * Use the DOMParser API by default, fallback later if needs be
+     * DOMParser not work for svg when has multiple root element.
+     */
+
+    if (NAMESPACE === HTML_NAMESPACE) {
+      try {
+        doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
+      } catch (_) {}
+    }
+    /* Use createHTMLDocument in case DOMParser is not available */
+
+
+    if (!doc || !doc.documentElement) {
+      doc = implementation.createDocument(NAMESPACE, 'template', null);
+
+      try {
+        doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
+      } catch (_) {// Syntax error if dirtyPayload is invalid xml
+      }
+    }
+
+    const body = doc.body || doc.documentElement;
+
+    if (dirty && leadingWhitespace) {
+      body.insertBefore(document.createTextNode(leadingWhitespace), body.childNodes[0] || null);
+    }
+    /* Work on whole document or just its body */
+
+
+    if (NAMESPACE === HTML_NAMESPACE) {
+      return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
+    }
+
+    return WHOLE_DOCUMENT ? doc.documentElement : body;
+  };
+  /**
+   * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
+   *
+   * @param  {Node} root The root element or node to start traversing on.
+   * @return {NodeIterator} The created NodeIterator
+   */
+
+
+  const _createNodeIterator = function _createNodeIterator(root) {
+    return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
+  };
+  /**
+   * _isClobbered
+   *
+   * @param  {Node} elm element to check for clobbering attacks
+   * @return {Boolean} true if clobbered, false if safe
+   */
+
+
+  const _isClobbered = function _isClobbered(elm) {
+    return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
+  };
+  /**
+   * Checks whether the given object is a DOM node.
+   *
+   * @param  {Node} object object to check whether it's a DOM node
+   * @return {Boolean} true is object is a DOM node
+   */
+
+
+  const _isNode = function _isNode(object) {
+    return typeof Node === 'function' && object instanceof Node;
+  };
+  /**
+   * _executeHook
+   * Execute user configurable hooks
+   *
+   * @param  {String} entryPoint  Name of the hook's entry point
+   * @param  {Node} currentNode node to work on with the hook
+   * @param  {Object} data additional hook parameters
+   */
+
+
+  const _executeHook = function _executeHook(entryPoint, currentNode, data) {
+    if (!hooks[entryPoint]) {
+      return;
+    }
+
+    arrayForEach(hooks[entryPoint], hook => {
+      hook.call(DOMPurify, currentNode, data, CONFIG);
+    });
+  };
+  /**
+   * _sanitizeElements
+   *
+   * @protect nodeName
+   * @protect textContent
+   * @protect removeChild
+   *
+   * @param   {Node} currentNode to check for permission to exist
+   * @return  {Boolean} true if node was killed, false if left alive
+   */
+
+
+  const _sanitizeElements = function _sanitizeElements(currentNode) {
+    let content = null;
+    /* Execute a hook if present */
+
+    _executeHook('beforeSanitizeElements', currentNode, null);
+    /* Check if element is clobbered or can clobber */
+
+
+    if (_isClobbered(currentNode)) {
+      _forceRemove(currentNode);
+
+      return true;
+    }
+    /* Now let's check the element's type and name */
+
+
+    const tagName = transformCaseFunc(currentNode.nodeName);
+    /* Execute a hook if present */
+
+    _executeHook('uponSanitizeElement', currentNode, {
+      tagName,
+      allowedTags: ALLOWED_TAGS
+    });
+    /* Detect mXSS attempts abusing namespace confusion */
+
+
+    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+      _forceRemove(currentNode);
+
+      return true;
+    }
+    /* Remove element if anything forbids its presence */
+
+
+    if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+      /* Check if we have a custom element to handle */
+      if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
+        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) {
+          return false;
+        }
+
+        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) {
+          return false;
+        }
+      }
+      /* Keep content except for bad-listed elements */
+
+
+      if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+        const parentNode = getParentNode(currentNode) || currentNode.parentNode;
+        const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
+
+        if (childNodes && parentNode) {
+          const childCount = childNodes.length;
+
+          for (let i = childCount - 1; i >= 0; --i) {
+            parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
+          }
+        }
+      }
+
+      _forceRemove(currentNode);
+
+      return true;
+    }
+    /* Check whether element has a valid namespace */
+
+
+    if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
+      _forceRemove(currentNode);
+
+      return true;
+    }
+    /* Make sure that older browsers don't get fallback-tag mXSS */
+
+
+    if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
+      _forceRemove(currentNode);
+
+      return true;
+    }
+    /* Sanitize element content to be template-safe */
+
+
+    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+      /* Get the element's text content */
+      content = currentNode.textContent;
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+        content = stringReplace(content, expr, ' ');
+      });
+
+      if (currentNode.textContent !== content) {
+        arrayPush(DOMPurify.removed, {
+          element: currentNode.cloneNode()
+        });
+        currentNode.textContent = content;
+      }
+    }
+    /* Execute a hook if present */
+
+
+    _executeHook('afterSanitizeElements', currentNode, null);
+
+    return false;
+  };
+  /**
+   * _isValidAttribute
+   *
+   * @param  {string} lcTag Lowercase tag name of containing element.
+   * @param  {string} lcName Lowercase attribute name.
+   * @param  {string} value Attribute value.
+   * @return {Boolean} Returns true if `value` is valid, otherwise false.
+   */
+  // eslint-disable-next-line complexity
+
+
+  const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
+    /* Make sure attribute cannot clobber */
+    if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
+      return false;
+    }
+    /* Allow valid data-* attributes: At least one character after "-"
+        (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
+        XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
+        We don't need to check the value; it's always URI safe. */
+
+
+    if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) ; else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
+      if ( // First condition does a very basic check if a) it's basically a valid custom element tagname AND
+      // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+      // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
+      _isBasicCustomElement(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) || // Alternative, second condition checks if it's an `is`-attribute, AND
+      // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+      lcName === 'is' && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value))) ; else {
+        return false;
+      }
+      /* Check value is safe. First, is attr inert? If so, is safe */
+
+    } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA, stringReplace(value, ATTR_WHITESPACE, ''))) ; else if (value) {
+      return false;
+    } else ;
+
+    return true;
+  };
+  /**
+   * _isBasicCustomElement
+   * checks if at least one dash is included in tagName, and it's not the first char
+   * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+   *
+   * @param {string} tagName name of the tag of the node to sanitize
+   * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
+   */
+
+
+  const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
+    return tagName.indexOf('-') > 0;
+  };
+  /**
+   * _sanitizeAttributes
+   *
+   * @protect attributes
+   * @protect nodeName
+   * @protect removeAttribute
+   * @protect setAttribute
+   *
+   * @param  {Node} currentNode to sanitize
+   */
+
+
+  const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
+    /* Execute a hook if present */
+    _executeHook('beforeSanitizeAttributes', currentNode, null);
+
+    const {
+      attributes
+    } = currentNode;
+    /* Check if we have attributes; if not we might have a text node */
+
+    if (!attributes) {
+      return;
+    }
+
+    const hookEvent = {
+      attrName: '',
+      attrValue: '',
+      keepAttr: true,
+      allowedAttributes: ALLOWED_ATTR
+    };
+    let l = attributes.length;
+    /* Go backwards over all attributes; safely remove bad ones */
+
+    while (l--) {
+      const attr = attributes[l];
+      const {
+        name,
+        namespaceURI,
+        value: attrValue
+      } = attr;
+      const lcName = transformCaseFunc(name);
+      let value = name === 'value' ? attrValue : stringTrim(attrValue);
+      /* Execute a hook if present */
+
+      hookEvent.attrName = lcName;
+      hookEvent.attrValue = value;
+      hookEvent.keepAttr = true;
+      hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
+
+      _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
+
+      value = hookEvent.attrValue;
+      /* Did the hooks approve of the attribute? */
+
+      if (hookEvent.forceKeepAttr) {
+        continue;
+      }
+      /* Remove attribute */
+
+
+      _removeAttribute(name, currentNode);
+      /* Did the hooks approve of the attribute? */
+
+
+      if (!hookEvent.keepAttr) {
+        continue;
+      }
+      /* Work around a security issue in jQuery 3.0 */
+
+
+      if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
+        _removeAttribute(name, currentNode);
+
+        continue;
+      }
+      /* Sanitize attribute content to be template-safe */
+
+
+      if (SAFE_FOR_TEMPLATES) {
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+          value = stringReplace(value, expr, ' ');
+        });
+      }
+      /* Is `value` valid for this attribute? */
+
+
+      const lcTag = transformCaseFunc(currentNode.nodeName);
+
+      if (!_isValidAttribute(lcTag, lcName, value)) {
+        continue;
+      }
+      /* Full DOM Clobbering protection via namespace isolation,
+       * Prefix id and name attributes with `user-content-`
+       */
+
+
+      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+        // Remove the attribute with this value
+        _removeAttribute(name, currentNode); // Prefix the value and later re-create the attribute with the sanitized value
+
+
+        value = SANITIZE_NAMED_PROPS_PREFIX + value;
+      }
+      /* Handle attributes that require Trusted Types */
+
+
+      if (trustedTypesPolicy && typeof trustedTypes === 'object' && typeof trustedTypes.getAttributeType === 'function') {
+        if (namespaceURI) ; else {
+          switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+            case 'TrustedHTML':
+              {
+                value = trustedTypesPolicy.createHTML(value);
+                break;
+              }
+
+            case 'TrustedScriptURL':
+              {
+                value = trustedTypesPolicy.createScriptURL(value);
+                break;
+              }
+          }
+        }
+      }
+      /* Handle invalid data-* attribute set by try-catching it */
+
+
+      try {
+        if (namespaceURI) {
+          currentNode.setAttributeNS(namespaceURI, name, value);
+        } else {
+          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+          currentNode.setAttribute(name, value);
+        }
+
+        arrayPop(DOMPurify.removed);
+      } catch (_) {}
+    }
+    /* Execute a hook if present */
+
+
+    _executeHook('afterSanitizeAttributes', currentNode, null);
+  };
+  /**
+   * _sanitizeShadowDOM
+   *
+   * @param  {DocumentFragment} fragment to iterate over recursively
+   */
+
+
+  const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
+    let shadowNode = null;
+
+    const shadowIterator = _createNodeIterator(fragment);
+    /* Execute a hook if present */
+
+
+    _executeHook('beforeSanitizeShadowDOM', fragment, null);
+
+    while (shadowNode = shadowIterator.nextNode()) {
+      /* Execute a hook if present */
+      _executeHook('uponSanitizeShadowNode', shadowNode, null);
+      /* Sanitize tags and elements */
+
+
+      if (_sanitizeElements(shadowNode)) {
+        continue;
+      }
+      /* Deep shadow DOM detected */
+
+
+      if (shadowNode.content instanceof DocumentFragment) {
+        _sanitizeShadowDOM(shadowNode.content);
+      }
+      /* Check attributes, sanitize if necessary */
+
+
+      _sanitizeAttributes(shadowNode);
+    }
+    /* Execute a hook if present */
+
+
+    _executeHook('afterSanitizeShadowDOM', fragment, null);
+  };
+  /**
+   * Sanitize
+   * Public method providing core sanitation functionality
+   *
+   * @param {String|Node} dirty string or DOM node
+   * @param {Object} cfg object
+   */
+  // eslint-disable-next-line complexity
+
+
+  DOMPurify.sanitize = function (dirty) {
+    let cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    let body = null;
+    let importedNode = null;
+    let currentNode = null;
+    let returnNode = null;
+    /* Make sure we have a string to sanitize.
+      DO NOT return early, as this will return the wrong type if
+      the user has requested a DOM object rather than a string */
+
+    IS_EMPTY_INPUT = !dirty;
+
+    if (IS_EMPTY_INPUT) {
+      dirty = '<!-->';
+    }
+    /* Stringify, in case dirty is an object */
+
+
+    if (typeof dirty !== 'string' && !_isNode(dirty)) {
+      if (typeof dirty.toString === 'function') {
+        dirty = dirty.toString();
+
+        if (typeof dirty !== 'string') {
+          throw typeErrorCreate('dirty is not a string, aborting');
+        }
+      } else {
+        throw typeErrorCreate('toString is not a function');
+      }
+    }
+    /* Return dirty HTML if DOMPurify cannot run */
+
+
+    if (!DOMPurify.isSupported) {
+      return dirty;
+    }
+    /* Assign config vars */
+
+
+    if (!SET_CONFIG) {
+      _parseConfig(cfg);
+    }
+    /* Clean up removed elements */
+
+
+    DOMPurify.removed = [];
+    /* Check if dirty is correctly typed for IN_PLACE */
+
+    if (typeof dirty === 'string') {
+      IN_PLACE = false;
+    }
+
+    if (IN_PLACE) {
+      /* Do some early pre-sanitization to avoid unsafe root nodes */
+      if (dirty.nodeName) {
+        const tagName = transformCaseFunc(dirty.nodeName);
+
+        if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
+        }
+      }
+    } else if (dirty instanceof Node) {
+      /* If dirty is a DOM element, append to an empty document to avoid
+         elements being stripped by the parser */
+      body = _initDocument('<!---->');
+      importedNode = body.ownerDocument.importNode(dirty, true);
+
+      if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+        /* Node is already a body, use as is */
+        body = importedNode;
+      } else if (importedNode.nodeName === 'HTML') {
+        body = importedNode;
+      } else {
+        // eslint-disable-next-line unicorn/prefer-dom-node-append
+        body.appendChild(importedNode);
+      }
+    } else {
+      /* Exit directly if we have nothing to do */
+      if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && // eslint-disable-next-line unicorn/prefer-includes
+      dirty.indexOf('<') === -1) {
+        return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(dirty) : dirty;
+      }
+      /* Initialize the document to work on */
+
+
+      body = _initDocument(dirty);
+      /* Check we have a DOM node from the data */
+
+      if (!body) {
+        return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
+      }
+    }
+    /* Remove first element node (ours) if FORCE_BODY is set */
+
+
+    if (body && FORCE_BODY) {
+      _forceRemove(body.firstChild);
+    }
+    /* Get node iterator */
+
+
+    const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
+    /* Now start iterating over the created document */
+
+
+    while (currentNode = nodeIterator.nextNode()) {
+      /* Sanitize tags and elements */
+      if (_sanitizeElements(currentNode)) {
+        continue;
+      }
+      /* Shadow DOM detected, sanitize it */
+
+
+      if (currentNode.content instanceof DocumentFragment) {
+        _sanitizeShadowDOM(currentNode.content);
+      }
+      /* Check attributes, sanitize if necessary */
+
+
+      _sanitizeAttributes(currentNode);
+    }
+    /* If we sanitized `dirty` in-place, return it. */
+
+
+    if (IN_PLACE) {
+      return dirty;
+    }
+    /* Return sanitized string or DOM */
+
+
+    if (RETURN_DOM) {
+      if (RETURN_DOM_FRAGMENT) {
+        returnNode = createDocumentFragment.call(body.ownerDocument);
+
+        while (body.firstChild) {
+          // eslint-disable-next-line unicorn/prefer-dom-node-append
+          returnNode.appendChild(body.firstChild);
+        }
+      } else {
+        returnNode = body;
+      }
+
+      if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) {
+        /*
+          AdoptNode() is not used because internal state is not reset
+          (e.g. the past names map of a HTMLFormElement), this is safe
+          in theory but we would rather not risk another attack vector.
+          The state that is cloned by importNode() is explicitly defined
+          by the specs.
+        */
+        returnNode = importNode.call(originalDocument, returnNode, true);
+      }
+
+      return returnNode;
+    }
+
+    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    /* Serialize doctype if allowed */
+
+    if (WHOLE_DOCUMENT && ALLOWED_TAGS['!doctype'] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) {
+      serializedHTML = '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+    }
+    /* Sanitize final string template-safe */
+
+
+    if (SAFE_FOR_TEMPLATES) {
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+        serializedHTML = stringReplace(serializedHTML, expr, ' ');
+      });
+    }
+
+    return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
+  };
+  /**
+   * Public method to set the configuration once
+   * setConfig
+   *
+   * @param {Object} cfg configuration object
+   */
+
+
+  DOMPurify.setConfig = function () {
+    let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _parseConfig(cfg);
+
+    SET_CONFIG = true;
+  };
+  /**
+   * Public method to remove the configuration
+   * clearConfig
+   *
+   */
+
+
+  DOMPurify.clearConfig = function () {
+    CONFIG = null;
+    SET_CONFIG = false;
+  };
+  /**
+   * Public method to check if an attribute value is valid.
+   * Uses last set config, if any. Otherwise, uses config defaults.
+   * isValidAttribute
+   *
+   * @param  {String} tag Tag name of containing element.
+   * @param  {String} attr Attribute name.
+   * @param  {String} value Attribute value.
+   * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
+   */
+
+
+  DOMPurify.isValidAttribute = function (tag, attr, value) {
+    /* Initialize shared config vars if necessary. */
+    if (!CONFIG) {
+      _parseConfig({});
+    }
+
+    const lcTag = transformCaseFunc(tag);
+    const lcName = transformCaseFunc(attr);
+    return _isValidAttribute(lcTag, lcName, value);
+  };
+  /**
+   * AddHook
+   * Public method to add DOMPurify hooks
+   *
+   * @param {String} entryPoint entry point for the hook to add
+   * @param {Function} hookFunction function to execute
+   */
+
+
+  DOMPurify.addHook = function (entryPoint, hookFunction) {
+    if (typeof hookFunction !== 'function') {
+      return;
+    }
+
+    hooks[entryPoint] = hooks[entryPoint] || [];
+    arrayPush(hooks[entryPoint], hookFunction);
+  };
+  /**
+   * RemoveHook
+   * Public method to remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param {String} entryPoint entry point for the hook to remove
+   * @return {Function} removed(popped) hook
+   */
+
+
+  DOMPurify.removeHook = function (entryPoint) {
+    if (hooks[entryPoint]) {
+      return arrayPop(hooks[entryPoint]);
+    }
+  };
+  /**
+   * RemoveHooks
+   * Public method to remove all DOMPurify hooks at a given entryPoint
+   *
+   * @param  {String} entryPoint entry point for the hooks to remove
+   */
+
+
+  DOMPurify.removeHooks = function (entryPoint) {
+    if (hooks[entryPoint]) {
+      hooks[entryPoint] = [];
+    }
+  };
+  /**
+   * RemoveAllHooks
+   * Public method to remove all DOMPurify hooks
+   */
+
+
+  DOMPurify.removeAllHooks = function () {
+    hooks = {};
+  };
+
+  return DOMPurify;
+}
+
+var purify = createDOMPurify();
+
+export { purify as default };
+//# sourceMappingURL=purify.es.js.map
+
+--- END FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\vendor\purify.es.js ---
 --- START FILE: C:\xampp\htdocs\files\lernplattform\public\assets\js\app.js ---
 /* app.js */
 import { ThemeToggle } from './components/ThemeToggle.js';
@@ -5451,6 +7545,7 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
     <script>
         // Theme initialisieren (bevor der Body rendert, um Flackern zu verhindern)
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';
@@ -5465,11 +7560,6 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
         
         // Globale BASE_URL für JavaScript
         window.BASE_URL = '<?= BASE_URL ?>';
-
-        // CSRF-Token mit dem LocalStorage synchronisieren (wichtig nach Auto-Logins)
-        <?php if (isset($_SESSION['csrf_token'])): ?>
-        localStorage.setItem('csrf_token', '<?= $_SESSION['csrf_token'] ?>');
-        <?php endif; ?>
     </script>
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
@@ -6147,7 +8237,7 @@ require_once __DIR__ . '/../app/bootstrap.php';
 
 use App\Core\Router;
 
-$router = new Router();
+$router = new Router($container);
 
 // --- SEITEN ROUTEN ---
 $router->get('/', 'PageController@dashboard');
@@ -6172,11 +8262,11 @@ $router->get('/api/content/dashboard', 'ContentController@dashboard');
 $router->post('/api/progress/toggle', 'ArticleController@saveProgress');
 $router->get('/api/search', 'ArticleController@search');
 
-// Articles
-$router->get('/api/articles/get', 'ArticleController@get');
-$router->post('/api/articles/save', 'ArticleController@create'); // Create
-$router->post('/api/articles/update', 'ArticleController@update'); // Update
-$router->post('/api/articles/delete', 'ArticleController@delete');
+// Articles (RESTful)
+$router->get('/api/articles/{id}', 'ArticleController@get');
+$router->post('/api/articles', 'ArticleController@create');
+$router->put('/api/articles/{id}', 'ArticleController@update');
+$router->delete('/api/articles/{id}', 'ArticleController@delete');
 
 // Profile
 $router->get('/api/profile/get', 'UserController@get');
