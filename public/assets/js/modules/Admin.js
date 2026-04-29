@@ -8,6 +8,7 @@ export class Admin {
     constructor() { }
 
     async loadAdminData() {
+        console.log('ApiService.admin:', ApiService.admin);
         try {
             // Dashboard zuerst laden
             const dashboardData = await ApiService.admin.getDashboard();

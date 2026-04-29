@@ -95,17 +95,17 @@ export class ApiService {
     };
 
     static admin = {
-        getDashboard: () => this.request('admin/dashboard'),
-        getUsers: () => this.request('admin/users'),
-        setRole: (userId, role) => this.request('admin/set-role', {
+        getDashboard: () => ApiService.request('admin/dashboard'),
+        getUsers: () => ApiService.request('admin/users'),
+        setRole: (userId, role) => ApiService.request('admin/set-role', {
             method: 'POST',
             body: JSON.stringify({ user_id: userId, role })
         }),
-        deleteUser: (userId) => this.request('admin/delete-user', {
+        deleteUser: (userId) => ApiService.request('admin/delete-user', {
             method: 'POST',
             body: JSON.stringify({ user_id: userId })
         }),
-        getAuditLogs: (userId = '') => this.request(`admin/audit${userId ? '?user_id=' + userId : ''}`)
+        getAuditLogs: (userId = '') => ApiService.request(`admin/audit${userId ? '?user_id=' + userId : ''}`)
     };
 
     static articles = {
