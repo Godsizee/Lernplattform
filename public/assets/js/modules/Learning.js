@@ -220,9 +220,6 @@ export class Learning {
             <div class="content-card learning-content fade-in" style="margin-bottom: 0;">
                 <div class="lesson-header">
                     <h2 class="lesson-title">${escapeHTML(lesson.title)}</h2>
-                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn hide-on-mobile" style="flex-shrink: 0; min-width: 220px;">
-                        ${btnContentHtml}
-                    </button>
                 </div>
                 ${this.renderArticleMeta(lesson, canEdit)}
                 <div class="lesson-body">
@@ -342,12 +339,10 @@ export class Learning {
                 Toast.info('Lektion als ungelesen markiert.');
             }
 
-            // Update Current View for BOTH buttons
+            // Update Current View for the completion button
             const btns = document.querySelectorAll('.toggle-lesson-btn');
             btns.forEach(btn => {
-                const isHeaderBtn = btn.closest('.lesson-header');
-                
-                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn ${isHeaderBtn ? 'hide-on-mobile' : ''}`;
+                btn.className = `btn ${markAsCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn`;
                 btn.innerHTML = `<i class="ph ${markAsCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${markAsCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
                 
                 // Re-attach listener
