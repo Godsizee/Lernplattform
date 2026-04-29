@@ -4,6 +4,7 @@ import { MarkdownParser } from './MarkdownParser.js';
 import { escapeHTML } from '../utils/Helpers.js';
 import { Toast } from '../helpers/Toast.js';
 import { Modal } from '../helpers/Modal.js';
+import { Skeleton } from '../helpers/Skeleton.js';
 
 export class Learning {
     constructor() {
@@ -70,7 +71,7 @@ export class Learning {
         const container = document.getElementById('learning-content-container');
         if (!container) return;
         
-        container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Themenübersicht...</div>`;
+        container.innerHTML = Skeleton.getTOCLoaders(8);
 
         try {
             // Load only metadata for TOC
@@ -184,7 +185,7 @@ export class Learning {
         url.searchParams.set('lesson', lessonId);
         window.history.pushState({}, '', url);
 
-        mainContainer.innerHTML = `<div class="loader" style="margin-top: 5rem;"><i class="ph ph-spinner-gap ph-spin"></i> Lade Inhalt...</div>`;
+        mainContainer.innerHTML = Skeleton.getLessonLoader();
 
         try {
             const lesson = await ApiService.articles.get(lessonId);

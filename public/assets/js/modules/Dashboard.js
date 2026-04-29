@@ -1,5 +1,6 @@
 /* modules/Dashboard.js */
 import { ApiService } from '../services/ApiService.js';
+import { Skeleton } from '../helpers/Skeleton.js';
 
 export class Dashboard {
     constructor() {}
@@ -8,7 +9,7 @@ export class Dashboard {
         const container = document.getElementById('dashboard-subjects-container');
         if (!container) return;
 
-        container.innerHTML = `<div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Dashboard...</div>`;
+        container.innerHTML = Skeleton.getDashboardLoaders(4);
 
         try {
             const data = await ApiService.content.getDashboard();

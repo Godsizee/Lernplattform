@@ -110,12 +110,15 @@
     margin-bottom: 0;
 }
 
-.search-result-item:hover {
+.search-result-item:hover,
+.search-result-item.keyboard-focus {
     background: rgba(169, 114, 255, 0.1);
     transform: translateX(5px);
+    outline: 1px solid var(--color-primary);
 }
 
-.light-mode .search-result-item:hover {
+.light-mode .search-result-item:hover,
+.light-mode .search-result-item.keyboard-focus {
     background: rgba(139, 92, 246, 0.08);
 }
 
