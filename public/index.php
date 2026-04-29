@@ -52,6 +52,9 @@ $router->post('/api/admin/set-role', 'AdminController@setRole');
 $router->post('/api/admin/delete-user', 'AdminController@deleteUser');
 $router->get('/api/admin/audit', 'AdminController@audit');
 
+// Media
+$router->post('/api/media/upload', 'MediaController@upload');
+
 // Logs
 $router->post('/api/log', 'UserController@logActivity');
 

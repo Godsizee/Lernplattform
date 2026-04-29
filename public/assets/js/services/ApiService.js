@@ -6,10 +6,14 @@ export class ApiService {
         const config = {
             ...options,
             headers: {
-                'Content-Type': 'application/json',
                 ...options.headers,
             }
         };
+
+        // Wenn body kein FormData ist, JSON Content-Type setzen
+        if (config.body && !(config.body instanceof FormData)) {
+            config.headers['Content-Type'] = 'application/json';
+        }
 
         // CSRF Token automatisch hinzufügen, falls vorhanden
         if (config.method && config.method.toUpperCase() !== 'GET') {
@@ -58,6 +62,17 @@ export class ApiService {
         getLessons: (subjectId, listOnly = false) => this.request(`content/lessons?subject_id=${subjectId}${listOnly ? '&list_only=1' : ''}`),
         getDashboard: () => this.request('content/dashboard'),
         search: (query) => this.request(`search?q=${encodeURIComponent(query)}`)
+    };
+
+    static media = {
+        upload: (file) => {
+            const formData = new FormData();
+            formData.append('image', file);
+            return this.request('media/upload', {
+                method: 'POST',
+                body: formData
+            });
+        }
     };
 
     static progress = {

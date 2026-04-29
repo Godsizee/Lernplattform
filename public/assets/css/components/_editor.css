@@ -178,6 +178,18 @@
     opacity: 0.6;
 }
 
+.editor-textarea.drag-over {
+    background: rgba(169, 114, 255, 0.05);
+    outline: 2px dashed var(--color-primary);
+    outline-offset: -10px;
+    transition: all 0.2s ease;
+}
+
+.light-mode .editor-textarea.drag-over {
+    background: rgba(139, 92, 246, 0.05);
+    outline-color: var(--color-primary);
+}
+
 .editor-preview {
     background: rgba(0, 0, 0, 0.15);
     padding: 1.5rem;

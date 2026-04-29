@@ -1,4 +1,6 @@
 import { MarkdownParser } from './MarkdownParser.js';
+import { ApiService } from '../services/ApiService.js';
+import { Toast } from '../helpers/Toast.js';
 
 export class Editor {
     constructor(containerId) {
@@ -32,6 +34,11 @@ export class Editor {
 
         this.textarea.addEventListener('input', () => this.updatePreview());
         this.textarea.addEventListener('keydown', (e) => this.handleKeyboard(e));
+
+        // Drag & Drop
+        this.textarea.addEventListener('dragover', (e) => this.handleDragOver(e));
+        this.textarea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        this.textarea.addEventListener('drop', (e) => this.handleDrop(e));
 
         writePane.appendChild(this.textarea);
 
@@ -239,5 +246,58 @@ export class Editor {
 
     onChange(callback) {
         this.onChangeCallback = callback;
+    }
+
+    // --- Drag & Drop Handling ---
+
+    handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.textarea.classList.add('drag-over');
+    }
+
+    handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.textarea.classList.remove('drag-over');
+    }
+
+    async handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.textarea.classList.remove('drag-over');
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    await this.uploadFile(file);
+                } else {
+                    Toast.error(`"${file.name}" ist kein gültiges Bild.`);
+                }
+            }
+        }
+    }
+
+    async uploadFile(file) {
+        const id = Math.random().toString(36).substring(2, 9);
+        const placeholder = `![Hochladen: ${file.name} (${id})...]()`;
+        
+        // Platzhalter einfügen
+        this.insertAtCursor('\n' + placeholder + '\n');
+        
+        try {
+            const response = await ApiService.media.upload(file);
+            if (response.success) {
+                const markdown = `![${file.name}](${response.url})`;
+                this.textarea.value = this.textarea.value.replace(placeholder, markdown);
+                this.updatePreview();
+            }
+        } catch (error) {
+            // Platzhalter entfernen bei Fehler
+            this.textarea.value = this.textarea.value.replace(placeholder, '');
+            Toast.error(`Fehler beim Upload von "${file.name}": ${error.message}`);
+            this.updatePreview();
+        }
     }
 }
