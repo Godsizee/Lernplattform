@@ -5,7 +5,69 @@ import { Toast } from '../helpers/Toast.js';
 import { Modal } from '../helpers/Modal.js';
 
 export class Admin {
-    constructor() { }
+    constructor() {
+        this.injectTooltipStyles();
+    }
+
+    injectTooltipStyles() {
+        if (document.getElementById('admin-tooltip-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'admin-tooltip-styles';
+        style.innerHTML = `
+            [data-tooltip] {
+                position: relative;
+            }
+            [data-tooltip]::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%) translateY(0);
+                background: var(--bg-surface);
+                color: var(--text-primary);
+                padding: 0.4rem 0.8rem;
+                border-radius: var(--radius-sm);
+                font-size: 0.75rem;
+                font-weight: 600;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid var(--border-glass);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+                z-index: 1000;
+                margin-bottom: 8px;
+            }
+            [data-tooltip]:hover::after {
+                opacity: 1;
+                visibility: visible;
+                transform: translateX(-50%) translateY(-5px);
+            }
+            
+            /* Responsive Tooltip Positionierung für die Elemente ganz rechts */
+            .actions-cell [data-tooltip]:last-child::after,
+            .header-actions [data-tooltip]:last-child::after,
+            .subject-actions [data-tooltip]:last-child::after {
+                left: auto;
+                right: 0;
+                transform: translateX(0) translateY(0);
+            }
+            .actions-cell [data-tooltip]:last-child:hover::after,
+            .header-actions [data-tooltip]:last-child:hover::after,
+            .subject-actions [data-tooltip]:last-child:hover::after {
+                transform: translateX(0) translateY(-5px);
+            }
+            
+            /* Spezielles Light Mode Styling für maximalen Kontrast */
+            .light-mode [data-tooltip]::after {
+                background: #1e293b;
+                color: #fff;
+                border-color: #0f172a;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     async loadAdminData() {
         try {
@@ -123,9 +185,9 @@ export class Admin {
                 </td>
                 <td data-label="Aktionen" class="actions-cell">
                     <div class="action-btn-group">
-                        <button class="btn-icon-admin impersonate-user" data-id="${u.id}" title="Als dieser Nutzer einloggen" ${u.role === 'admin' ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}><i class="ph ph-mask-happy"></i></button>
-                        <button class="btn-icon-admin toggle-ban-user ${u.is_banned ? 'delete' : ''}" data-id="${u.id}" data-banned="${u.is_banned}" title="${u.is_banned ? 'Sperre aufheben' : 'Nutzer sperren'}"><i class="ph ph-prohibit"></i></button>
-                        <button class="btn-icon-admin delete admin-del-user" data-id="${u.id}" title="Unwiderruflich löschen"><i class="ph ph-trash"></i></button>
+                        <button class="btn-icon-admin impersonate-user" data-id="${u.id}" data-tooltip="Als dieser Nutzer einloggen" ${u.role === 'admin' ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}><i class="ph ph-mask-happy"></i></button>
+                        <button class="btn-icon-admin toggle-ban-user ${u.is_banned ? 'delete' : ''}" data-id="${u.id}" data-banned="${u.is_banned}" data-tooltip="${u.is_banned ? 'Sperre aufheben' : 'Nutzer sperren'}"><i class="ph ph-prohibit"></i></button>
+                        <button class="btn-icon-admin delete admin-del-user" data-id="${u.id}" data-tooltip="Unwiderruflich löschen"><i class="ph ph-trash"></i></button>
                     </div>
                 </td>
             </tr>
@@ -230,8 +292,8 @@ export class Admin {
                                     <span class="subject-title">${escapeHTML(s.title)}</span>
                                 </div>
                                 <div class="subject-actions">
-                                    <button class="btn-icon-admin edit-subject" data-id="${s.id}" title="Fach bearbeiten"><i class="ph ph-pencil-simple"></i></button>
-                                    <button class="btn-icon-admin delete del-subject" data-id="${s.id}" title="Fach löschen"><i class="ph ph-trash"></i></button>
+                                    <button class="btn-icon-admin edit-subject" data-id="${s.id}" data-tooltip="Fach bearbeiten"><i class="ph ph-pencil-simple"></i></button>
+                                    <button class="btn-icon-admin delete del-subject" data-id="${s.id}" data-tooltip="Fach löschen"><i class="ph ph-trash"></i></button>
                                 </div>
                             </div>
                         `).join('')}
@@ -259,9 +321,9 @@ export class Admin {
 
                             <div class="bulk-actions" id="bulk-actions-container" style="display:none;">
                                 <span class="bulk-count text-muted">0 gewählt</span>
-                                <button class="btn-icon-admin" id="bulk-publish" title="Alle veröffentlichen"><i class="ph ph-check-circle" style="color: var(--color-success);"></i></button>
-                                <button class="btn-icon-admin" id="bulk-draft" title="Alle auf Entwurf"><i class="ph ph-pencil-line" style="color: var(--color-warning);"></i></button>
-                                <button class="btn-icon-admin delete" id="bulk-delete" title="Alle löschen"><i class="ph ph-trash"></i></button>
+                                <button class="btn-icon-admin" id="bulk-publish" data-tooltip="Ausgewählte veröffentlichen"><i class="ph ph-check-circle" style="color: var(--color-success);"></i></button>
+                                <button class="btn-icon-admin" id="bulk-draft" data-tooltip="Ausgewählte auf Entwurf"><i class="ph ph-pencil-line" style="color: var(--color-warning);"></i></button>
+                                <button class="btn-icon-admin delete" id="bulk-delete" data-tooltip="Ausgewählte löschen"><i class="ph ph-trash"></i></button>
                             </div>
                             <a href="${window.BASE_URL}/editor" class="btn btn-success btn-sm" style="padding: 0.6rem 1.2rem;"><i class="ph ph-plus-circle"></i> Beitrag schreiben</a>
                         </div>
@@ -284,7 +346,7 @@ export class Admin {
                                     <tr class="fade-in draggable-lesson" data-id="${l.id}" data-subject-id="${l.subject_id}">
                                         <td class="checkbox-cell">
                                             <div class="drag-checkbox-wrapper">
-                                                <div class="lesson-drag-handle" title="Greifen & verschieben"><i class="ph ph-dots-six-vertical"></i></div>
+                                                <div class="lesson-drag-handle" data-tooltip="Greifen & verschieben"><i class="ph ph-dots-six-vertical"></i></div>
                                                 <input type="checkbox" class="article-select custom-checkbox" value="${l.id}">
                                             </div>
                                         </td>
@@ -297,7 +359,7 @@ export class Admin {
                                             </span>
                                         </td>
                                         <td data-label="Status">
-                                            <button class="status-toggle ${l.status}" data-id="${l.id}" data-status="${l.status}" title="Klicken für Statuswechsel">
+                                            <button class="status-toggle ${l.status}" data-id="${l.id}" data-status="${l.status}" data-tooltip="Klicken für Statuswechsel">
                                                 <i class="ph ${l.status === 'published' ? 'ph-check-circle' : 'ph-clock'}"></i>
                                                 <span>${l.status === 'published' ? 'Online' : 'Entwurf'}</span>
                                             </button>
@@ -305,9 +367,9 @@ export class Admin {
                                         <td data-label="Autor"><span class="text-muted"><i class="ph ph-user"></i> ${escapeHTML(l.author_name || 'System')}</span></td>
                                         <td class="actions-cell" data-label="Aktionen">
                                             <div class="action-btn-group">
-                                                <button class="btn-icon-admin clone-lesson" data-id="${l.id}" title="Lektion duplizieren"><i class="ph ph-copy"></i></button>
-                                                <a href="${window.BASE_URL}/editor?id=${l.id}" class="btn-icon-admin" title="Im Editor öffnen"><i class="ph ph-pencil-simple"></i></a>
-                                                <button class="btn-icon-admin delete del-lesson" data-id="${l.id}" title="Unwiderruflich löschen"><i class="ph ph-trash"></i></button>
+                                                <button class="btn-icon-admin clone-lesson" data-id="${l.id}" data-tooltip="Lektion duplizieren"><i class="ph ph-copy"></i></button>
+                                                <a href="${window.BASE_URL}/editor?id=${l.id}" class="btn-icon-admin" data-tooltip="Im Editor öffnen"><i class="ph ph-pencil-simple"></i></a>
+                                                <button class="btn-icon-admin delete del-lesson" data-id="${l.id}" data-tooltip="Unwiderruflich löschen"><i class="ph ph-trash"></i></button>
                                             </div>
                                         </td>
                                     </tr>
