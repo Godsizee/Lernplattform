@@ -29,7 +29,7 @@ export class Auth {
         const success = await this.submitAuthForm(e, 'login', payload, 'login-error');
         if (success) {
             ApiService.log.add('LOGIN', 'Nutzer hat sich eingeloggt.');
-            window.location.href = `${window.BASE_URL}/`;
+            window.Router.navigate('/');
         }
     }
 
@@ -43,7 +43,7 @@ export class Auth {
         
         const success = await this.submitAuthForm(e, 'register', payload, 'register-error');
         if (success) {
-            window.location.href = `${window.BASE_URL}/login?registered=1`;
+            window.Router.navigate('/login?registered=1');
         }
     }
 

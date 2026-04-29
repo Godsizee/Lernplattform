@@ -8,11 +8,24 @@ $currentRoute = $GLOBALS['currentRoute'] ?? '/';
 $publicRoutes = ['/login', '/register', '/datenschutz'];
 $isPublicPage = in_array($currentRoute, $publicRoutes);
 
+// Soft-Routing Detection
+$isSoftRoute = isset($_SERVER['HTTP_X_SOFT_ROUTING']) && $_SERVER['HTTP_X_SOFT_ROUTING'] === 'true';
+
 // Access Control
 if (!isset($_SESSION['user_id']) && !$isPublicPage) {
+    if ($isSoftRoute) {
+        header('Content-Type: application/json');
+        echo json_encode(['redirect' => BASE_URL . '/login']);
+        exit;
+    }
     header("Location: " . BASE_URL . "/login");
     exit;
 } elseif (isset($_SESSION['user_id']) && ($currentRoute === '/login' || $currentRoute === '/register')) {
+    if ($isSoftRoute) {
+        header('Content-Type: application/json');
+        echo json_encode(['redirect' => BASE_URL . '/']);
+        exit;
+    }
     header("Location: " . BASE_URL . "/");
     exit;
 }
@@ -27,6 +40,11 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
+
+// If soft-routing, stop here and only output content
+if ($isSoftRoute) {
+    return;
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">

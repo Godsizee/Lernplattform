@@ -1,9 +1,10 @@
+/* pages/editor.js */
 import { Editor } from '../modules/Editor.js';
 import { ApiService } from '../services/ApiService.js';
 import { UI } from '../utils/UI.js';
 import { Modal } from '../helpers/Modal.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+export default async function init() {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('id');
     const isEditing = !!editId;
@@ -16,6 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const msgDiv = document.getElementById('article-message');
     const pageTitle = document.getElementById('editor-page-title');
     const pageSubtitle = document.getElementById('editor-page-subtitle');
+
+    if (!subjectSelect) return;
 
     const editor = new Editor('article-editor-container');
 
@@ -56,8 +59,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     startAutoSave();
 
     // Event Listener für die Buttons
-    if (btnSaveDraft) btnSaveDraft.addEventListener('click', () => saveArticle('draft', btnSaveDraft));
-    if (btnPublish) btnPublish.addEventListener('click', () => saveArticle('published', btnPublish));
+    if (btnSaveDraft) btnSaveDraft.onclick = () => saveArticle('draft', btnSaveDraft);
+    if (btnPublish) btnPublish.onclick = () => saveArticle('published', btnPublish);
 
     async function checkDraft() {
         const savedDraft = localStorage.getItem(DRAFT_KEY);
@@ -65,7 +68,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const draftData = JSON.parse(savedDraft);
-            // Nur fragen, wenn der Entwurf neuer ist oder nennenswerten Inhalt hat
             if (!draftData.content_raw) return;
 
             const confirmed = await Modal.confirm('Wir haben einen ungespeicherten Entwurf gefunden. Möchtest du ihn wiederherstellen?', {
@@ -89,7 +91,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function startAutoSave() {
-        setInterval(() => {
+        const intervalId = setInterval(() => {
+            // Check if we are still on the editor page
+            if (!document.getElementById('article-editor-container')) {
+                clearInterval(intervalId);
+                return;
+            }
+
             const content = editor.getValue().trim();
             if (!content || content.length < 5) return;
 
@@ -101,7 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
 
             localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
-            console.log('Draft auto-saved to localStorage');
         }, 5000);
     }
 
@@ -143,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (targetStatus === 'published' || (!isEditing && data.id)) {
                     setTimeout(() => {
-                        window.location.href = `${window.BASE_URL}/learning`;
+                        window.Router.navigate('/learning');
                     }, 1200);
                 }
             } else {
@@ -159,8 +166,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function showMessage(text, success) {
+        if (!msgDiv) return;
         msgDiv.textContent = text;
         msgDiv.style.color = success ? 'var(--color-success)' : 'var(--color-danger)';
-        setTimeout(() => { msgDiv.textContent = ''; }, 4000);
+        setTimeout(() => { if(msgDiv) msgDiv.textContent = ''; }, 4000);
     }
-});
+}

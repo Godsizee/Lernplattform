@@ -51,4 +51,28 @@ export class Sidebar {
     closeMobile() {
         this.sidebar.classList.remove('mobile-open');
     }
+
+    /**
+     * Updates the active state of navigation items based on the given path
+     * @param {string} path 
+     */
+    updateActiveLink(path) {
+        const navItems = this.sidebar.querySelectorAll('.nav-item');
+        const cleanPath = path.split('?')[0]; // Ignore query params for active state
+        
+        navItems.forEach(item => {
+            const href = item.getAttribute('href');
+            if (!href) return;
+
+            // Check if href matches the current path
+            // We need to handle BASE_URL correctly
+            const cleanHref = href.replace(window.BASE_URL, '') || '/';
+            
+            if (cleanHref === cleanPath) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
 }

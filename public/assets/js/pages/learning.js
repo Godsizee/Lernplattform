@@ -1,15 +1,18 @@
+/* pages/learning.js */
 import { Learning } from '../modules/Learning.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+export default async function init() {
     const learning = new Learning();
-
     await learning.loadData();
 
     // Event Delegation für Tabs und Lektionen
-    document.getElementById('view-container').addEventListener('click', (e) => {
-        const learnTab = e.target.closest('.learning-tab');
-        if (learnTab) {
-            learning.switchTab(learnTab.dataset.subjectId, learnTab.textContent);
-        }
-    });
-});
+    const container = document.getElementById('view-container');
+    if (container) {
+        container.addEventListener('click', (e) => {
+            const learnTab = e.target.closest('.learning-tab');
+            if (learnTab) {
+                learning.switchTab(learnTab.dataset.subjectId, learnTab.textContent);
+            }
+        });
+    }
+}

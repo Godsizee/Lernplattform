@@ -82,7 +82,7 @@ export class Dashboard {
         `;
 
         card.addEventListener('click', () => {
-            window.location.href = `${window.BASE_URL}/learning?subject=${bm.subject_id}&lesson=${bm.id}`;
+            window.Router.navigate(`/learning?subject=${bm.subject_id}&lesson=${bm.id}`);
         });
 
         return card;
@@ -114,7 +114,7 @@ export class Dashboard {
 
         card.addEventListener('click', () => {
             localStorage.setItem('active_subject', subject.id);
-            window.location.href = `${window.BASE_URL}/learning`;
+            window.Router.navigate('/learning');
         });
 
         return card;

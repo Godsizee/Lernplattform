@@ -1,7 +1,7 @@
 /* pages/profile.js */
 import { Profile } from '../modules/Profile.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+export default async function init() {
     const profile = new Profile();
     await profile.loadData();
 
@@ -15,4 +15,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (deleteBtn) {
         deleteBtn.addEventListener('click', () => profile.deleteAccount());
     }
-});
+}

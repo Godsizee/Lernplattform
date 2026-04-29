@@ -69,3 +69,24 @@ body.auth-mode .main-content {
         padding: 2.5rem 3rem;
     }
 }
+
+/* SPA Soft-Routing Transitions */
+.view-container {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.view-container.loading-fade {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
