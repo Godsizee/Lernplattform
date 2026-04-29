@@ -25,6 +25,8 @@ class Database {
 
         try {
             $this->connection = new PDO($dsn, $user, $pass, $options);
+            // Zeitzone für die Session setzen
+            $this->connection->exec("SET TIME ZONE 'Europe/Berlin'");
         } catch (PDOException $e) {
             // Originale Fehlermeldung nur ins Log schreiben (Sicherheit)
             error_log("Database Connection Error: " . $e->getMessage());
