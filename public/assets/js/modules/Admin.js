@@ -140,7 +140,7 @@ export class Admin {
                             <li class="fade-in" style="animation-delay: ${i * 0.1}s">
                                 <span class="rank">#${i + 1}</span>
                                 <span class="title">${escapeHTML(l.title)}</span>
-                                <span class="badge">${l.completion_count} <i class="ph ph-check-circle"></i></span>
+                                <span class="badge" data-tooltip="Abschlüsse"><i class="ph ph-check-circle"></i> ${l.completion_count}</span>
                             </li>
                         `).join('')}
                     </ul>
@@ -174,14 +174,17 @@ export class Admin {
                 <td data-label="ID">#${u.id}</td>
                 <td data-label="Name">
                     <strong>${escapeHTML(u.name)}</strong>
-                    ${u.is_banned ? '<span class="badge" style="background:rgba(248, 81, 73, 0.1); color:var(--color-danger); font-size:0.7rem; padding: 2px 6px; margin-left: 0.5rem;"><i class="ph ph-prohibit"></i> Gesperrt</span>' : ''}
+                    ${u.is_banned ? '<span class="badge" style="background:rgba(248, 81, 73, 0.1); color:var(--color-danger); font-size:0.7rem; padding: 2px 6px; margin-left: 0.5rem;" data-tooltip="Nutzer hat keinen Zugriff"><i class="ph ph-prohibit"></i> Gesperrt</span>' : ''}
                 </td>
                 <td data-label="E-Mail">${escapeHTML(u.email)}</td>
                 <td data-label="Rolle">
-                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.4rem 0.8rem; margin:0; height:auto; background:var(--bg-surface); border-color: var(--border-glass);" ${u.is_banned ? 'disabled' : ''}>
-                        <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                    </select>
+                    <div style="position: relative; display: inline-flex; align-items: center;" data-tooltip="Benutzerrolle anpassen">
+                        <i class="ph ph-shield" style="position: absolute; left: 10px; color: var(--text-secondary); pointer-events: none;"></i>
+                        <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.4rem 0.8rem 0.4rem 2.2rem; margin:0; height:auto; background:var(--bg-surface); border-color: var(--border-glass);" ${u.is_banned ? 'disabled' : ''}>
+                            <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
+                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </div>
                 </td>
                 <td data-label="Aktionen" class="actions-cell">
                     <div class="action-btn-group">
@@ -200,7 +203,6 @@ export class Admin {
         const usersTable = document.getElementById('admin-users');
         if (!usersTable) return;
 
-        // Cleanup alte EventListener (verhindert doppeltes Feuern nach Reload)
         const newTable = usersTable.cloneNode(true);
         usersTable.parentNode.replaceChild(newTable, usersTable);
 
@@ -252,8 +254,6 @@ export class Admin {
         try {
             const res = await ApiService.admin.impersonate(userId);
             if (res.success) {
-                // Bei Erfolg laden wir die gesamte Applikation (Hard-Reload) neu, 
-                // um sicherzugehen, dass sich das komplette System, Sidebars und Tokens aktualisieren.
                 window.location.href = window.BASE_URL + '/';
             }
         } catch (error) {
@@ -298,8 +298,7 @@ export class Admin {
                             </div>
                         `).join('')}
                         
-                        <!-- NEU: + Button als schicke Card am Ende -->
-                        <div class="subject-card-mini fade-in" id="card-add-subject" style="border: 2px dashed var(--border-glass); cursor: pointer; justify-content: center; background: transparent; transition: all 0.2s;">
+                        <div class="subject-card-mini fade-in" id="card-add-subject" data-tooltip="Ein neues Fach zum Lehrplan hinzufügen" style="border: 2px dashed var(--border-glass); cursor: pointer; justify-content: center; background: transparent; transition: all 0.2s;">
                             <div class="subject-info" style="color: var(--color-primary);">
                                 <i class="ph ph-plus-circle" style="font-size: 1.5rem;"></i>
                                 <span class="subject-title" style="font-weight: 600;">Neues Fach anlegen</span>
@@ -313,11 +312,13 @@ export class Admin {
                         <h2><i class="ph ph-article" style="color: var(--color-primary);"></i> Lektionen & Inhalte</h2>
                         
                         <div class="header-actions">
-                            <!-- NEU: Filter Dropdown -->
-                            <select id="filter-lessons-subject" class="form-control" style="width: auto; padding: 0.4rem 0.8rem; height: 36px; border-radius: 8px; font-size: 0.85rem; background: var(--bg-surface);">
-                                <option value="">Alle Fächer anzeigen</option>
-                                ${data.subjects.map(s => `<option value="${s.id}">${escapeHTML(s.title)}</option>`).join('')}
-                            </select>
+                            <div style="position: relative; display: flex; align-items: center;" data-tooltip="Tabelle nach Fach filtern">
+                                <i class="ph ph-funnel" style="position: absolute; left: 10px; color: var(--text-secondary); pointer-events: none;"></i>
+                                <select id="filter-lessons-subject" class="form-control" style="width: auto; padding: 0.4rem 0.8rem 0.4rem 2.2rem; height: 36px; border-radius: 8px; font-size: 0.85rem; background: var(--bg-surface);">
+                                    <option value="">Alle Fächer anzeigen</option>
+                                    ${data.subjects.map(s => `<option value="${s.id}">${escapeHTML(s.title)}</option>`).join('')}
+                                </select>
+                            </div>
 
                             <div class="bulk-actions" id="bulk-actions-container" style="display:none;">
                                 <span class="bulk-count text-muted">0 gewählt</span>
@@ -325,7 +326,7 @@ export class Admin {
                                 <button class="btn-icon-admin" id="bulk-draft" data-tooltip="Ausgewählte auf Entwurf"><i class="ph ph-pencil-line" style="color: var(--color-warning);"></i></button>
                                 <button class="btn-icon-admin delete" id="bulk-delete" data-tooltip="Ausgewählte löschen"><i class="ph ph-trash"></i></button>
                             </div>
-                            <a href="${window.BASE_URL}/editor" class="btn btn-success btn-sm" style="padding: 0.6rem 1.2rem;"><i class="ph ph-plus-circle"></i> Beitrag schreiben</a>
+                            <a href="${window.BASE_URL}/editor" class="btn btn-success btn-sm" style="padding: 0.6rem 1.2rem;" data-tooltip="Neuen Beitrag im Editor verfassen"><i class="ph ph-plus-circle"></i> Beitrag schreiben</a>
                         </div>
                     </div>
 
@@ -333,7 +334,7 @@ export class Admin {
                         <table class="data-table" id="admin-articles-table">
                             <thead>
                                 <tr>
-                                    <th width="50" style="text-align: center;"><input type="checkbox" id="select-all-articles" class="custom-checkbox"></th>
+                                    <th width="50" style="text-align: center;"><input type="checkbox" id="select-all-articles" class="custom-checkbox" data-tooltip="Alle auswählen"></th>
                                     <th>Titel der Lektion</th>
                                     <th>Fach</th>
                                     <th>Status</th>
@@ -354,7 +355,7 @@ export class Admin {
                                             <span class="article-title">${escapeHTML(l.title)}</span>
                                         </td>
                                         <td data-label="Fach">
-                                            <span class="subject-badge" style="background: ${l.subject_color}15; color: ${l.subject_color}; border: 1px solid ${l.subject_color}30;">
+                                            <span class="subject-badge" style="background: ${l.subject_color}15; color: ${l.subject_color}; border: 1px solid ${l.subject_color}30;" data-tooltip="Zugehöriges Fach">
                                                 <i class="ph ph-folder"></i> ${escapeHTML(l.subject_title)}
                                             </span>
                                         </td>
@@ -364,7 +365,7 @@ export class Admin {
                                                 <span>${l.status === 'published' ? 'Online' : 'Entwurf'}</span>
                                             </button>
                                         </td>
-                                        <td data-label="Autor"><span class="text-muted"><i class="ph ph-user"></i> ${escapeHTML(l.author_name || 'System')}</span></td>
+                                        <td data-label="Autor"><span class="text-muted" data-tooltip="Ersteller"><i class="ph ph-user"></i> ${escapeHTML(l.author_name || 'System')}</span></td>
                                         <td class="actions-cell" data-label="Aktionen">
                                             <div class="action-btn-group">
                                                 <button class="btn-icon-admin clone-lesson" data-id="${l.id}" data-tooltip="Lektion duplizieren"><i class="ph ph-copy"></i></button>
@@ -404,7 +405,6 @@ export class Admin {
         if (selectAll) {
             selectAll.addEventListener('change', () => {
                 checkboxes.forEach(c => {
-                    // Nur sichtbare (ungefilterte) anwählen
                     if(c.closest('.draggable-lesson').style.display !== 'none') {
                         c.checked = selectAll.checked;
                     }
@@ -438,7 +438,6 @@ export class Admin {
         // Subject Manager
         document.getElementById('card-add-subject')?.addEventListener('click', () => this.showSubjectModal());
         
-        // Optische Effekte für die Add-Card
         const addCard = document.getElementById('card-add-subject');
         if(addCard) {
             addCard.addEventListener('mouseenter', () => { addCard.style.borderColor = 'var(--color-primary)'; addCard.style.background = 'rgba(169, 114, 255, 0.05)'; });
@@ -463,18 +462,15 @@ export class Admin {
                 const rows = document.querySelectorAll('.draggable-lesson');
                 
                 rows.forEach(row => {
-                    // Zeige an, wenn Filter leer ist ODER Row ID mit Filter ID matcht
                     if (!selectedSubjectId || row.dataset.subjectId === selectedSubjectId) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
-                        // Checkboxen bei versteckten Elementen deaktivieren
                         const cb = row.querySelector('.article-select');
                         if(cb) cb.checked = false;
                     }
                 });
                 
-                // Falls "Select All" angehakt war und man filtert, UI updaten
                 if(selectAll) selectAll.checked = false;
                 updateBulkUI();
             });
@@ -657,8 +653,6 @@ export class Admin {
             if (!draggedRow) return;
             draggedRow.classList.remove('is-dragging');
             
-            // WICHTIG: Beim Drag & Drop filtern wir ausgeblendete Elemente heraus.
-            // So speichern wir die Sortierung isoliert für das Fach, wenn gefiltert wurde.
             const rows = Array.from(tbody.querySelectorAll('.draggable-lesson')).filter(row => row.style.display !== 'none');
             
             const orders = rows.map((row, index) => ({
@@ -668,14 +662,12 @@ export class Admin {
 
             try {
                 await ApiService.admin.updateLessonOrder(orders);
-                // Keine Toast-Meldung für weniger "Lärm" bei D&D
             } catch (error) {
                 Toast.error('Fehler beim Speichern der Reihenfolge.');
             }
             draggedRow = null;
         });
 
-        // Handle icons as drag handles
         document.querySelectorAll('.lesson-drag-handle').forEach(handle => {
             handle.parentElement.parentElement.setAttribute('draggable', true);
         });
