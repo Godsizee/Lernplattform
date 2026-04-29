@@ -16,7 +16,7 @@ export class Admin {
             const users = await ApiService.admin.getUsers();
             this.renderUsersTable(users);
             this.renderUserFilter(users);
-            
+
             // Content Manager laden
             await this.loadContentManager();
 
@@ -109,17 +109,19 @@ export class Admin {
 
         tbody.innerHTML = users.map(u => `
             <tr>
-                <td>${u.id}</td>
-                <td>${escapeHTML(u.name)}</td>
-                <td>${escapeHTML(u.email)}</td>
-                <td>
-                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.3rem; margin:0; height:auto; background:transparent;">
+                <td data-label="ID">#${u.id}</td>
+                <td data-label="Name"><strong>${escapeHTML(u.name)}</strong></td>
+                <td data-label="E-Mail">${escapeHTML(u.email)}</td>
+                <td data-label="Rolle">
+                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.4rem 0.8rem; margin:0; height:auto; background:var(--bg-surface); border-color: var(--border-glass);">
                         <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
                         <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                     </select>
                 </td>
-                <td>
-                    <button class="btn btn-danger admin-del-user" data-id="${u.id}" style="padding: 0.3rem 0.6rem;"><i class="ph ph-trash"></i></button>
+                <td data-label="Aktion" class="actions-cell">
+                    <div class="action-btn-group">
+                        <button class="btn-icon-admin delete admin-del-user" data-id="${u.id}" title="Nutzer löschen"><i class="ph ph-trash"></i></button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -130,7 +132,7 @@ export class Admin {
         if (!filter) return;
 
         const currentFilter = filter.value;
-        filter.innerHTML = '<option value="">Alle Nutzer</option>' + 
+        filter.innerHTML = '<option value="">Alle Nutzer</option>' +
             users.map(u => `<option value="${u.id}">${escapeHTML(u.name)}</option>`).join('');
         filter.value = currentFilter;
     }
@@ -143,73 +145,84 @@ export class Admin {
             <div class="content-manager-layout">
                 <section class="subjects-section">
                     <div class="section-header">
-                        <h2><i class="ph ph-folders"></i> Fächer-Manager</h2>
-                        <button class="btn btn-primary btn-sm" id="btn-add-subject"><i class="ph ph-plus"></i> Fach</button>
+                        <h2><i class="ph ph-folders" style="color: var(--color-primary);"></i> Fächer verwalten</h2>
+                        <button class="btn btn-primary btn-sm" id="btn-add-subject" style="padding: 0.6rem 1.2rem;"><i class="ph ph-plus"></i> Neues Fach</button>
                     </div>
                     <div class="subjects-grid" id="admin-subjects-grid">
                         ${data.subjects.map(s => `
                             <div class="subject-card-mini fade-in" style="border-left: 4px solid ${s.color}">
                                 <div class="subject-info">
-                                    <i class="ph ${s.icon || 'ph-book'}" style="color: ${s.color}"></i>
+                                    <div class="subject-icon-wrapper" style="background: ${s.color}15; color: ${s.color};">
+                                        <i class="ph ${s.icon || 'ph-book'}"></i>
+                                    </div>
                                     <span class="subject-title">${escapeHTML(s.title)}</span>
                                 </div>
                                 <div class="subject-actions">
-                                    <button class="btn-icon edit-subject" data-id="${s.id}"><i class="ph ph-pencil-simple"></i></button>
-                                    <button class="btn-icon del-subject" data-id="${s.id}"><i class="ph ph-trash"></i></button>
+                                    <button class="btn-icon-admin edit-subject" data-id="${s.id}" title="Fach bearbeiten"><i class="ph ph-pencil-simple"></i></button>
+                                    <button class="btn-icon-admin delete del-subject" data-id="${s.id}" title="Fach löschen"><i class="ph ph-trash"></i></button>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 </section>
 
-                <section class="articles-section" style="margin-top: 3rem;">
+                <section class="articles-section" style="margin-top: 4rem;">
                     <div class="section-header">
-                        <h2><i class="ph ph-article"></i> Alle Beiträge</h2>
-                        <div class="bulk-actions" id="bulk-actions-container" style="display:none;">
-                            <span class="bulk-count text-muted">0 ausgewählt</span>
-                            <button class="btn btn-secondary btn-sm" id="bulk-publish"><i class="ph ph-check-circle"></i> Veröffentlichen</button>
-                            <button class="btn btn-secondary btn-sm" id="bulk-draft"><i class="ph ph-pencil-line"></i> Entwurf</button>
-                            <button class="btn btn-danger btn-sm" id="bulk-delete"><i class="ph ph-trash"></i> Löschen</button>
+                        <h2><i class="ph ph-article" style="color: var(--color-primary);"></i> Lektionen & Inhalte</h2>
+                        
+                        <div class="header-actions">
+                            <div class="bulk-actions" id="bulk-actions-container" style="display:none;">
+                                <span class="bulk-count text-muted">0 gewählt</span>
+                                <button class="btn-icon-admin" id="bulk-publish" title="Alle veröffentlichen"><i class="ph ph-check-circle" style="color: var(--color-success);"></i></button>
+                                <button class="btn-icon-admin" id="bulk-draft" title="Alle auf Entwurf"><i class="ph ph-pencil-line" style="color: var(--color-warning);"></i></button>
+                                <button class="btn-icon-admin delete" id="bulk-delete" title="Alle löschen"><i class="ph ph-trash"></i></button>
+                            </div>
+                            <a href="${window.BASE_URL}/editor" class="btn btn-success btn-sm" style="padding: 0.6rem 1.2rem;"><i class="ph ph-plus-circle"></i> Beitrag schreiben</a>
                         </div>
-                        <a href="${window.BASE_URL}/editor" class="btn btn-primary btn-sm"><i class="ph ph-plus"></i> Neuer Beitrag</a>
                     </div>
 
                     <div class="table-responsive">
                         <table class="data-table" id="admin-articles-table">
                             <thead>
                                 <tr>
-                                    <th width="40"><input type="checkbox" id="select-all-articles"></th>
-                                    <th>Titel</th>
+                                    <th width="50" style="text-align: center;"><input type="checkbox" id="select-all-articles" class="custom-checkbox"></th>
+                                    <th>Titel der Lektion</th>
                                     <th>Fach</th>
                                     <th>Status</th>
                                     <th>Autor</th>
-                                    <th width="120">Aktion</th>
+                                    <th width="140" style="text-align: right;">Aktionen</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-articles-tbody">
                                 ${data.lessons.map(l => `
                                     <tr class="fade-in draggable-lesson" data-id="${l.id}" data-subject-id="${l.subject_id}">
-                                        <td><input type="checkbox" class="article-select" value="${l.id}"></td>
-                                        <td>
-                                            <div class="lesson-drag-handle"><i class="ph ph-dots-six-vertical"></i></div>
+                                        <td class="checkbox-cell">
+                                            <div class="drag-checkbox-wrapper">
+                                                <div class="lesson-drag-handle" title="Greifen & verschieben"><i class="ph ph-dots-six-vertical"></i></div>
+                                                <input type="checkbox" class="article-select custom-checkbox" value="${l.id}">
+                                            </div>
+                                        </td>
+                                        <td data-label="Titel">
                                             <span class="article-title">${escapeHTML(l.title)}</span>
                                         </td>
-                                        <td>
-                                            <span class="subject-badge" style="background: ${l.subject_color}20; color: ${l.subject_color}">
-                                                ${escapeHTML(l.subject_title)}
+                                        <td data-label="Fach">
+                                            <span class="subject-badge" style="background: ${l.subject_color}15; color: ${l.subject_color}; border: 1px solid ${l.subject_color}30;">
+                                                <i class="ph ph-folder"></i> ${escapeHTML(l.subject_title)}
                                             </span>
                                         </td>
-                                        <td>
-                                            <button class="status-toggle ${l.status}" data-id="${l.id}" data-status="${l.status}">
-                                                <i class="ph ${l.status === 'published' ? 'ph-check-circle' : 'ph-pencil-line'}"></i>
-                                                ${l.status === 'published' ? 'Veröffentlicht' : 'Entwurf'}
+                                        <td data-label="Status">
+                                            <button class="status-toggle ${l.status}" data-id="${l.id}" data-status="${l.status}" title="Klicken für Statuswechsel">
+                                                <i class="ph ${l.status === 'published' ? 'ph-check-circle' : 'ph-clock'}"></i>
+                                                <span>${l.status === 'published' ? 'Online' : 'Entwurf'}</span>
                                             </button>
                                         </td>
-                                        <td><span class="text-muted">${escapeHTML(l.author_name || 'System')}</span></td>
-                                        <td class="actions-cell">
-                                            <button class="btn-icon clone-lesson" data-id="${l.id}" title="Duplizieren"><i class="ph ph-copy"></i></button>
-                                            <a href="${window.BASE_URL}/editor?id=${l.id}" class="btn-icon" title="Bearbeiten"><i class="ph ph-pencil"></i></a>
-                                            <button class="btn-icon del-lesson" data-id="${l.id}" title="Löschen"><i class="ph ph-trash"></i></button>
+                                        <td data-label="Autor"><span class="text-muted"><i class="ph ph-user"></i> ${escapeHTML(l.author_name || 'System')}</span></td>
+                                        <td class="actions-cell" data-label="Aktionen">
+                                            <div class="action-btn-group">
+                                                <button class="btn-icon-admin clone-lesson" data-id="${l.id}" title="Lektion duplizieren"><i class="ph ph-copy"></i></button>
+                                                <a href="${window.BASE_URL}/editor?id=${l.id}" class="btn-icon-admin" title="Im Editor öffnen"><i class="ph ph-pencil-simple"></i></a>
+                                                <button class="btn-icon-admin delete del-lesson" data-id="${l.id}" title="Unwiderruflich löschen"><i class="ph ph-trash"></i></button>
+                                            </div>
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -446,7 +459,7 @@ export class Admin {
 
             const rect = row.getBoundingClientRect();
             const midpoint = rect.top + rect.height / 2;
-            
+
             if (e.clientY < midpoint) {
                 tbody.insertBefore(draggedRow, row);
             } else {
@@ -457,7 +470,7 @@ export class Admin {
         tbody.addEventListener('dragend', async () => {
             if (!draggedRow) return;
             draggedRow.classList.remove('is-dragging');
-            
+
             // Neue Reihenfolge berechnen
             const rows = Array.from(tbody.querySelectorAll('.draggable-lesson'));
             const orders = rows.map((row, index) => ({
@@ -521,7 +534,7 @@ export class Admin {
         try {
             const logs = await ApiService.admin.getAuditLogs(userId);
             container.innerHTML = '';
-            
+
             if (logs.length === 0) {
                 container.innerHTML = '<p style="color:var(--text-secondary); margin-left: 1rem;">Keine Aktivitäten gefunden.</p>';
                 return;

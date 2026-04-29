@@ -32,3 +32,85 @@
 .light-mode .data-table tr:hover td {
     background: rgba(0, 0, 0, 0.01);
 }
+
+/* ==========================================================================
+   Mobile First: Card-View für Tabellen (Responsive Data Tables)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .data-table thead {
+        display: none; /* Header auf Mobile ausblenden */
+    }
+    
+    .data-table tbody, .data-table tr, .data-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .data-table tr {
+        margin-bottom: 1.5rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius-md);
+        padding: 0.5rem 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .light-mode .data-table tr {
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-glass);
+        padding: 0.85rem 0;
+        text-align: right;
+        gap: 1rem;
+    }
+    
+    .data-table td:last-child {
+        border-bottom: none;
+        justify-content: flex-end; /* Aktionen rechtsbündig */
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 1px dashed var(--border-glass);
+    }
+    
+    /* Der data-label Attribut-Inhalt wird als Label links angezeigt */
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    /* Checkbox & Drag Handle Zeile stylen (Kopf der Mobile-Karte) */
+    .data-table td.checkbox-cell {
+        justify-content: flex-start;
+        padding-bottom: 0.5rem;
+        border-bottom: none;
+        background: rgba(0,0,0,0.2);
+        margin: -0.5rem -1rem 0.5rem -1rem;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    
+    .light-mode .data-table td.checkbox-cell {
+        background: #f8fafc;
+    }
+
+    .data-table td.checkbox-cell::before { 
+        display: none; 
+    }
+    
+    .data-table td.actions-cell::before { 
+        display: none; /* Beschriftung 'Aktionen' ausblenden, Icons sprechen für sich */
+    }
+}
