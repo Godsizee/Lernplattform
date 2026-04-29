@@ -76,21 +76,19 @@ class MediaController extends Controller {
     private function getUploadErrorMessage($errorCode) {
         switch ($errorCode) {
             case UPLOAD_ERR_INI_SIZE:
-                return 'Die Datei überschreitet die upload_max_filesize Richtlinie in php.ini.';
             case UPLOAD_ERR_FORM_SIZE:
-                return 'Die Datei überschreitet die MAX_FILE_SIZE Richtlinie des HTML-Formulars.';
+                return 'Die Datei ist zu groß für den Server. Bitte verwende ein kleineres Bild (max. 5MB).';
             case UPLOAD_ERR_PARTIAL:
-                return 'Die Datei wurde nur teilweise hochgeladen.';
+                return 'Der Upload wurde unterbrochen. Bitte versuche es noch einmal.';
             case UPLOAD_ERR_NO_FILE:
-                return 'Es wurde keine Datei hochgeladen.';
+                return 'Es wurde keine Datei ausgewählt.';
             case UPLOAD_ERR_NO_TMP_DIR:
-                return 'Fehlender temporärer Ordner.';
             case UPLOAD_ERR_CANT_WRITE:
-                return 'Fehler beim Schreiben auf die Festplatte.';
+                return 'Ein Serverfehler ist aufgetreten (Schreibfehler). Bitte wende dich an den Support.';
             case UPLOAD_ERR_EXTENSION:
-                return 'Eine PHP-Erweiterung hat den Upload gestoppt.';
+                return 'Der Upload wurde aus Sicherheitsgründen vom Server blockiert.';
             default:
-                return 'Unbekannter Upload-Fehler.';
+                return 'Ein unbekannter Fehler ist beim Hochladen aufgetreten.';
         }
     }
 }
