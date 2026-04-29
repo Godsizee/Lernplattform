@@ -105,6 +105,10 @@ class ArticleController extends Controller {
             $article['author_name'] = null; // Datenschutz
         }
 
+        // Student-Features hinzufügen
+        $article['is_bookmarked'] = $this->lessonRepo->isBookmarked($userId, $articleId);
+        $article['user_note'] = $this->lessonRepo->getNote($userId, $articleId);
+
         return $this->json($article);
     }
 

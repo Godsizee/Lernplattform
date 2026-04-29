@@ -113,4 +113,17 @@ export class ApiService {
             body: JSON.stringify({ action, details })
         }).catch(() => {}) 
     };
+
+    static student = {
+        getBookmarks: () => this.request('student/bookmarks'),
+        toggleBookmark: (lessonId) => this.request('student/bookmarks/toggle', {
+            method: 'POST',
+            body: JSON.stringify({ lesson_id: lessonId })
+        }),
+        getNote: (lessonId) => this.request(`student/notes/${lessonId}`),
+        saveNote: (lessonId, content) => this.request('student/notes', {
+            method: 'POST',
+            body: JSON.stringify({ lesson_id: lessonId, content })
+        })
+    };
 }

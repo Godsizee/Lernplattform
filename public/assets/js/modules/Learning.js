@@ -243,6 +243,28 @@ export class Learning {
                         </a>
                     ` : ''}
                 </div>
+
+                <!-- Persönliche Notizen Sektion -->
+                <div class="student-notes-section">
+                    <div class="notes-header">
+                        <h3><i class="ph ph-notebook"></i> Deine persönlichen Notizen</h3>
+                        <div class="notes-status" id="notes-status">
+                            <i class="ph ph-cloud-check"></i> Alle Änderungen gespeichert
+                        </div>
+                    </div>
+                    <div class="notes-container">
+                        <div class="notes-tabs">
+                            <button class="notes-tab active" data-tab="edit">Schreiben</button>
+                            <button class="notes-tab" data-tab="preview">Vorschau</button>
+                        </div>
+                        <div class="notes-editor-wrapper">
+                            <div id="notes-edit-pane">
+                                <textarea class="notes-textarea" id="notes-textarea" placeholder="Hier kannst du dir wichtige Punkte merken... (Markdown unterstützt)">${escapeHTML(lesson.user_note || '')}</textarea>
+                            </div>
+                            <div id="notes-preview-pane" class="notes-preview" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -250,6 +272,13 @@ export class Learning {
         container.querySelectorAll('.toggle-lesson-btn').forEach(btn => {
             btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
         });
+
+        const bookmarkBtn = container.querySelector('.bookmark-btn');
+        if (bookmarkBtn) {
+            bookmarkBtn.addEventListener('click', () => this.toggleBookmark(lesson.id, bookmarkBtn));
+        }
+
+        this.initNotesArea(lesson.id);
         
         const nextLink = container.querySelector('#next-lesson-link');
         if (nextLink) {
@@ -315,11 +344,23 @@ export class Learning {
         if (canEdit) {
             metaHtml += `
                 <div class="article-actions">
+                    <button class="bookmark-btn ${lesson.is_bookmarked ? 'active' : ''}" title="Für später speichern">
+                        <i class="ph ${lesson.is_bookmarked ? 'ph-bookmark-simple-fill' : 'ph-bookmark-simple'}"></i>
+                        <span>${lesson.is_bookmarked ? 'Gemerkt' : 'Merken'}</span>
+                    </button>
                     <a href="${window.BASE_URL}/editor?id=${lesson.id}" class="btn btn-secondary" title="Bearbeiten" style="padding: 0.5rem 1rem;">
                         <i class="ph ph-pencil-simple"></i> Bearbeiten
                     </a>
                     <button class="btn btn-danger delete-article-btn" data-id="${lesson.id}" title="Löschen" style="padding: 0.5rem 1rem;">
                         <i class="ph ph-trash"></i> Löschen
+                    </button>
+                </div>`;
+        } else {
+            metaHtml += `
+                <div class="article-actions">
+                    <button class="bookmark-btn ${lesson.is_bookmarked ? 'active' : ''}" title="Für später speichern">
+                        <i class="ph ${lesson.is_bookmarked ? 'ph-bookmark-simple-fill' : 'ph-bookmark-simple'}"></i>
+                        <span>${lesson.is_bookmarked ? 'Gemerkt' : 'Merken'}</span>
                     </button>
                 </div>`;
         }
@@ -374,5 +415,75 @@ export class Learning {
         } catch (e) {
             Toast.error(e.message || 'Fehler beim Löschen.');
         }
+    }
+
+    async toggleBookmark(lessonId, btn) {
+        try {
+            const data = await ApiService.student.toggleBookmark(lessonId);
+            const icon = btn.querySelector('i');
+            const span = btn.querySelector('span');
+
+            if (data.is_bookmarked) {
+                btn.classList.add('active');
+                icon.className = 'ph ph-bookmark-simple-fill';
+                span.textContent = 'Gemerkt';
+                Toast.success('Lektion wurde unter deinen Lesezeichen gespeichert.');
+            } else {
+                btn.classList.remove('active');
+                icon.className = 'ph ph-bookmark-simple';
+                span.textContent = 'Merken';
+                Toast.info('Lesezeichen entfernt.');
+            }
+        } catch (error) {
+            console.error('Error toggling bookmark:', error);
+            Toast.error('Lesezeichen konnte nicht aktualisiert werden.');
+        }
+    }
+
+    initNotesArea(lessonId) {
+        const textarea = document.getElementById('notes-textarea');
+        const previewPane = document.getElementById('notes-preview-pane');
+        const editPane = document.getElementById('notes-edit-pane');
+        const status = document.getElementById('notes-status');
+        const tabs = document.querySelectorAll('.notes-tab');
+
+        if (!textarea) return;
+
+        // Tabs Toggle
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                if (tab.dataset.tab === 'preview') {
+                    previewPane.innerHTML = this.parser.parse(textarea.value);
+                    previewPane.style.display = 'block';
+                    editPane.style.display = 'none';
+                } else {
+                    previewPane.style.display = 'none';
+                    editPane.style.display = 'block';
+                    textarea.focus();
+                }
+            });
+        });
+
+        // Auto-Save mit Debounce
+        let timeout;
+        textarea.addEventListener('input', () => {
+            status.innerHTML = '<i class="ph ph-dots-three-circle-vertical"></i> Speichere Notiz...';
+            status.classList.add('saving');
+
+            clearTimeout(timeout);
+            timeout = setTimeout(async () => {
+                try {
+                    await ApiService.student.saveNote(lessonId, textarea.value);
+                    status.innerHTML = '<i class="ph ph-cloud-check"></i> Alle Änderungen gespeichert';
+                    status.classList.remove('saving');
+                } catch (error) {
+                    status.innerHTML = '<i class="ph ph-warning-circle"></i> Fehler beim Speichern';
+                    status.classList.remove('saving');
+                }
+            }, 1000);
+        });
     }
 }

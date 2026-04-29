@@ -24,12 +24,68 @@ export class Dashboard {
                 container.appendChild(this.createSubjectCard(subject, percentage));
             });
 
+            // Lesezeichen laden
+            await this.loadBookmarks();
+
             // Streak Update (ehemals in UI.js)
             this.updateStreakUI(data.streak);
 
         } catch (error) {
             container.innerHTML = `<div class="form-error">Fehler beim Laden des Dashboards.</div>`;
         }
+    }
+
+    async loadBookmarks() {
+        const container = document.getElementById('dashboard-bookmarks-container');
+        if (!container) return;
+
+        try {
+            const bookmarks = await ApiService.student.getBookmarks();
+            container.innerHTML = '';
+
+            if (bookmarks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="ph ph-bookmark-simple" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                        <p>Du hast noch keine Lektionen markiert.<br>Klicke auf das Lesezeichen-Symbol in einer Lektion, um sie hier zu speichern.</p>
+                    </div>
+                `;
+                container.style.display = 'block'; // Ensure it's not hidden
+                return;
+            }
+
+            bookmarks.forEach(bm => {
+                container.appendChild(this.createBookmarkCard(bm));
+            });
+        } catch (error) {
+            console.error('Error loading bookmarks:', error);
+            container.innerHTML = `<p class="form-error">Lesezeichen konnten nicht geladen werden.</p>`;
+        }
+    }
+
+    createBookmarkCard(bm) {
+        const card = document.createElement('div');
+        card.className = 'bookmark-card';
+        card.style.setProperty('--subject-color', bm.subject_color);
+        
+        const dateStr = new Date(bm.bookmarked_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+
+        card.innerHTML = `
+            <div class="bookmark-info">
+                <span class="bookmark-subject">${bm.subject_title}</span>
+                <h3 class="bookmark-title">${bm.title}</h3>
+            </div>
+            <div class="bookmark-footer">
+                <span>Gemerkt am ${dateStr}</span>
+                <i class="ph ph-arrow-right"></i>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            window.location.href = `${window.BASE_URL}/learning?subject=${bm.subject_id}&lesson=${bm.id}`;
+        });
+
+        return card;
     }
 
     updateStreakUI(streak) {

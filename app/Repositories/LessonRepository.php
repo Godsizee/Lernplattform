@@ -155,6 +155,7 @@ class LessonRepository {
         return $article ?: null;
     }
 
+
     public function searchLessons(string $query, int $userId, bool $isAdmin = false): array {
         $sql = "
             SELECT l.id, l.title, l.status, l.subject_id, s.title as subject_title, s.color as subject_color
@@ -175,5 +176,65 @@ class LessonRepository {
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+
+    // --- BOOKMARKS ---
+
+    public function toggleBookmark(int $userId, int $lessonId): bool {
+        // Prüfen ob bereits vorhanden
+        $stmt = $this->db->prepare("SELECT 1 FROM bookmarks WHERE user_id = :u_id AND lesson_id = :l_id");
+        $stmt->execute([':u_id' => $userId, ':l_id' => $lessonId]);
+        $exists = $stmt->fetchColumn();
+
+        if ($exists) {
+            $stmt = $this->db->prepare("DELETE FROM bookmarks WHERE user_id = :u_id AND lesson_id = :l_id");
+            $stmt->execute([':u_id' => $userId, ':l_id' => $lessonId]);
+            return false;
+        } else {
+            $stmt = $this->db->prepare("INSERT INTO bookmarks (user_id, lesson_id) VALUES (:u_id, :l_id)");
+            $stmt->execute([':u_id' => $userId, ':l_id' => $lessonId]);
+            return true;
+        }
+    }
+
+    public function isBookmarked(int $userId, int $lessonId): bool {
+        $stmt = $this->db->prepare("SELECT 1 FROM bookmarks WHERE user_id = :u_id AND lesson_id = :l_id");
+        $stmt->execute([':u_id' => $userId, ':l_id' => $lessonId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function getBookmarkedLessons(int $userId): array {
+        $stmt = $this->db->prepare("
+            SELECT l.id, l.title, l.subject_id, s.title as subject_title, s.color as subject_color, b.created_at as bookmarked_at
+            FROM bookmarks b
+            JOIN lessons l ON b.lesson_id = l.id
+            JOIN subjects s ON l.subject_id = s.id
+            WHERE b.user_id = :u_id
+            ORDER BY b.created_at DESC
+        ");
+        $stmt->execute([':u_id' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    // --- NOTES ---
+
+    public function getNote(int $userId, int $lessonId): ?string {
+        $stmt = $this->db->prepare("SELECT content FROM lesson_notes WHERE user_id = :u_id AND lesson_id = :l_id");
+        $stmt->execute([':u_id' => $userId, ':l_id' => $lessonId]);
+        return $stmt->fetchColumn() ?: null;
+    }
+
+    public function saveNote(int $userId, int $lessonId, string $content): void {
+        $stmt = $this->db->prepare("
+            INSERT INTO lesson_notes (user_id, lesson_id, content, updated_at)
+            VALUES (:u_id, :l_id, :content, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, lesson_id)
+            DO UPDATE SET content = EXCLUDED.content, updated_at = CURRENT_TIMESTAMP
+        ");
+        $stmt->execute([
+            ':u_id' => $userId,
+            ':l_id' => $lessonId,
+            ':content' => $content
+        ]);
     }
 }

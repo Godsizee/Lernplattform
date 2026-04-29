@@ -28,6 +28,12 @@ $router->get('/api/content/dashboard', 'ContentController@dashboard');
 $router->post('/api/progress/toggle', 'ArticleController@saveProgress');
 $router->get('/api/search', 'ArticleController@search');
 
+// Student Features (Bookmarks & Notes)
+$router->get('/api/student/bookmarks', 'StudentController@getBookmarks');
+$router->post('/api/student/bookmarks/toggle', 'StudentController@toggleBookmark');
+$router->get('/api/student/notes/{lesson_id}', 'StudentController@getNote');
+$router->post('/api/student/notes', 'StudentController@saveNote');
+
 // Articles (RESTful)
 $router->get('/api/articles/{id}', 'ArticleController@get');
 $router->post('/api/articles', 'ArticleController@create');
