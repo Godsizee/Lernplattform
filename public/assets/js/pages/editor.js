@@ -1,12 +1,13 @@
-/* pages/editor.js */
 import { Editor } from '../modules/Editor.js';
 import { ApiService } from '../services/ApiService.js';
 import { UI } from '../utils/UI.js';
+import { Modal } from '../helpers/Modal.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('id');
     const isEditing = !!editId;
+    const DRAFT_KEY = isEditing ? `lern_draft_edit_${editId}` : 'lern_draft_new';
 
     const subjectSelect = document.getElementById('article-subject');
     const titleInput = document.getElementById('article-title');
@@ -50,9 +51,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         editor.render('');
     }
 
+    // Auto-Save Initialisierung
+    checkDraft();
+    startAutoSave();
+
     // Event Listener für die Buttons
     if (btnSaveDraft) btnSaveDraft.addEventListener('click', () => saveArticle('draft', btnSaveDraft));
     if (btnPublish) btnPublish.addEventListener('click', () => saveArticle('published', btnPublish));
+
+    async function checkDraft() {
+        const savedDraft = localStorage.getItem(DRAFT_KEY);
+        if (!savedDraft) return;
+
+        try {
+            const draftData = JSON.parse(savedDraft);
+            // Nur fragen, wenn der Entwurf neuer ist oder nennenswerten Inhalt hat
+            if (!draftData.content_raw) return;
+
+            const confirmed = await Modal.confirm('Wir haben einen ungespeicherten Entwurf gefunden. Möchtest du ihn wiederherstellen?', {
+                title: 'Entwurf wiederherstellen?',
+                confirmText: 'Ja, wiederherstellen',
+                cancelText: 'Verwerfen',
+                icon: 'ph-article-nytimes'
+            });
+
+            if (confirmed) {
+                if (draftData.subject_id) subjectSelect.value = draftData.subject_id;
+                if (draftData.title) titleInput.value = draftData.title;
+                if (draftData.content_raw) editor.setValue(draftData.content_raw);
+                showMessage('Entwurf wiederhergestellt.', true);
+            } else {
+                localStorage.removeItem(DRAFT_KEY);
+            }
+        } catch (e) {
+            console.error('Draft parsing error:', e);
+        }
+    }
+
+    function startAutoSave() {
+        setInterval(() => {
+            const content = editor.getValue().trim();
+            if (!content || content.length < 5) return;
+
+            const draftData = {
+                subject_id: subjectSelect.value,
+                title: titleInput.value.trim(),
+                content_raw: content,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+            console.log('Draft auto-saved to localStorage');
+        }, 5000);
+    }
 
     async function saveArticle(targetStatus, activeBtn) {
         const subjectId = subjectSelect.value;
@@ -85,6 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (data.success) {
+                localStorage.removeItem(DRAFT_KEY);
                 const verb = isEditing ? 'aktualisiert' : 'erstellt';
                 const statusText = targetStatus === 'draft' ? ' (als Entwurf)' : '';
                 showMessage(`Beitrag erfolgreich ${verb}${statusText}!`, true);
