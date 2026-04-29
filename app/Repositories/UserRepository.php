@@ -80,6 +80,13 @@ class UserRepository {
         $stmt->execute([':role' => $role, ':id' => $userId]);
     }
 
+    public function toggleBan(int $id, bool $status): void {
+        $stmt = $this->db->prepare("UPDATE users SET is_banned = :status WHERE id = :id");
+        $stmt->bindValue(':status', $status, PDO::PARAM_BOOL);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
     public function delete(int $id, int $requestingUserId = null): void {
         $query = "DELETE FROM users WHERE id = :id";
         $params = [':id' => $id];
@@ -94,7 +101,7 @@ class UserRepository {
     }
 
     public function getAllUsers(): array {
-        $stmt = $this->db->query("SELECT id, name, email, role, created_at FROM users ORDER BY id DESC");
+        $stmt = $this->db->query("SELECT id, name, email, role, created_at, COALESCE(is_banned, false) as is_banned FROM users ORDER BY id DESC");
         return $stmt->fetchAll();
     }
 

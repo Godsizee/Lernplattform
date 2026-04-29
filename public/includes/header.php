@@ -91,6 +91,17 @@ if ($isSoftRoute) {
     </script>
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
+    
+    <!-- NEU: God-Mode Banner (User Impersonation) -->
+    <?php if (isset($_SESSION['admin_id'])): ?>
+    <div style="background: var(--color-danger); color: white; text-align: center; padding: 0.6rem 1rem; font-size: 0.95rem; z-index: 10001; position: sticky; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 1rem; box-shadow: 0 4px 15px rgba(248, 81, 73, 0.4);">
+        <span><i class="ph-bold ph-mask-happy"></i> <strong>God-Mode:</strong> Eingeloggt als <?= htmlspecialchars($user['name']) ?></span>
+        <button onclick="fetch('<?= BASE_URL ?>/api/auth/stop-impersonation', {method:'POST', headers:{'X-CSRF-Token':'<?= $_SESSION['csrf_token'] ?>', 'Content-Type': 'application/json'}}).then(r=>r.json()).then(d=>{if(d.success) window.location.href='<?= BASE_URL ?>/admin';})" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: var(--radius-sm); padding: 0.25rem 0.8rem; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;">
+            <i class="ph-bold ph-arrow-u-up-left"></i> Zurück zum Admin
+        </button>
+    </div>
+    <?php endif; ?>
+
     <div id="app" class="app-layout">
         
         <?php if (!$hideSidebar): ?>

@@ -40,6 +40,15 @@ class AuthController extends Controller {
         $user = $this->userRepo->findByLogin($login);
 
         if ($user && password_verify($password, $user['password_hash'])) {
+            
+            // Ban-Check vor dem Login
+            if (!empty($user['is_banned'])) {
+                $_SESSION['login_attempts']++;
+                $_SESSION['last_login_attempt'] = time();
+                $this->auditRepo->log($user['id'], 'LOGIN_FAILED_BANNED', "Gesperrter Nutzer hat versucht sich einzuloggen.");
+                return $this->json(['error' => 'Dein Account wurde aufgrund eines Verstoßes gegen unsere Richtlinien gesperrt.'], 403);
+            }
+
             $_SESSION['login_attempts'] = 0;
             session_regenerate_id(true);
             
@@ -117,6 +126,28 @@ class AuthController extends Controller {
             'success' => true, 
             'user' => ['id' => $userId, 'name' => $name, 'role' => 'student']
         ]);
+    }
+
+    /**
+     * Impersonation beenden (Zurück zum Admin)
+     */
+    public function stopImpersonation() {
+        if (!isset($_SESSION['admin_id'])) {
+            return $this->json(['error' => 'Keine aktive Impersonation gefunden.'], 400);
+        }
+        
+        $adminId = $_SESSION['admin_id'];
+        $admin = $this->userRepo->findById($adminId);
+        $impersonatedId = $_SESSION['user_id'];
+        
+        $_SESSION['user_id'] = $admin['id'];
+        $_SESSION['user_name'] = $admin['name'];
+        $_SESSION['user_role'] = $admin['role'];
+        unset($_SESSION['admin_id']); 
+        
+        $this->auditRepo->log($adminId, 'ADMIN_IMPERSONATE_STOP', "Hat die Sitzungs-Übernahme von Nutzer ID $impersonatedId beendet.");
+        
+        return $this->json(['success' => true]);
     }
 
     /**

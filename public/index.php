@@ -20,6 +20,7 @@ $router->get('/editor', 'PageController@editor');
 $router->post('/api/auth/login', 'AuthController@login');
 $router->post('/api/auth/register', 'AuthController@register');
 $router->get('/api/auth/logout', 'AuthController@logout');
+$router->post('/api/auth/stop-impersonation', 'AuthController@stopImpersonation');
 
 // Content & Progress
 $router->get('/api/content/subjects', 'ContentController@subjects');
@@ -51,6 +52,8 @@ $router->get('/api/admin/dashboard', 'AdminController@dashboard');
 $router->get('/api/admin/users', 'AdminController@users');
 $router->post('/api/admin/set-role', 'AdminController@setRole');
 $router->post('/api/admin/delete-user', 'AdminController@deleteUser');
+$router->post('/api/admin/users/ban', 'AdminController@toggleBan');
+$router->post('/api/admin/impersonate', 'AdminController@impersonate');
 $router->get('/api/admin/audit', 'AdminController@audit');
 $router->get('/api/admin/content', 'AdminController@content');
 $router->post('/api/admin/lessons/reorder', 'AdminController@updateLessonOrder');

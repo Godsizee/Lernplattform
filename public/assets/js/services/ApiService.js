@@ -105,6 +105,14 @@ export class ApiService {
             method: 'POST',
             body: JSON.stringify({ user_id: userId })
         }),
+        toggleBan: (userId, status) => ApiService.request('admin/users/ban', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId, status })
+        }),
+        impersonate: (userId) => ApiService.request('admin/impersonate', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId })
+        }),
         getAuditLogs: (userId = '') => ApiService.request(`admin/audit${userId ? '?user_id=' + userId : ''}`),
         getContent: () => ApiService.request('admin/content'),
         updateLessonOrder: (orders) => ApiService.request('admin/lessons/reorder', {

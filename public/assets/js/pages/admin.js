@@ -28,20 +28,6 @@ export default async function init() {
         });
     }
 
-    // Delegierte Events (Rollen ändern, User löschen)
-    const usersTable = document.getElementById('admin-users');
-    if (usersTable) {
-        usersTable.addEventListener('change', (e) => {
-            if (e.target.classList.contains('admin-role-select')) {
-                admin.adminSetRole(e.target.dataset.id, e.target.value);
-            }
-        });
-
-        usersTable.addEventListener('click', (e) => {
-            const delBtn = e.target.closest('.admin-del-user');
-            if (delBtn) {
-                admin.adminDeleteUser(delBtn.dataset.id);
-            }
-        });
-    }
+    // HINWEIS: Die Event-Listener für die Nutzertabelle wurden der Übersichtlichkeit halber 
+    // in die Admin.js Klasse (initUserEvents) verschoben, da sie dort dynamisch gerendert werden.
 }

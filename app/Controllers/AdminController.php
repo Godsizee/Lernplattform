@@ -42,6 +42,55 @@ class AdminController extends Controller {
     }
 
     /**
+     * Nutzer sperren / entsperren (Soft Ban)
+     */
+    public function toggleBan() {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $targetId = filter_var($input['user_id'] ?? 0, FILTER_VALIDATE_INT);
+        $status = (bool)($input['status'] ?? false);
+        
+        if ($targetId == $_SESSION['user_id']) {
+            return $this->json(['error' => 'Du kannst dich nicht selbst sperren.'], 400);
+        }
+        
+        $this->userRepo->toggleBan($targetId, $status);
+        $action = $status ? 'ADMIN_BAN_USER' : 'ADMIN_UNBAN_USER';
+        $details = "Hat den Nutzer mit ID $targetId " . ($status ? 'gesperrt' : 'entsperrt') . ".";
+        
+        $this->auditRepo->log($_SESSION['user_id'], $action, $details);
+        return $this->json(['success' => true]);
+    }
+
+    /**
+     * Login als anderer Nutzer (Impersonation)
+     */
+    public function impersonate() {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $targetId = filter_var($input['user_id'] ?? 0, FILTER_VALIDATE_INT);
+        $user = $this->userRepo->findById($targetId);
+        
+        if (!$user) {
+            return $this->json(['error' => 'Nutzer nicht gefunden.'], 404);
+        }
+
+        if ($user['role'] === 'admin') {
+            return $this->json(['error' => 'Sicherheitsrichtlinie: Du kannst keine Sitzung von anderen Admins übernehmen.'], 403);
+        }
+
+        // Aktuelle Admin-ID als Backup in der Session speichern
+        $_SESSION['admin_id'] = $_SESSION['user_id'];
+        
+        // Session mit den Daten des Zielnutzers überschreiben
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_role'] = $user['role'];
+        
+        $this->auditRepo->log($_SESSION['admin_id'], 'ADMIN_IMPERSONATE_START', "Hat die Sitzung von Nutzer ID $targetId ({$user['name']}) übernommen.");
+        
+        return $this->json(['success' => true]);
+    }
+
+    /**
      * Nutzer löschen
      */
     public function deleteUser() {
@@ -78,7 +127,6 @@ class AdminController extends Controller {
             ]
         ];
 
-        // Einfache Logik für Warnung
         if ($stats['system_health']['failed_logins_24h'] > 10) {
             $stats['system_health']['status'] = 'warning';
         }

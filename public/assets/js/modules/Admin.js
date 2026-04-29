@@ -16,7 +16,7 @@ export class Admin {
             const users = await ApiService.admin.getUsers();
             this.renderUsersTable(users);
             this.renderUserFilter(users);
-
+            
             // Content Manager laden
             await this.loadContentManager();
 
@@ -108,23 +108,95 @@ export class Admin {
         if (!tbody) return;
 
         tbody.innerHTML = users.map(u => `
-            <tr>
+            <tr class="${u.is_banned ? 'banned-row' : ''}">
                 <td data-label="ID">#${u.id}</td>
-                <td data-label="Name"><strong>${escapeHTML(u.name)}</strong></td>
+                <td data-label="Name">
+                    <strong>${escapeHTML(u.name)}</strong>
+                    ${u.is_banned ? '<span class="badge" style="background:rgba(248, 81, 73, 0.1); color:var(--color-danger); font-size:0.7rem; padding: 2px 6px; margin-left: 0.5rem;"><i class="ph ph-prohibit"></i> Gesperrt</span>' : ''}
+                </td>
                 <td data-label="E-Mail">${escapeHTML(u.email)}</td>
                 <td data-label="Rolle">
-                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.4rem 0.8rem; margin:0; height:auto; background:var(--bg-surface); border-color: var(--border-glass);">
+                    <select class="form-control admin-role-select" data-id="${u.id}" style="padding: 0.4rem 0.8rem; margin:0; height:auto; background:var(--bg-surface); border-color: var(--border-glass);" ${u.is_banned ? 'disabled' : ''}>
                         <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
                         <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                     </select>
                 </td>
-                <td data-label="Aktion" class="actions-cell">
+                <td data-label="Aktionen" class="actions-cell">
                     <div class="action-btn-group">
-                        <button class="btn-icon-admin delete admin-del-user" data-id="${u.id}" title="Nutzer löschen"><i class="ph ph-trash"></i></button>
+                        <button class="btn-icon-admin impersonate-user" data-id="${u.id}" title="Als dieser Nutzer einloggen" ${u.role === 'admin' ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}><i class="ph ph-mask-happy"></i></button>
+                        <button class="btn-icon-admin toggle-ban-user ${u.is_banned ? 'delete' : ''}" data-id="${u.id}" data-banned="${u.is_banned}" title="${u.is_banned ? 'Sperre aufheben' : 'Nutzer sperren'}"><i class="ph ph-prohibit"></i></button>
+                        <button class="btn-icon-admin delete admin-del-user" data-id="${u.id}" title="Unwiderruflich löschen"><i class="ph ph-trash"></i></button>
                     </div>
                 </td>
             </tr>
         `).join('');
+
+        this.initUserEvents();
+    }
+
+    initUserEvents() {
+        const usersTable = document.getElementById('admin-users');
+        if (!usersTable) return;
+
+        // Cleanup alte EventListener (verhindert doppeltes Feuern nach Reload)
+        const newTable = usersTable.cloneNode(true);
+        usersTable.parentNode.replaceChild(newTable, usersTable);
+
+        newTable.addEventListener('change', (e) => {
+            if (e.target.classList.contains('admin-role-select')) {
+                this.adminSetRole(e.target.dataset.id, e.target.value);
+            }
+        });
+
+        newTable.addEventListener('click', (e) => {
+            const btnDelete = e.target.closest('.admin-del-user');
+            const btnBan = e.target.closest('.toggle-ban-user');
+            const btnImpersonate = e.target.closest('.impersonate-user');
+
+            if (btnDelete) this.adminDeleteUser(btnDelete.dataset.id);
+            if (btnBan) this.adminToggleBan(btnBan.dataset.id, btnBan.dataset.banned === 'true');
+            if (btnImpersonate) this.adminImpersonate(btnImpersonate.dataset.id);
+        });
+    }
+
+    async adminToggleBan(userId, isCurrentlyBanned) {
+        const actionText = isCurrentlyBanned ? 'entsperren' : 'sperren';
+        const confirmed = await Modal.confirm(`Möchtest du diesen Nutzer wirklich ${actionText}?`, {
+            confirmText: `Ja, ${actionText}`,
+            icon: 'ph-prohibit',
+            variant: isCurrentlyBanned ? 'primary' : 'danger'
+        });
+        
+        if (!confirmed) return;
+
+        try {
+            await ApiService.admin.toggleBan(userId, !isCurrentlyBanned);
+            Toast.success(`Nutzer wurde erfolgreich ${actionText}.`);
+            await this.loadAdminData();
+        } catch (error) {
+            Toast.error(error.message || 'Verbindungsfehler.');
+        }
+    }
+
+    async adminImpersonate(userId) {
+        const confirmed = await Modal.confirm('Möchtest du die Sitzung dieses Nutzers temporär übernehmen? Du kannst als dieser Nutzer agieren.', {
+            title: 'Sitzung übernehmen?',
+            confirmText: 'Ja, als Nutzer einloggen',
+            icon: 'ph-mask-happy'
+        });
+        
+        if (!confirmed) return;
+
+        try {
+            const res = await ApiService.admin.impersonate(userId);
+            if (res.success) {
+                // Bei Erfolg laden wir die gesamte Applikation (Hard-Reload) neu, 
+                // um sicherzugehen, dass sich das komplette System, Sidebars und Tokens aktualisieren.
+                window.location.href = window.BASE_URL + '/';
+            }
+        } catch (error) {
+            Toast.error(error.message || 'Fehler beim Sitzungswechsel.');
+        }
     }
 
     renderUserFilter(users) {
@@ -132,7 +204,7 @@ export class Admin {
         if (!filter) return;
 
         const currentFilter = filter.value;
-        filter.innerHTML = '<option value="">Alle Nutzer</option>' +
+        filter.innerHTML = '<option value="">Alle Nutzer</option>' + 
             users.map(u => `<option value="${u.id}">${escapeHTML(u.name)}</option>`).join('');
         filter.value = currentFilter;
     }
@@ -146,7 +218,7 @@ export class Admin {
                 <section class="subjects-section">
                     <div class="section-header">
                         <h2><i class="ph ph-folders" style="color: var(--color-primary);"></i> Fächer verwalten</h2>
-                        <button class="btn btn-primary btn-sm" id="btn-add-subject" style="padding: 0.6rem 1.2rem;"><i class="ph ph-plus"></i> Neues Fach</button>
+                        <button class="btn btn-primary btn-sm" id="btn-add-subject" style="padding: 0.6rem 1.2rem; display: none;"><i class="ph ph-plus"></i> Neues Fach</button>
                     </div>
                     <div class="subjects-grid" id="admin-subjects-grid">
                         ${data.subjects.map(s => `
@@ -163,6 +235,14 @@ export class Admin {
                                 </div>
                             </div>
                         `).join('')}
+                        
+                        <!-- NEU: + Button als schicke Card am Ende -->
+                        <div class="subject-card-mini fade-in" id="card-add-subject" style="border: 2px dashed var(--border-glass); cursor: pointer; justify-content: center; background: transparent; transition: all 0.2s;">
+                            <div class="subject-info" style="color: var(--color-primary);">
+                                <i class="ph ph-plus-circle" style="font-size: 1.5rem;"></i>
+                                <span class="subject-title" style="font-weight: 600;">Neues Fach anlegen</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -171,6 +251,12 @@ export class Admin {
                         <h2><i class="ph ph-article" style="color: var(--color-primary);"></i> Lektionen & Inhalte</h2>
                         
                         <div class="header-actions">
+                            <!-- NEU: Filter Dropdown -->
+                            <select id="filter-lessons-subject" class="form-control" style="width: auto; padding: 0.4rem 0.8rem; height: 36px; border-radius: 8px; font-size: 0.85rem; background: var(--bg-surface);">
+                                <option value="">Alle Fächer anzeigen</option>
+                                ${data.subjects.map(s => `<option value="${s.id}">${escapeHTML(s.title)}</option>`).join('')}
+                            </select>
+
                             <div class="bulk-actions" id="bulk-actions-container" style="display:none;">
                                 <span class="bulk-count text-muted">0 gewählt</span>
                                 <button class="btn-icon-admin" id="bulk-publish" title="Alle veröffentlichen"><i class="ph ph-check-circle" style="color: var(--color-success);"></i></button>
@@ -244,7 +330,7 @@ export class Admin {
         const bulkCount = bulkContainer?.querySelector('.bulk-count');
 
         const updateBulkUI = () => {
-            const checked = Array.from(checkboxes).filter(c => c.checked);
+            const checked = Array.from(checkboxes).filter(c => c.checked && c.closest('.draggable-lesson').style.display !== 'none');
             if (checked.length > 0) {
                 bulkContainer.style.display = 'flex';
                 bulkCount.textContent = `${checked.length} ausgewählt`;
@@ -255,7 +341,12 @@ export class Admin {
 
         if (selectAll) {
             selectAll.addEventListener('change', () => {
-                checkboxes.forEach(c => c.checked = selectAll.checked);
+                checkboxes.forEach(c => {
+                    // Nur sichtbare (ungefilterte) anwählen
+                    if(c.closest('.draggable-lesson').style.display !== 'none') {
+                        c.checked = selectAll.checked;
+                    }
+                });
                 updateBulkUI();
             });
         }
@@ -283,7 +374,15 @@ export class Admin {
         });
 
         // Subject Manager
-        document.getElementById('btn-add-subject')?.addEventListener('click', () => this.showSubjectModal());
+        document.getElementById('card-add-subject')?.addEventListener('click', () => this.showSubjectModal());
+        
+        // Optische Effekte für die Add-Card
+        const addCard = document.getElementById('card-add-subject');
+        if(addCard) {
+            addCard.addEventListener('mouseenter', () => { addCard.style.borderColor = 'var(--color-primary)'; addCard.style.background = 'rgba(169, 114, 255, 0.05)'; });
+            addCard.addEventListener('mouseleave', () => { addCard.style.borderColor = 'var(--border-glass)'; addCard.style.background = 'transparent'; });
+        }
+
         document.querySelectorAll('.edit-subject').forEach(btn => {
             btn.addEventListener('click', () => {
                 const subject = this.contentData.subjects.find(s => s.id == btn.dataset.id);
@@ -293,6 +392,31 @@ export class Admin {
         document.querySelectorAll('.del-subject').forEach(btn => {
             btn.addEventListener('click', () => this.handleDeleteSubject(btn.dataset.id));
         });
+
+        // Lesson Filter
+        const filterLessons = document.getElementById('filter-lessons-subject');
+        if (filterLessons) {
+            filterLessons.addEventListener('change', (e) => {
+                const selectedSubjectId = e.target.value;
+                const rows = document.querySelectorAll('.draggable-lesson');
+                
+                rows.forEach(row => {
+                    // Zeige an, wenn Filter leer ist ODER Row ID mit Filter ID matcht
+                    if (!selectedSubjectId || row.dataset.subjectId === selectedSubjectId) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                        // Checkboxen bei versteckten Elementen deaktivieren
+                        const cb = row.querySelector('.article-select');
+                        if(cb) cb.checked = false;
+                    }
+                });
+                
+                // Falls "Select All" angehakt war und man filtert, UI updaten
+                if(selectAll) selectAll.checked = false;
+                updateBulkUI();
+            });
+        }
 
         // Drag & Drop
         this.initDragAndDrop();
@@ -459,7 +583,7 @@ export class Admin {
 
             const rect = row.getBoundingClientRect();
             const midpoint = rect.top + rect.height / 2;
-
+            
             if (e.clientY < midpoint) {
                 tbody.insertBefore(draggedRow, row);
             } else {
@@ -470,9 +594,11 @@ export class Admin {
         tbody.addEventListener('dragend', async () => {
             if (!draggedRow) return;
             draggedRow.classList.remove('is-dragging');
-
-            // Neue Reihenfolge berechnen
-            const rows = Array.from(tbody.querySelectorAll('.draggable-lesson'));
+            
+            // WICHTIG: Beim Drag & Drop filtern wir ausgeblendete Elemente heraus.
+            // So speichern wir die Sortierung isoliert für das Fach, wenn gefiltert wurde.
+            const rows = Array.from(tbody.querySelectorAll('.draggable-lesson')).filter(row => row.style.display !== 'none');
+            
             const orders = rows.map((row, index) => ({
                 id: row.dataset.id,
                 sort_order: index
@@ -534,7 +660,7 @@ export class Admin {
         try {
             const logs = await ApiService.admin.getAuditLogs(userId);
             container.innerHTML = '';
-
+            
             if (logs.length === 0) {
                 container.innerHTML = '<p style="color:var(--text-secondary); margin-left: 1rem;">Keine Aktivitäten gefunden.</p>';
                 return;
