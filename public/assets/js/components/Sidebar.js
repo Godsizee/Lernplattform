@@ -10,6 +10,12 @@ export class Sidebar {
     init() {
         if (!this.sidebar) return;
 
+        // Zustand aus localStorage laden
+        const isCollapsed = localStorage.getItem('lern_sidebar_collapsed') === 'true';
+        if (isCollapsed && window.innerWidth >= 768) {
+            this.sidebar.classList.add('collapsed');
+        }
+
         if (this.desktopToggle) {
             this.desktopToggle.addEventListener('click', () => this.toggleDesktop());
         }
@@ -33,7 +39,8 @@ export class Sidebar {
         if (window.innerWidth < 768) {
             this.sidebar.classList.remove('mobile-open');
         } else {
-            this.sidebar.classList.toggle('collapsed');
+            const isCollapsed = this.sidebar.classList.toggle('collapsed');
+            localStorage.setItem('lern_sidebar_collapsed', isCollapsed);
         }
     }
 

@@ -61,6 +61,11 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
         <?php if (!$hideSidebar): ?>
         <!-- Sidebar -->
         <aside class="sidebar">
+            <script>
+                if (localStorage.getItem('lern_sidebar_collapsed') === 'true' && window.innerWidth >= 768) {
+                    document.currentScript.parentElement.classList.add('collapsed');
+                }
+            </script>
             <div class="sidebar-brand" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                 <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Code & Cash Logo" class="brand-logo-img">
                 <button id="sidebar-toggle" title="Sidebar einklappen/ausklappen" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;">
