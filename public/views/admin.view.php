@@ -66,18 +66,8 @@ if ($user['role'] !== 'admin') {
         </div>
     </div>
 
-    <div id="admin-content" class="admin-panel content-card" style="display:none;">
-        <h2>Inhalte verwalten</h2>
-        <p style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.6; max-width: 800px;">
-            Um neue Lektionen und Beiträge zu erstellen, nutze bitte den globalen Editor. 
-            Dort stehen dir alle Formatierungsmöglichkeiten (Markdown, Code-Blöcke, Live-Vorschau) zur Verfügung. 
-            So garantieren wir ein einheitliches Schreib- und Leseerlebnis für alle Nutzer.
-        </p>
-        <div style="margin-top: 2rem;">
-            <a href="<?= BASE_URL ?>/editor" class="btn btn-primary">
-                <i class="ph ph-article"></i> Zum vollwertigen Editor wechseln
-            </a>
-        </div>
+    <div id="admin-content" class="admin-panel" style="display:none;">
+        <div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Inhalte...</div>
     </div>
 
     <div id="admin-audit" class="admin-panel content-card" style="display:none;">

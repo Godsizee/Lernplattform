@@ -105,7 +105,32 @@ export class ApiService {
             method: 'POST',
             body: JSON.stringify({ user_id: userId })
         }),
-        getAuditLogs: (userId = '') => ApiService.request(`admin/audit${userId ? '?user_id=' + userId : ''}`)
+        getAuditLogs: (userId = '') => ApiService.request(`admin/audit${userId ? '?user_id=' + userId : ''}`),
+        getContent: () => ApiService.request('admin/content'),
+        updateLessonOrder: (orders) => ApiService.request('admin/lessons/reorder', {
+            method: 'POST',
+            body: JSON.stringify({ orders })
+        }),
+        cloneLesson: (lessonId) => ApiService.request('admin/lessons/clone', {
+            method: 'POST',
+            body: JSON.stringify({ lesson_id: lessonId })
+        }),
+        bulkStatus: (ids, status) => ApiService.request('admin/lessons/bulk-status', {
+            method: 'POST',
+            body: JSON.stringify({ ids, status })
+        }),
+        bulkDelete: (ids) => ApiService.request('admin/lessons/bulk-delete', {
+            method: 'POST',
+            body: JSON.stringify({ ids })
+        }),
+        saveSubject: (data) => ApiService.request('admin/subjects', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        deleteSubject: (id) => ApiService.request('admin/subjects/delete', {
+            method: 'POST',
+            body: JSON.stringify({ id })
+        })
     };
 
     static articles = {

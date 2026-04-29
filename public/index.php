@@ -52,6 +52,13 @@ $router->get('/api/admin/users', 'AdminController@users');
 $router->post('/api/admin/set-role', 'AdminController@setRole');
 $router->post('/api/admin/delete-user', 'AdminController@deleteUser');
 $router->get('/api/admin/audit', 'AdminController@audit');
+$router->get('/api/admin/content', 'AdminController@content');
+$router->post('/api/admin/lessons/reorder', 'AdminController@updateLessonOrder');
+$router->post('/api/admin/lessons/clone', 'AdminController@cloneLesson');
+$router->post('/api/admin/lessons/bulk-status', 'AdminController@bulkStatus');
+$router->post('/api/admin/lessons/bulk-delete', 'AdminController@bulkDelete');
+$router->post('/api/admin/subjects', 'AdminController@saveSubject');
+$router->post('/api/admin/subjects/delete', 'AdminController@deleteSubject');
 
 // Media
 $router->post('/api/media/upload', 'MediaController@upload');

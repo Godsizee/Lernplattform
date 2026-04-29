@@ -66,7 +66,7 @@ class LessonRepository {
             $sql .= " WHERE " . implode(" AND ", $conditions);
         }
 
-        $sql .= " ORDER BY s.id ASC, l.id ASC";
+        $sql .= " ORDER BY s.id ASC, l.sort_order ASC, l.id ASC";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -255,5 +255,73 @@ class LessonRepository {
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    // --- ADMIN CONTENT ENGINE ---
+
+    public function getAllLessonsForAdmin(): array {
+        $stmt = $this->db->query("
+            SELECT l.id, l.title, l.status, l.subject_id, l.sort_order,
+                   s.title as subject_title, s.color as subject_color,
+                   u.name as author_name, l.created_at
+            FROM lessons l
+            JOIN subjects s ON l.subject_id = s.id
+            LEFT JOIN users u ON l.author_id = u.id
+            ORDER BY s.id ASC, l.sort_order ASC, l.id ASC
+        ");
+        return $stmt->fetchAll();
+    }
+
+    public function updateLessonOrder(array $orders): void {
+        $stmt = $this->db->prepare("UPDATE lessons SET sort_order = :order WHERE id = :id");
+        foreach ($orders as $item) {
+            $stmt->execute([
+                ':order' => $item['sort_order'],
+                ':id' => $item['id']
+            ]);
+        }
+    }
+
+    public function cloneLesson(int $lessonId, int $authorId): int {
+        $stmt = $this->db->prepare("
+            INSERT INTO lessons (subject_id, author_id, title, content, content_raw, status, sort_order)
+            SELECT subject_id, :author_id, CONCAT('Kopie von ', title), content, content_raw, 'draft', sort_order + 1
+            FROM lessons WHERE id = :id
+            RETURNING id
+        ");
+        $stmt->execute([':id' => $lessonId, ':author_id' => $authorId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function bulkUpdateStatus(array $ids, string $status): void {
+        if (empty($ids)) return;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare("UPDATE lessons SET status = ? WHERE id IN ($placeholders)");
+        $stmt->execute(array_merge([$status], $ids));
+    }
+
+    public function bulkDelete(array $ids): void {
+        if (empty($ids)) return;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->db->prepare("DELETE FROM lessons WHERE id IN ($placeholders)");
+        $stmt->execute($ids);
+    }
+
+    // --- SUBJECT CRUD ---
+
+    public function createSubject(string $title, string $color, string $icon): int {
+        $stmt = $this->db->prepare("INSERT INTO subjects (title, color, icon) VALUES (:title, :color, :icon) RETURNING id");
+        $stmt->execute([':title' => $title, ':color' => $color, ':icon' => $icon]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function updateSubject(int $id, string $title, string $color, string $icon): void {
+        $stmt = $this->db->prepare("UPDATE subjects SET title = :title, color = :color, icon = :icon WHERE id = :id");
+        $stmt->execute([':title' => $title, ':color' => $color, ':icon' => $icon, ':id' => $id]);
+    }
+
+    public function deleteSubject(int $id): void {
+        $stmt = $this->db->prepare("DELETE FROM subjects WHERE id = :id");
+        $stmt->execute([':id' => $id]);
     }
 }
