@@ -13,7 +13,7 @@ $backLabel = $isLoggedIn ? 'Zurück zum Dashboard' : 'Zurück zum Login';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 – Seite nicht gefunden | Code & Cash</title>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/icons/phosphor/style.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <script>
         const savedTheme = localStorage.getItem('lern_theme') || 'dark';

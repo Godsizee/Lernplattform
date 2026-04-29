@@ -35,7 +35,7 @@ $hideSidebar = $isPublicPage; // Sidebar auf öffentlichen Seiten verstecken
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code & Cash | Lernplattform</title>
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/icons/phosphor/style.css">
     <!-- Styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
