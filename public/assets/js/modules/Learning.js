@@ -228,7 +228,7 @@ export class Learning {
                 
                 <div class="lesson-footer-nav">
                     <!-- Primärer Abschluss-Button am Ende -->
-                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; font-weight: 600;">
+                    <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-success'} toggle-lesson-btn">
                         ${btnContentHtml}
                     </button>
 
