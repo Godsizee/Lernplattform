@@ -92,7 +92,6 @@ if ($isSoftRoute) {
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
     
-    <!-- NEU: System Broadcast Banner -->
     <?php
     $settingRepo = $GLOBALS['container']->get('SettingRepository');
     $announcementJson = $settingRepo->get('global_announcement');
@@ -100,17 +99,33 @@ if ($isSoftRoute) {
     
     if ($announcement && !empty($announcement['is_active']) && !empty($announcement['message'])):
         $parsedown = new Parsedown();
-        $parsedown->setSafeMode(true); // Verhindert HTML-Injection (XSS), erlaubt aber Markdown
+        $parsedown->setSafeMode(true);
         $formattedMessage = $parsedown->line($announcement['message']);
+        
+        // Eindeutiger Hash für diese Nachricht (damit sie bei Änderungen wieder erscheint)
+        $announcementId = md5($announcement['message'] . ($announcement['type'] ?? 'info'));
     ?>
-    <div class="system-broadcast-banner banner-<?= htmlspecialchars($announcement['type']) ?>">
+    <div id="system-banner" class="system-broadcast-banner banner-<?= htmlspecialchars($announcement['type']) ?>" data-announcement-id="<?= $announcementId ?>" style="display: none;">
         <div class="banner-content">
             <i class="ph-bold ph-megaphone"></i>
             <div class="banner-text">
                 <?= $formattedMessage ?>
             </div>
+            <button id="close-system-banner" class="banner-close" title="Dauerhaft ausblenden">
+                <i class="ph ph-x"></i>
+            </button>
         </div>
     </div>
+    <script>
+        // Sofortige Prüfung vor dem Rendering (Vermeidung von Flackern)
+        (function() {
+            const dismissedId = localStorage.getItem('dismissed_announcement');
+            const banner = document.getElementById('system-banner');
+            if (banner && dismissedId !== banner.dataset.announcementId) {
+                banner.style.display = 'flex';
+            }
+        })();
+    </script>
     <?php endif; ?>
 
     <!-- God-Mode Banner (User Impersonation) -->

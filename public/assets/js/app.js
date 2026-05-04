@@ -32,4 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => Auth.logout());
     }
+
+    // System-Banner Dismissal
+    const closeBannerBtn = document.getElementById('close-system-banner');
+    if (closeBannerBtn) {
+        closeBannerBtn.addEventListener('click', () => {
+            const banner = document.getElementById('system-banner');
+            if (banner) {
+                localStorage.setItem('dismissed_announcement', banner.dataset.announcementId);
+                banner.style.display = 'none';
+                Toast.info('Ankündigung wurde ausgeblendet.');
+            }
+        });
+    }
 });

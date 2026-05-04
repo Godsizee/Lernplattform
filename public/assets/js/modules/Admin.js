@@ -150,6 +150,50 @@ export class Admin {
                 btn.innerHTML = originalContent;
             }
         });
+
+        // Vorschau-Logik
+        document.getElementById('btn-preview-announcement').addEventListener('click', () => {
+            const message = this.announcementEditor.getValue();
+            const type = document.getElementById('announcement-type').value;
+            const active = document.getElementById('announcement-active').checked;
+
+            if (!message) {
+                Toast.error('Bitte gib eine Nachricht für die Vorschau ein.');
+                return;
+            }
+
+            // Bestehenden Banner suchen oder erstellen (temporär)
+            let banner = document.getElementById('system-banner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'system-banner';
+                banner.className = 'system-broadcast-banner';
+                document.body.prepend(banner);
+            }
+
+            banner.className = `system-broadcast-banner banner-${type}`;
+            banner.style.display = active ? 'flex' : 'none';
+            banner.innerHTML = `
+                <div class="banner-content">
+                    <i class="ph-bold ph-megaphone"></i>
+                    <div class="banner-text">${this.announcementEditor.parser.parse(message)}</div>
+                    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none'"><i class="ph ph-x"></i></button>
+                </div>
+            `;
+            
+            Toast.info('Vorschau wird oben angezeigt.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Reset Dismissal
+        document.getElementById('btn-reset-announcement-dismissal').addEventListener('click', () => {
+            localStorage.removeItem('dismissed_announcement');
+            Toast.success('Ausblend-Status zurückgesetzt. Der Banner erscheint beim nächsten Laden wieder.');
+            
+            // Sofort versuchen anzuzeigen, falls er existiert
+            const banner = document.getElementById('system-banner');
+            if (banner) banner.style.display = 'flex';
+        });
     }
 
     async loadContentManager() {

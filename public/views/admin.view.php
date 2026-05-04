@@ -122,9 +122,15 @@ if ($user['role'] !== 'admin') {
                 </div>
             </div>
 
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-glass);">
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-glass); display: flex; gap: 1rem; flex-wrap: wrap;">
                 <button type="submit" class="btn btn-primary" id="btn-save-announcement">
                     <i class="ph ph-floppy-disk"></i> Einstellungen speichern
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-preview-announcement">
+                    <i class="ph ph-eye"></i> Vorschau (Live)
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-reset-announcement-dismissal" style="margin-left: auto;">
+                    <i class="ph ph-arrow-counter-clockwise"></i> Ausblend-Status für mich zurücksetzen
                 </button>
             </div>
         </form>
