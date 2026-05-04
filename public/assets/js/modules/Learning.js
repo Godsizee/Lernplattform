@@ -6,6 +6,7 @@ import { Toast } from '../helpers/Toast.js';
 import { Modal } from '../helpers/Modal.js';
 import { Skeleton } from '../helpers/Skeleton.js';
 import { QuizEngine } from './QuizEngine.js';
+import { Playground } from '../components/Playground.js';
 
 export class Learning {
     constructor() {
@@ -434,6 +435,21 @@ export class Learning {
 
         // UX: Scroll-Indikator initialisieren
         this.initScrollIndicator();
+
+        // Playgrounds initialisieren (nach dem DOM-Render)
+        this._initPlaygrounds(container);
+    }
+
+    /**
+     * Sucht alle .code-playground-mount Elemente im gerenderten Inhalt
+     * und ersetzt sie durch interaktive Playground-Komponenten.
+     *
+     * @param {HTMLElement} container - Der Lektion-Container
+     */
+    _initPlaygrounds(container) {
+        container.querySelectorAll('.code-playground-mount').forEach(mount => {
+            new Playground(mount);
+        });
     }
 
     renderQuizHub() {
