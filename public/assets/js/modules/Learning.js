@@ -142,34 +142,96 @@ export class Learning {
         const tocList = document.createElement('ul');
         tocList.className = 'toc-list';
         
+        // Gruppierung der Lektionen
+        const groupedItems = [];
+        let currentGroup = null;
+
         this.lessonsMetadata.forEach(lesson => {
-            const isCompleted = this.progress.includes(lesson.id);
-            const li = document.createElement('li');
-            li.className = 'toc-item';
-            
-            const link = document.createElement('a');
-            link.href = `?subject=${this.currentSubjectId}&lesson=${lesson.id}`;
-            link.className = `toc-link ${isCompleted ? 'completed' : ''} ${this.activeLessonId == lesson.id ? 'active' : ''}`;
-            link.dataset.lessonId = lesson.id;
-            
-            let titleHtml = `<span class="toc-text">${escapeHTML(lesson.title)}</span>`;
-            if (lesson.article_status === 'draft') {
-                titleHtml += ` <span class="draft-badge" style="font-size: 0.7rem; margin-left: 0.5rem; color: var(--color-warning);"><i class="ph ph-note-pencil"></i></span>`;
+            const match = lesson.title.match(/^Quiz:\s*(.*?)\s*-\s*(.*)$/);
+            if (match) {
+                const groupName = match[1]; // z.B. "S4600"
+                lesson.displayTitle = match[2]; // z.B. "Kapitel 1"
+                
+                if (currentGroup && currentGroup.name === groupName) {
+                    currentGroup.lessons.push(lesson);
+                } else {
+                    currentGroup = { isGroup: true, name: groupName, lessons: [lesson] };
+                    groupedItems.push(currentGroup);
+                }
+            } else {
+                currentGroup = null;
+                lesson.displayTitle = lesson.title;
+                groupedItems.push({ isGroup: false, lesson: lesson });
             }
-            
-            link.innerHTML = titleHtml;
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.loadLesson(lesson.id);
-            });
-            
-            li.appendChild(link);
-            tocList.appendChild(li);
+        });
+
+        groupedItems.forEach(item => {
+            if (item.isGroup) {
+                const li = document.createElement('li');
+                li.className = 'toc-group';
+                
+                const isActiveGroup = item.lessons.some(l => l.id == this.activeLessonId);
+                
+                const header = document.createElement('div');
+                header.className = `toc-group-header ${isActiveGroup ? 'expanded' : ''}`;
+                header.innerHTML = `
+                    <div class="toc-group-title">
+                        <i class="ph ph-books"></i> 
+                        <span>Quiz: ${escapeHTML(item.name)}</span>
+                    </div>
+                    <i class="ph ph-caret-down group-toggle-icon" style="transition: transform 0.3s; transform: ${isActiveGroup ? 'rotate(180deg)' : 'rotate(0)'}"></i>
+                `;
+                
+                const groupList = document.createElement('ul');
+                groupList.className = 'toc-group-list';
+                groupList.style.display = isActiveGroup ? 'block' : 'none';
+                
+                header.addEventListener('click', () => {
+                    const isExpanded = header.classList.toggle('expanded');
+                    groupList.style.display = isExpanded ? 'block' : 'none';
+                    header.querySelector('.group-toggle-icon').style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0)';
+                });
+
+                item.lessons.forEach(lesson => {
+                    groupList.appendChild(this.createTocItemNode(lesson));
+                });
+
+                li.appendChild(header);
+                li.appendChild(groupList);
+                tocList.appendChild(li);
+            } else {
+                tocList.appendChild(this.createTocItemNode(item.lesson));
+            }
         });
         
         tocWrapper.appendChild(tocList);
         tocContainer.innerHTML = '';
         tocContainer.appendChild(tocWrapper);
+    }
+
+    createTocItemNode(lesson) {
+        const isCompleted = this.progress.includes(lesson.id);
+        const li = document.createElement('li');
+        li.className = 'toc-item';
+        
+        const link = document.createElement('a');
+        link.href = `?subject=${this.currentSubjectId}&lesson=${lesson.id}`;
+        link.className = `toc-link ${isCompleted ? 'completed' : ''} ${this.activeLessonId == lesson.id ? 'active' : ''}`;
+        link.dataset.lessonId = lesson.id;
+        
+        let titleHtml = `<span class="toc-text">${escapeHTML(lesson.displayTitle || lesson.title)}</span>`;
+        if (lesson.article_status === 'draft') {
+            titleHtml += ` <span class="draft-badge" style="font-size: 0.7rem; margin-left: 0.5rem; color: var(--color-warning);"><i class="ph ph-note-pencil"></i></span>`;
+        }
+        
+        link.innerHTML = titleHtml;
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.loadLesson(lesson.id);
+        });
+        
+        li.appendChild(link);
+        return li;
     }
 
     async loadLesson(lessonId) {

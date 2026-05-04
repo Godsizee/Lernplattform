@@ -197,3 +197,133 @@
         background: rgba(16, 185, 129, 0.1);
     }
 }
+
+/* ==========================================================================
+   TOC Grouping (Collapsible Chapters)
+   ========================================================================== */
+.toc-group {
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.toc-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: var(--transition);
+    user-select: none;
+}
+
+.toc-group-header:hover {
+    border-color: var(--color-primary);
+    background: var(--bg-surface-hover);
+}
+
+.toc-group-header.expanded {
+    background: linear-gradient(90deg, rgba(169, 114, 255, 0.05) 0%, transparent 100%);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+}
+
+.toc-group-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toc-group-title i {
+    color: var(--color-primary);
+}
+
+.toc-group-list {
+    list-style: none;
+    padding: 0.5rem 0 0.5rem 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-glass);
+    border-top: none;
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+    position: relative;
+}
+
+.light-mode .toc-group-list {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Anpassung der vertikalen Linie für Gruppen-Inhalte */
+.toc-group-list::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 14px;
+    width: 2px;
+    background: var(--border-glass);
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.toc-group-list .toc-link {
+    padding-left: 2.5rem;
+}
+
+.toc-group-list .toc-link::before {
+    left: 11px;
+}
+
+@media (max-width: 1024px) {
+    .toc-group {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+    .toc-group-header {
+        border-radius: 30px;
+        white-space: nowrap;
+        gap: 0.5rem;
+    }
+    .toc-group-header.expanded {
+        border-radius: 15px;
+        border-bottom: 1px solid var(--border-glass);
+    }
+    .toc-group-list {
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+        z-index: 100;
+        min-width: 220px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    .light-mode .toc-group-list {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        background: #ffffff;
+    }
+    .toc-group-list::before {
+        display: none;
+    }
+    .toc-group-list .toc-link {
+        padding: 0.8rem 1.2rem;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+    }
+    .toc-group-list .toc-item {
+        border-bottom: 1px solid var(--border-glass);
+    }
+    .toc-group-list .toc-item:last-child {
+        border-bottom: none;
+    }
+}
