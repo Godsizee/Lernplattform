@@ -1,5 +1,8 @@
 <?php
 /* scripts/setup_quiz_center.php */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require __DIR__ . '/../app/bootstrap.php';
 $db = App\Core\Database::getInstance()->getConnection();
 
