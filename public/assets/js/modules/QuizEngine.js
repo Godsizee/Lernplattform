@@ -171,6 +171,7 @@ export class QuizEngine {
         
         this.optionsContainer.innerHTML = '';
 
+        const shuffledKeys = Object.keys(question.options).sort(() => Math.random() - 0.5);
         shuffledKeys.forEach(key => {
             const optionCard = document.createElement('div');
             optionCard.className = 'option-card';
