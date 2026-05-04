@@ -31,10 +31,7 @@ export class Learning {
                 const activeSubject = subjects.find(s => s.id == activeId) || subjects[0];
                 
                 await this.switchTab(activeSubject.id, activeSubject.title);
-
-                if (urlLessonId) {
-                    await this.loadLesson(urlLessonId);
-                }
+                // switchTab behandelt bereits das Laden einer spezifischen urlLessonId
             }
         } catch (error) {
             console.error('Error loading subjects:', error);
@@ -52,7 +49,15 @@ export class Learning {
             btn.className = 'learning-tab';
             btn.dataset.subjectId = subject.id;
             btn.textContent = subject.title;
-            btn.addEventListener('click', () => this.switchTab(subject.id, subject.title));
+            btn.addEventListener('click', () => {
+                // Beim Wechseln eines Faches die URL bereinigen, damit keine alten Lektionen geladen werden
+                const url = new URL(window.location);
+                url.searchParams.set('subject', subject.id);
+                url.searchParams.delete('lesson');
+                window.history.pushState({}, '', url);
+                
+                this.switchTab(subject.id, subject.title);
+            });
             tabsContainer.appendChild(btn);
         });
     }
@@ -85,16 +90,31 @@ export class Learning {
             this.renderLayout(container, titleText);
             this.renderTOC();
 
-            // Auto-load logic
+            // Auto-load logic: Nur Lektionen laden, die auch zum Fach gehören!
             const urlParams = new URLSearchParams(window.location.search);
             const urlLessonId = urlParams.get('lesson');
+            
+            // WICHTIG: Prüfen, ob die Lektion aus der URL überhaupt zum ausgewählten Fach gehört
+            const lessonExistsInSubject = this.lessonsMetadata.some(l => l.id == urlLessonId);
 
-            if (urlLessonId) {
+            if (urlLessonId && lessonExistsInSubject) {
                 await this.loadLesson(urlLessonId);
             } else if (titleText.includes('Quiz Center')) {
                 this.renderQuizHub();
             } else if (this.lessonsMetadata.length > 0) {
                 this.loadLesson(this.lessonsMetadata[0].id);
+            } else {
+                // Leeres Fach
+                const mainContainer = document.getElementById('active-lesson-container');
+                if (mainContainer) {
+                    mainContainer.innerHTML = `
+                        <div class="lesson-placeholder fade-in">
+                            <div class="placeholder-icon"><i class="ph ph-books"></i></div>
+                            <h3>Noch keine Inhalte</h3>
+                            <p>Für dieses Fach wurden noch keine Lektionen erstellt.</p>
+                        </div>
+                    `;
+                }
             }
 
         } catch (error) {
