@@ -63,11 +63,6 @@ $router->post('/api/admin/lessons/bulk-delete', 'AdminController@bulkDelete');
 $router->post('/api/admin/subjects', 'AdminController@saveSubject');
 $router->post('/api/admin/subjects/delete', 'AdminController@deleteSubject');
 
-// One-time Migration Route
-$router->get('/scripts/import_sap_quizzes.php', function() {
-    require __DIR__ . '/../scripts/import_sap_quizzes.php';
-});
-
 // Media
 $router->post('/api/media/upload', 'MediaController@upload');
 

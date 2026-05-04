@@ -231,7 +231,7 @@ export class QuizEngine {
             this.saveState();
             this.displayQuestion();
         } else {
-            this.progressBar.style.width = \`100%\`;
+            this.progressBar.style.width = `100%`;
             this.clearState();
             this.showResults();
         }
@@ -266,7 +266,7 @@ export class QuizEngine {
 
     updateProgress() {
         const progressPercentage = (this.currentQuestionIndex / this.selectedQuestions.length) * 100;
-        this.progressBar.style.width = \`\${progressPercentage}%\`;
-        this.progressText.textContent = \`Frage \${this.currentQuestionIndex + 1} von \${this.selectedQuestions.length}\`;
+        this.progressBar.style.width = `${progressPercentage}%`;
+        this.progressText.textContent = `Frage ${this.currentQuestionIndex + 1} von ${this.selectedQuestions.length}`;
     }
 }
