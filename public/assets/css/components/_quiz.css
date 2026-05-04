@@ -402,10 +402,19 @@ body.quiz-focus-mode .learning-layout {
     margin-top: 0;
 }
 
+/* Expansion Animation */
+.learning-main {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 body.quiz-focus-mode .learning-main {
     width: 100%;
-    max-width: 900px;
+    max-width: 1150px; /* Erweitert den Raum */
     margin: 0 auto;
+}
+
+.quiz-modern-wrapper {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.quiz-focus-mode .student-notes-section,
