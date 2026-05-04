@@ -63,6 +63,11 @@ $router->post('/api/admin/lessons/bulk-delete', 'AdminController@bulkDelete');
 $router->post('/api/admin/subjects', 'AdminController@saveSubject');
 $router->post('/api/admin/subjects/delete', 'AdminController@deleteSubject');
 
+// Temporary Setup Route
+$router->get('/scripts/setup_quiz_center.php', function() {
+    require __DIR__ . '/../scripts/setup_quiz_center.php';
+});
+
 // Media
 $router->post('/api/media/upload', 'MediaController@upload');
 
