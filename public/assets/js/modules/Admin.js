@@ -454,7 +454,7 @@ export class Admin {
                                     <tr class="fade-in draggable-lesson" data-id="${l.id}" data-subject-id="${l.subject_id}">
                                         <td class="checkbox-cell">
                                             <div class="drag-checkbox-wrapper">
-                                                <div class="lesson-drag-handle" data-tooltip="Greifen & verschieben"><i class="ph ph-dots-six-vertical"></i></div>
+                                                <div class="lesson-drag-handle" data-tooltip="Greifen & verschieben"><i class="ph ph-list"></i></div>
                                                 <input type="checkbox" class="article-select custom-checkbox" value="${l.id}">
                                             </div>
                                         </td>
