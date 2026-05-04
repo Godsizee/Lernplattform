@@ -3,6 +3,7 @@ import { ApiService } from '../services/ApiService.js';
 import { escapeHTML } from '../utils/Helpers.js';
 import { Toast } from '../helpers/Toast.js';
 import { Modal } from '../helpers/Modal.js';
+import { Editor } from './Editor.js';
 
 export class Admin {
     constructor() {
@@ -91,13 +92,23 @@ export class Admin {
     }
 
     async loadAnnouncementSettings() {
-        const form = document.getElementById('announcement-form');
-        if (!form) return;
+        const container = document.getElementById('announcement-editor-container');
+        if (!container) return;
 
         try {
             const announcement = await ApiService.admin.getAnnouncement();
             
-            document.getElementById('announcement-message').value = announcement.message || '';
+            // Editor initialisieren
+            this.announcementEditor = new Editor('announcement-editor-container');
+            this.announcementEditor.render(announcement.message || '');
+            
+            // Styling für Kompaktheit anpassen
+            const editorEl = container.querySelector('.wiki-editor');
+            if (editorEl) {
+                editorEl.style.minHeight = '300px';
+                container.querySelector('.editor-textarea').style.minHeight = '200px';
+            }
+
             document.getElementById('announcement-type').value = announcement.type || 'info';
             document.getElementById('announcement-active').checked = !!announcement.is_active;
 
@@ -122,7 +133,7 @@ export class Admin {
             btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
 
             const data = {
-                message: document.getElementById('announcement-message').value,
+                message: this.announcementEditor.getValue(),
                 type: document.getElementById('announcement-type').value,
                 is_active: document.getElementById('announcement-active').checked
             };
@@ -131,9 +142,6 @@ export class Admin {
                 await ApiService.admin.saveAnnouncement(data);
                 Toast.success('System-Einstellungen wurden erfolgreich gespeichert.');
                 
-                // Seite evtl. neu laden oder Banner direkt aktualisieren
-                // Da der Banner in der header.php gerendert wird, ist ein Reload am einfachsten
-                // für eine sofortige globale Sichtbarkeit.
                 setTimeout(() => window.location.reload(), 1500);
             } catch (error) {
                 Toast.error(error.message || 'Fehler beim Speichern.');

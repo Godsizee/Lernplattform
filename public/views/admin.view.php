@@ -98,9 +98,9 @@ if ($user['role'] !== 'admin') {
         
         <form id="announcement-form" class="fade-in">
             <div class="form-group">
-                <label for="announcement-message">Nachricht (Markdown unterstützt)</label>
-                <textarea id="announcement-message" class="form-control" rows="3" placeholder="Wichtige Wartungsarbeiten am Samstag..."></textarea>
-                <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Markdown wie **fett**, *kursiv* oder `Code` ist erlaubt.</p>
+                <label>Nachricht (Markdown unterstützt)</label>
+                <div id="announcement-editor-container" style="min-height: 200px;"></div>
+                <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Nutze die Toolbar zum Formatieren. Markdown wie **fett**, *kursiv* oder `Code` ist erlaubt.</p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
