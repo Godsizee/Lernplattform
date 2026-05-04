@@ -43,12 +43,32 @@
     color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     user-select: none;
     letter-spacing: 0.02em;
 }
 
-/* Switch Styling - Refined Symmetry */
+.focus-icon-container {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.focus-icon-container i {
+    position: absolute;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focus-icon-on { opacity: 0; transform: scale(0.5) rotate(-45deg); }
+.focus-icon-off { opacity: 1; transform: scale(1) rotate(0); }
+
+input:checked ~ .focus-label .focus-icon-on { opacity: 1; transform: scale(1) rotate(0); }
+input:checked ~ .focus-label .focus-icon-off { opacity: 0; transform: scale(0.5) rotate(45deg); }
+
+/* Switch Styling - Elastic Morphing */
 .focus-switch {
     position: relative;
     display: inline-block;
@@ -71,7 +91,7 @@
     right: 0;
     bottom: 0;
     background-color: var(--bg-surface);
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.4s ease;
     border-radius: 22px;
     border: 1.5px solid var(--border-glass);
 }
@@ -85,7 +105,7 @@
     top: 50%;
     transform: translateY(-50%);
     background-color: var(--text-secondary);
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
@@ -93,11 +113,21 @@
 input:checked + .focus-slider {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(169, 114, 255, 0.2);
 }
 
 input:checked + .focus-slider:before {
     transform: translate(16px, -50%);
     background-color: white;
+}
+
+/* Der Morph-Effekt beim Klicken (Squash & Stretch) */
+.focus-switch:active .focus-slider:before {
+    width: 20px;
+}
+
+input:checked + .focus-switch:active .focus-slider:before {
+    transform: translate(10px, -50%);
 }
 
 .quiz-progress-info {

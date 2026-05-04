@@ -37,7 +37,13 @@ export class QuizEngine {
                                 <input type="checkbox" id="focus-mode-toggle" checked>
                                 <span class="focus-slider"></span>
                             </label>
-                            <span class="focus-label"><i class="ph ph-eye-closed"></i> Fokus-Modus</span>
+                            <span class="focus-label">
+                                <span class="focus-icon-container">
+                                    <i class="ph ph-eye focus-icon-off"></i>
+                                    <i class="ph ph-eye-closed focus-icon-on"></i>
+                                </span>
+                                Fokus-Modus
+                            </span>
                         </div>
                     </div>
                     <div class="quiz-progress-info">
