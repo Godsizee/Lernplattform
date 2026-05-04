@@ -85,9 +85,15 @@ export class Learning {
             this.renderLayout(container, titleText);
             this.renderTOC();
 
-            // Auto-load first lesson if none active
+            // Auto-load logic
             const urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.get('lesson') && this.lessonsMetadata.length > 0) {
+            const urlLessonId = urlParams.get('lesson');
+
+            if (urlLessonId) {
+                await this.loadLesson(urlLessonId);
+            } else if (titleText.includes('Quiz Center')) {
+                this.renderQuizHub();
+            } else if (this.lessonsMetadata.length > 0) {
                 this.loadLesson(this.lessonsMetadata[0].id);
             }
 
@@ -384,6 +390,67 @@ export class Learning {
 
         // UX: Scroll-Indikator initialisieren
         this.initScrollIndicator();
+    }
+
+    renderQuizHub() {
+        const container = document.getElementById('active-lesson-container');
+        if (!container) return;
+
+        // Visual Feedback für TOC (keine aktive Lektion)
+        this.activeLessonId = null;
+        this.updateTOCHighlight();
+
+        // Gruppierung nach Büchern für die Karten
+        const books = {};
+        this.lessonsMetadata.forEach(lesson => {
+            const match = lesson.title.match(/^Quiz:\s*(.*?)\s*-\s*(.*)$/);
+            const bookName = match ? match[1] : 'Allgemein';
+            if (!books[bookName]) books[bookName] = { title: bookName, lessons: [], completed: 0 };
+            books[bookName].lessons.push(lesson);
+            if (this.progress.includes(lesson.id)) books[bookName].completed++;
+        });
+
+        const bookEntries = Object.values(books);
+
+        container.innerHTML = `
+            <div class="quiz-hub-container fade-in">
+                <div class="quiz-hub-welcome">
+                    <h1>Willkommen im SAP Quiz Center</h1>
+                    <p>Wähle eines der SAP Module aus, um dein Wissen gezielt zu testen. Alle Fragen stammen direkt aus den offiziellen SAP Academy Unterlagen.</p>
+                </div>
+                
+                <div class="quiz-hub-grid">
+                    ${bookEntries.map(book => {
+                        const total = book.lessons.length;
+                        const percentage = Math.round((book.completed / total) * 100);
+                        return `
+                            <div class="book-card" data-book="${escapeHTML(book.title)}">
+                                <div class="book-icon"><i class="ph ph-books"></i></div>
+                                <h3 class="book-title">${escapeHTML(book.title)}</h3>
+                                <div class="book-meta">${total} Kapitel • Modularer Aufbau</div>
+                                
+                                <div class="book-progress-container">
+                                    <div class="book-progress-bar" style="width: ${percentage}%"></div>
+                                </div>
+                                <div class="book-stats">${percentage}% abgeschlossen</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+
+        // Event Listener für die Karten
+        container.querySelectorAll('.book-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const bookName = card.dataset.book;
+                const bookData = books[bookName];
+                if (bookData && bookData.lessons.length > 0) {
+                    // Die erste Lektion dieses Buches laden
+                    this.loadLesson(bookData.lessons[0].id);
+                }
+            });
+        });
     }
 
     getNextLesson(currentId) {
