@@ -90,50 +90,90 @@ if ($user['role'] !== 'admin') {
         </div>
     </div>
 
-    <!-- NEU: System-Einstellungen (Announcement Banner) -->
-    <div id="admin-system" class="admin-panel content-card" style="display:none;">
-        <div class="section-header" style="margin-bottom: 1.5rem;">
-            <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem;"><i class="ph ph-megaphone" style="color: var(--color-primary);"></i> Globale Ankündigung (Banner)</h2>
+    <div id="admin-system" class="admin-panel" style="display:none;">
+        <div class="content-card fade-in" style="margin-bottom: 2rem;">
+            <div class="section-header" style="margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem;"><i class="ph ph-megaphone" style="color: var(--color-primary);"></i> Globale Ankündigung (Banner)</h2>
+            </div>
+            
+            <form id="announcement-form">
+                <div class="form-group">
+                    <label>Nachricht (Markdown unterstützt)</label>
+                    <div id="announcement-editor-container" style="min-height: 200px;"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label for="announcement-type">Banner-Typ</label>
+                        <select id="announcement-type" class="form-control">
+                            <option value="info">Information (Blau)</option>
+                            <option value="warning">Warnung (Gelb/Orange)</option>
+                            <option value="danger">Kritisch (Rot)</option>
+                            <option value="success">Erfolg (Grün)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <label class="switch-container" style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-top: 0.5rem;">
+                            <input type="checkbox" id="announcement-active" class="custom-checkbox">
+                            <span style="font-weight: 500;">Banner aktiv anzeigen</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-preview-announcement">
+                        <i class="ph ph-eye"></i> Vorschau
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-reset-announcement-dismissal">
+                        <i class="ph ph-arrow-counter-clockwise"></i> Gesehen-Status zurücksetzen
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <form id="announcement-form" class="fade-in">
-            <div class="form-group">
-                <label>Nachricht (Markdown unterstützt)</label>
-                <div id="announcement-editor-container" style="min-height: 200px;"></div>
-                <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Nutze die Toolbar zum Formatieren. Markdown wie **fett**, *kursiv* oder `Code` ist erlaubt.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+            <!-- Sicherheitseinstellungen -->
+            <div class="content-card fade-in">
+                <div class="section-header" style="margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem;"><i class="ph ph-shield-check" style="color: var(--color-primary);"></i> Sicherheit</h2>
+                </div>
+                <form id="security-settings-form">
+                    <div class="form-group">
+                        <label for="max-login-attempts">Maximale Login-Versuche (Bruteforce-Schutz)</label>
+                        <input type="number" id="max-login-attempts" class="form-control" min="1" max="20" value="5">
+                        <p class="text-muted" style="font-size: 0.8rem;">Anzahl der Versuche, bevor die IP temporär gesperrt wird.</p>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="session-duration">Session-Dauer (in Tagen)</label>
+                        <input type="number" id="session-duration" class="form-control" min="1" max="365" value="30">
+                        <p class="text-muted" style="font-size: 0.8rem;">Wie lange ein Nutzer eingeloggt bleibt (Remember Me).</p>
+                    </div>
+                </form>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
-                <div class="form-group">
-                    <label for="announcement-type">Banner-Typ</label>
-                    <select id="announcement-type" class="form-control">
-                        <option value="info">Information (Blau)</option>
-                        <option value="warning">Warnung (Gelb/Orange)</option>
-                        <option value="danger">Kritisch (Rot)</option>
-                        <option value="success">Erfolg (Grün)</option>
-                    </select>
+            <!-- Backup & System -->
+            <div class="content-card fade-in">
+                <div class="section-header" style="margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem;"><i class="ph ph-database" style="color: var(--color-primary);"></i> Datenbank & Backup</h2>
                 </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <label class="switch-container" style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-top: 0.5rem;">
-                        <input type="checkbox" id="announcement-active" class="custom-checkbox">
-                        <span style="font-weight: 500;">Banner aktiv anzeigen</span>
-                    </label>
+                <div class="backup-section" style="padding: 1rem; background: rgba(169, 114, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 12px;">
+                    <p style="margin-bottom: 1.5rem; font-size: 0.95rem;">Erzeuge einen vollständigen SQL-Dump deiner Lernplattform. Dieser enthält alle Lektionen, Nutzer und Fortschritte.</p>
+                    <button id="btn-download-backup" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        <i class="ph ph-download"></i> SQL-Backup herunterladen
+                    </button>
+                    <p class="text-muted" style="font-size: 0.75rem; margin-top: 1rem; text-align: center;">
+                        <i class="ph ph-info"></i> Empfehlung: Einmal pro Woche manuell sichern.
+                    </p>
                 </div>
             </div>
+        </div>
 
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-glass); display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button type="submit" class="btn btn-primary" id="btn-save-announcement">
-                    <i class="ph ph-floppy-disk"></i> Einstellungen speichern
-                </button>
-                <button type="button" class="btn btn-secondary" id="btn-preview-announcement">
-                    <i class="ph ph-eye"></i> Vorschau (Live)
-                </button>
-                <button type="button" class="btn btn-secondary" id="btn-reset-announcement-dismissal" style="margin-left: auto;">
-                    <i class="ph ph-arrow-counter-clockwise"></i> Ausblend-Status für mich zurücksetzen
-                </button>
-            </div>
-        </form>
+        <div class="content-card fade-in" style="margin-top: 2rem; display: flex; justify-content: flex-end; padding: 1.5rem;">
+            <button id="btn-save-system-settings" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                <i class="ph ph-floppy-disk"></i> Alle System-Einstellungen speichern
+            </button>
+        </div>
     </div>
 </div>
 

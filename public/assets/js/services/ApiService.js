@@ -139,8 +139,8 @@ export class ApiService {
             method: 'POST',
             body: JSON.stringify({ id })
         }),
-        getAnnouncement: () => ApiService.request('admin/announcement'),
-        saveAnnouncement: (data) => ApiService.request('admin/announcement', {
+        getSystemSettings: () => ApiService.request('admin/system/settings'),
+        saveSystemSettings: (data) => ApiService.request('admin/system/settings', {
             method: 'POST',
             body: JSON.stringify(data)
         })

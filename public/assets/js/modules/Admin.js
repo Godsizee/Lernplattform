@@ -84,25 +84,25 @@ export class Admin {
             await this.loadContentManager();
 
             await this.loadAuditLogs();
-            await this.loadAnnouncementSettings();
+            await this.loadSystemSettings();
         } catch (error) {
             console.error('Error loading admin data:', error);
             Toast.error('Fehler beim Laden der Admin-Daten.');
         }
     }
 
-    async loadAnnouncementSettings() {
+    async loadSystemSettings() {
         const container = document.getElementById('announcement-editor-container');
         if (!container) return;
 
         try {
-            const announcement = await ApiService.admin.getAnnouncement();
-            
-            // Editor initialisieren
+            const data = await ApiService.admin.getSystemSettings();
+            const { announcement, security } = data;
+
+            // 1. Announcement Banner
             this.announcementEditor = new Editor('announcement-editor-container');
             this.announcementEditor.render(announcement.message || '');
             
-            // Styling für Kompaktheit anpassen
             const editorEl = container.querySelector('.wiki-editor');
             if (editorEl) {
                 editorEl.style.minHeight = '300px';
@@ -112,46 +112,59 @@ export class Admin {
             document.getElementById('announcement-type').value = announcement.type || 'info';
             document.getElementById('announcement-active').checked = !!announcement.is_active;
 
-            this.initAnnouncementEvents();
+            // 2. Security Settings
+            document.getElementById('max-login-attempts').value = security.max_login_attempts || 5;
+            document.getElementById('session-duration').value = security.session_duration_days || 30;
+
+            this.initSystemEvents();
         } catch (error) {
-            console.error('Error loading announcement settings:', error);
+            console.error('Error loading system settings:', error);
         }
     }
 
-    initAnnouncementEvents() {
-        const form = document.getElementById('announcement-form');
-        if (!form || form.dataset.initialized) return;
+    initSystemEvents() {
+        const saveBtn = document.getElementById('btn-save-system-settings');
+        if (!saveBtn || saveBtn.dataset.initialized) return;
 
-        form.dataset.initialized = "true";
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = document.getElementById('btn-save-announcement');
-            const originalContent = btn.innerHTML;
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
+        saveBtn.dataset.initialized = "true";
 
-            const data = {
-                message: this.announcementEditor.getValue(),
-                type: document.getElementById('announcement-type').value,
-                is_active: document.getElementById('announcement-active').checked
+        // Save All Settings
+        saveBtn.addEventListener('click', async () => {
+            const originalContent = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
+
+            const payload = {
+                announcement: {
+                    message: this.announcementEditor.getValue(),
+                    type: document.getElementById('announcement-type').value,
+                    is_active: document.getElementById('announcement-active').checked
+                },
+                security: {
+                    max_login_attempts: parseInt(document.getElementById('max-login-attempts').value),
+                    session_duration_days: parseInt(document.getElementById('session-duration').value)
+                }
             };
 
             try {
-                await ApiService.admin.saveAnnouncement(data);
+                await ApiService.admin.saveSystemSettings(payload);
                 Toast.success('System-Einstellungen wurden erfolgreich gespeichert.');
-                
                 setTimeout(() => window.location.reload(), 1500);
             } catch (error) {
                 Toast.error(error.message || 'Fehler beim Speichern.');
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalContent;
             }
         });
 
-        // Vorschau-Logik
+        // Backup Download
+        document.getElementById('btn-download-backup').addEventListener('click', () => {
+            Toast.info('Backup-Erstellung gestartet. Bitte warten...');
+            window.location.href = window.BASE_URL + '/api/admin/system/backup';
+        });
+
+        // Announcement Vorschau
         document.getElementById('btn-preview-announcement').addEventListener('click', () => {
             const message = this.announcementEditor.getValue();
             const type = document.getElementById('announcement-type').value;
@@ -162,7 +175,6 @@ export class Admin {
                 return;
             }
 
-            // Bestehenden Banner suchen oder erstellen (temporär)
             let banner = document.getElementById('system-banner');
             if (!banner) {
                 banner = document.createElement('div');
@@ -188,9 +200,7 @@ export class Admin {
         // Reset Dismissal
         document.getElementById('btn-reset-announcement-dismissal').addEventListener('click', () => {
             localStorage.removeItem('dismissed_announcement');
-            Toast.success('Ausblend-Status zurückgesetzt. Der Banner erscheint beim nächsten Laden wieder.');
-            
-            // Sofort versuchen anzuzeigen, falls er existiert
+            Toast.success('Ausblend-Status zurückgesetzt.');
             const banner = document.getElementById('system-banner');
             if (banner) banner.style.display = 'flex';
         });

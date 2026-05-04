@@ -250,37 +250,84 @@ class AdminController extends Controller {
     }
 
     /**
-     * Ruft die aktuellen Announcement-Einstellungen ab
+     * Ruft alle Systemeinstellungen ab (Announcement + Security)
      */
-    public function getAnnouncement() {
+    public function getSettings() {
         $settingRepo = $this->container->get('SettingRepository');
+        
         $announcementJson = $settingRepo->get('global_announcement');
         $announcement = $announcementJson ? json_decode($announcementJson, true) : [
             'message' => '',
             'type' => 'info',
             'is_active' => false
         ];
-        return $this->json($announcement);
+
+        $securityJson = $settingRepo->get('security_settings');
+        $security = $securityJson ? json_decode($securityJson, true) : [
+            'max_login_attempts' => 5,
+            'session_duration_days' => 30
+        ];
+
+        return $this->json([
+            'announcement' => $announcement,
+            'security' => $security
+        ]);
     }
 
     /**
-     * Speichert das globale Announcement Banner
+     * Speichert die Systemeinstellungen
      */
-    public function saveAnnouncement() {
+    public function saveSettings() {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
-        $message = trim($input['message'] ?? '');
-        $type = in_array($input['type'] ?? '', ['info', 'warning', 'danger', 'success']) ? $input['type'] : 'info';
-        $isActive = (bool)($input['is_active'] ?? false);
-
         $settingRepo = $this->container->get('SettingRepository');
-        $settingRepo->set('global_announcement', json_encode([
-            'message' => $message,
-            'type' => $type,
-            'is_active' => $isActive
-        ]));
 
-        $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_BROADCAST_UPDATED', "Global Announcement auf '$type' gesetzt (Aktiv: " . ($isActive ? 'Ja' : 'Nein') . ").");
+        if (isset($input['announcement'])) {
+            $a = $input['announcement'];
+            $settingRepo->set('global_announcement', json_encode([
+                'message' => trim($a['message'] ?? ''),
+                'type' => in_array($a['type'] ?? '', ['info', 'warning', 'danger', 'success']) ? $a['type'] : 'info',
+                'is_active' => (bool)($a['is_active'] ?? false)
+            ]));
+        }
 
+        if (isset($input['security'])) {
+            $s = $input['security'];
+            $settingRepo->set('security_settings', json_encode([
+                'max_login_attempts' => max(1, min(20, (int)($s['max_login_attempts'] ?? 5))),
+                'session_duration_days' => max(1, min(365, (int)($s['session_duration_days'] ?? 30)))
+            ]));
+        }
+
+        $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SYSTEM_SETTINGS_UPDATED', "Systemeinstellungen (Banner/Sicherheit) wurden aktualisiert.");
         return $this->json(['success' => true]);
+    }
+
+    /**
+     * Generiert einen SQL-Dump der Datenbank via pg_dump und sendet ihn an den Browser
+     */
+    public function downloadBackup() {
+        $host = getenv('DB_HOST') ?: '127.0.0.1';
+        $port = getenv('DB_PORT') ?: 5432;
+        $db   = getenv('DB_NAME') ?: 'code_and_cash';
+        $user = getenv('DB_USER') ?: 'lern_user';
+        $pass = getenv('DB_PASS') ?: '';
+
+        $filename = "backup_" . date('Y-m-d_H-i-s') . ".sql";
+        
+        // Header für den Download setzen
+        header('Content-Type: application/sql');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        // PGPASSWORD setzen, damit pg_dump nicht interaktiv nach dem Passwort fragt
+        putenv("PGPASSWORD=$pass");
+        
+        // Befehl ausführen
+        $cmd = "pg_dump -h " . escapeshellarg($host) . " -p " . escapeshellarg($port) . " -U " . escapeshellarg($user) . " " . escapeshellarg($db);
+        
+        // Direkte Ausgabe an den Browser
+        passthru($cmd);
+        
+        $this->auditRepo->log($_SESSION['user_id'], 'SYSTEM_BACKUP', "Vollständiges Datenbank-Backup heruntergeladen ($filename).");
+        exit;
     }
 }
