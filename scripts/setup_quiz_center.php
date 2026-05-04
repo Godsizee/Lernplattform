@@ -3,7 +3,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 $db = App\Core\Database::getInstance()->getConnection();
 
 header('Content-Type: text/plain');
@@ -18,8 +18,8 @@ try {
 
     if (!$subjectId) {
         // Fach anlegen
-        $stmt = $db->prepare("INSERT INTO subjects (title, color, description) VALUES (?, ?, ?)");
-        $stmt->execute(['SAP Academy Quiz Center', '#3b82f6', 'Alle interaktiven Quizze aus den SAP Academy Unterlagen gesammelt an einem Ort.']);
+        $stmt = $db->prepare("INSERT INTO subjects (title, color, icon) VALUES (?, ?, ?)");
+        $stmt->execute(['SAP Academy Quiz Center', '#3b82f6', 'ph-brain']);
         $subjectId = $db->lastInsertId();
         echo "Neues Fach 'SAP Academy Quiz Center' angelegt (ID: $subjectId)\n";
     } else {
