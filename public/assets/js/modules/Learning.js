@@ -5,6 +5,7 @@ import { escapeHTML } from '../utils/Helpers.js';
 import { Toast } from '../helpers/Toast.js';
 import { Modal } from '../helpers/Modal.js';
 import { Skeleton } from '../helpers/Skeleton.js';
+import { QuizEngine } from './QuizEngine.js';
 
 export class Learning {
     constructor() {
@@ -212,7 +213,13 @@ export class Learning {
 
     renderLesson(container, lesson, isCompleted) {
         const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
-        const contentHtml = lesson.content_raw ? this.parser.parse(lesson.content_raw) : lesson.content;
+        let contentHtml = '';
+        if (lesson.type === 'quiz') {
+            contentHtml = '<div id="quiz-container-inner"></div>';
+        } else {
+            contentHtml = lesson.content_raw ? this.parser.parse(lesson.content_raw) : lesson.content;
+        }
+        
         const btnContentHtml = `<i class="ph ${isCompleted ? 'ph-arrow-counter-clockwise' : 'ph-check'}"></i> ${isCompleted ? 'Als ungelesen markieren' : 'Abschließen'}`;
         
         const nextLesson = this.getNextLesson(lesson.id);
@@ -292,6 +299,25 @@ export class Learning {
         const deleteBtn = container.querySelector('.delete-article-btn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => this.deleteArticle(lesson.id, lesson.title));
+        }
+
+        // Initialize QuizEngine if applicable
+        if (lesson.type === 'quiz' && lesson.content_raw) {
+            try {
+                const quizData = JSON.parse(lesson.content_raw);
+                const quizContainer = container.querySelector('#quiz-container-inner');
+                new QuizEngine(quizContainer, quizData, {
+                    lessonId: lesson.id,
+                    onComplete: (passed) => {
+                        if (passed && !isCompleted) {
+                            // User still has to manually complete it, but we could trigger it automatically if we wanted.
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Error parsing quiz data", e);
+                container.querySelector('#quiz-container-inner').innerHTML = "Fehler beim Laden des Quiz.";
+            }
         }
 
         // UX: Scroll-Indikator initialisieren

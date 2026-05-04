@@ -38,7 +38,7 @@ class LessonRepository {
     public function getLessonsWithProgress(int $userId, ?int $subjectId = null, bool $isAdmin = false, bool $includeContent = true): array {
         $contentFields = $includeContent ? ", l.content, l.content_raw" : "";
         $sql = "
-            SELECT l.id, l.subject_id, l.author_id, l.title $contentFields,
+            SELECT l.id, l.subject_id, l.author_id, l.title, l.type $contentFields,
                    l.status as article_status, l.created_at, l.updated_at,
                    s.title as subject_title, s.color as subject_color,
                    up.status,
@@ -98,25 +98,26 @@ class LessonRepository {
         return $stmt->fetchColumn() ?: 'Unbekannte Lektion';
     }
 
-    public function createArticle(int $authorId, int $subjectId, string $title, string $contentRaw, string $status): int {
+    public function createArticle(int $authorId, int $subjectId, string $title, string $contentRaw, string $status, string $type = 'article'): int {
         $stmt = $this->db->prepare("
-            INSERT INTO lessons (subject_id, author_id, title, content, content_raw, status)
-            VALUES (:s_id, :a_id, :title, '', :content_raw, :status)
+            INSERT INTO lessons (subject_id, author_id, title, type, content, content_raw, status)
+            VALUES (:s_id, :a_id, :title, :type, '', :content_raw, :status)
             RETURNING id
         ");
         $stmt->execute([
             ':s_id' => $subjectId,
             ':a_id' => $authorId,
             ':title' => $title,
+            ':type' => $type,
             ':content_raw' => $contentRaw,
             ':status' => $status
         ]);
         return (int) $stmt->fetchColumn();
     }
 
-    public function updateArticle(int $id, int $userId, string $title, string $contentRaw, string $status, bool $isAdmin): bool {
-        $sql = "UPDATE lessons SET title = :title, content_raw = :content_raw, content = '', status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
-        $params = [':title' => $title, ':content_raw' => $contentRaw, ':status' => $status, ':id' => $id];
+    public function updateArticle(int $id, int $userId, string $title, string $contentRaw, string $status, bool $isAdmin, string $type = 'article'): bool {
+        $sql = "UPDATE lessons SET title = :title, type = :type, content_raw = :content_raw, content = '', status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        $params = [':title' => $title, ':type' => $type, ':content_raw' => $contentRaw, ':status' => $status, ':id' => $id];
 
         if (!$isAdmin) {
             $sql .= " AND author_id = :author_id";
@@ -158,7 +159,7 @@ class LessonRepository {
 
     public function searchLessons(string $query, int $userId, bool $isAdmin = false): array {
         $sql = "
-            SELECT l.id, l.title, l.status, l.subject_id, s.title as subject_title, s.color as subject_color
+            SELECT l.id, l.title, l.type, l.status, l.subject_id, s.title as subject_title, s.color as subject_color
             FROM lessons l
             JOIN subjects s ON l.subject_id = s.id
             WHERE (l.title ILIKE :query OR l.content_raw ILIKE :query OR l.content ILIKE :query)
@@ -261,7 +262,7 @@ class LessonRepository {
 
     public function getAllLessonsForAdmin(): array {
         $stmt = $this->db->query("
-            SELECT l.id, l.title, l.status, l.subject_id, l.sort_order,
+            SELECT l.id, l.title, l.type, l.status, l.subject_id, l.sort_order,
                    s.title as subject_title, s.color as subject_color,
                    u.name as author_name, l.created_at
             FROM lessons l
@@ -284,8 +285,8 @@ class LessonRepository {
 
     public function cloneLesson(int $lessonId, int $authorId): int {
         $stmt = $this->db->prepare("
-            INSERT INTO lessons (subject_id, author_id, title, content, content_raw, status, sort_order)
-            SELECT subject_id, :author_id, CONCAT('Kopie von ', title), content, content_raw, 'draft', sort_order + 1
+            INSERT INTO lessons (subject_id, author_id, title, type, content, content_raw, status, sort_order)
+            SELECT subject_id, :author_id, CONCAT('Kopie von ', title), type, content, content_raw, 'draft', sort_order + 1
             FROM lessons WHERE id = :id
             RETURNING id
         ");

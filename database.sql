@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS lessons (
     subject_id INT NOT NULL,
     author_id INT DEFAULT NULL,
     title VARCHAR(255) NOT NULL,
+    type VARCHAR(20) DEFAULT 'article' CHECK (type IN ('article', 'quiz')),
     content TEXT NOT NULL DEFAULT '',
     content_raw TEXT DEFAULT '',
     status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('draft', 'published')),

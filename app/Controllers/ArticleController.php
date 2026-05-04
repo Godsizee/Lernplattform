@@ -24,6 +24,7 @@ class ArticleController extends Controller {
 
         $subjectId = filter_var($input['subject_id'] ?? 0, FILTER_VALIDATE_INT);
         $title = trim($input['title'] ?? '');
+        $type = in_array($input['type'] ?? '', ['article', 'quiz']) ? $input['type'] : 'article';
         $contentRaw = trim($input['content_raw'] ?? '');
         $status = in_array($input['status'] ?? '', ['draft', 'published']) ? $input['status'] : 'draft';
 
@@ -31,7 +32,7 @@ class ArticleController extends Controller {
             return $this->json(['error' => 'Bitte alle Felder ausfüllen.'], 400);
         }
 
-        $articleId = $this->lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status);
+        $articleId = $this->lessonRepo->createArticle($userId, $subjectId, $title, $contentRaw, $status, $type);
         
         $statusLabel = $status === 'draft' ? 'als Entwurf ' : '';
         $this->auditRepo->log($userId, 'ARTICLE_CREATE', "Hat den Beitrag '{$title}' {$statusLabel}erstellt. {{article:{$articleId}}}");
@@ -50,6 +51,7 @@ class ArticleController extends Controller {
         // Priorisiere ID aus URL (REST), Fallback auf Body (Legacy)
         $articleId = $articleId ?? filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
         $title = trim($input['title'] ?? '');
+        $type = in_array($input['type'] ?? '', ['article', 'quiz']) ? $input['type'] : 'article';
         $contentRaw = trim($input['content_raw'] ?? '');
         $status = in_array($input['status'] ?? '', ['draft', 'published']) ? $input['status'] : 'draft';
 
@@ -58,7 +60,7 @@ class ArticleController extends Controller {
             return $this->json(['error' => 'Nicht autorisiert oder nicht gefunden.'], 403);
         }
 
-        $success = $this->lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin);
+        $success = $this->lessonRepo->updateArticle($articleId, $userId, $title, $contentRaw, $status, $isAdmin, $type);
         $this->auditRepo->log($userId, 'ARTICLE_UPDATE', "Hat den Beitrag '{$title}' bearbeitet. {{article:{$articleId}}}");
 
         return $this->json(['success' => $success]);

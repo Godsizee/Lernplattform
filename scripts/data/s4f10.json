@@ -1,0 +1,747 @@
+{
+    "id": "S4F10",
+    "headline": "S4F10: Geschäftsprozesse in der SAP Finanzbuchhaltung",
+    "description": "Dieser Kurs vermittelt dir die grundlegenden Geschäftsprozesse der SAP Finanzbuchhaltung (FI) im S/4HANA-Umfeld. Du lernst die Architektur des Universal Journals kennen und verstehst die Integration von Hauptbuch, Kreditoren und Debitoren.",
+    "chapters": [
+        {
+            "id": "kapitel-1",
+            "title": "Kapitel 1: Das Universal Journal",
+            "lessons": [
+                {
+                    "id": "l1-1",
+                    "title": "Single Source of Truth (Tabelle ACDOCA)",
+                    "content": "<div class=\"takeaway-box\"><strong>💡 Revolution in S/4HANA</strong><p>Früher waren FI (Finanzwesen) und CO (Controlling) getrennt. Heute fließen alle Daten in eine einzige Tabelle: die ACDOCA.</p></div><p>Das Universal Journal ist das Herzstück von SAP S/4HANA Finance. Es vereint alle relevanten Komponenten (Hauptbuchbuchhaltung, Anlagenbuchhaltung, Controlling, Material-Ledger) in einem einzigen Beleg. Dies beseitigt die Notwendigkeit von Abstimmungsarbeiten zwischen FI und CO am Monatsende.</p><ul><li>Schnellere Periodenabschlüsse (Continuous Accounting)</li><li>Echtzeit-Reporting ohne Datenreplikation</li><li>Reduzierter Speicherbedarf durch Wegfall von Aggregat- und Indextabellen</li></ul>"
+                },
+                {
+                    "id": "l1-2",
+                    "title": "Der Buchungsbeleg",
+                    "content": "<p>Jeder Geschäftsvorfall in SAP wird durch einen Beleg dokumentiert. Ein SAP-Buchungsbeleg besteht immer aus zwei Teilen:</p><div class=\"platform-grid\"><div class=\"platform-card\"><h5>1. Belegkopf (Tabelle BKPF)</h5><p>Enthält allgemeine Informationen, die für den gesamten Beleg gelten, wie Belegdatum, Buchungsdatum und Belegart.</p></div><div class=\"platform-card\"><h5>2. Belegpositionen (Tabelle BSEG/ACDOCA)</h5><p>Enthält die spezifischen Zeilen des Belegs (Soll und Haben), Beträge, Kontonummern und Zusatzkontierungen (wie Kostenstellen).</p></div></div>"
+                }
+            ]
+        },
+        {
+            "id": "kapitel-2",
+            "title": "Kapitel 2: Stammdaten im Finanzwesen",
+            "lessons": [
+                {
+                    "id": "l2-1",
+                    "title": "Der Business Partner (Geschäftspartner)",
+                    "content": "<p>In S/4HANA gibt es die klassischen Transaktionen für Debitoren (Kunden) und Kreditoren (Lieferanten) wie FK01 oder FD01 nicht mehr. Alles läuft zentral über die Transaktion <strong>BP (Business Partner)</strong>.</p><p>Ein Geschäftspartner wird zentral angelegt und erhält dann verschiedene <em>Rollen</em>. Beispielsweise kann ein Unternehmen gleichzeitig die Rolle 'Debitor' (wir verkaufen an sie) und 'Kreditor' (wir kaufen von ihnen) haben. Die grundlegenden Adressdaten müssen so nur ein einziges Mal gepflegt werden.</p>"
+                },
+                {
+                    "id": "l2-2",
+                    "title": "Das Sachkonto",
+                    "content": "<p>Das Hauptbuch (General Ledger) ist nach dem Kontenplan gegliedert. Jedes Sachkonto hat in S/4HANA nun auch eine Kontoart. Die wichtigsten sind:</p><ul><li><strong>Bilanzkonten:</strong> Für Vermögenswerte und Schulden (z.B. Bank, Verbindlichkeiten).</li><li><strong>Nichtbetriebliche Aufwendungen/Erträge:</strong> Aufwands- oder Ertragskonten, die nicht ins Controlling fließen.</li><li><strong>Primärkosten/-erlöse:</strong> Aufwendungen/Erträge, die direkt mit einer CO-Kontierung (z.B. Kostenstelle) gebucht werden müssen.</li></ul>"
+                }
+            ]
+        }
+    ],
+    "quiz": [
+        {
+            "chapter": "Kapitel 1",
+            "question": "Wie können Sie SAP S/4HANA so einrichten, dass Sie alle Softwareaktualisierungen automatisch erhalten?",
+            "type": "radio",
+            "options": {
+                "A": "On-Premise",
+                "B": "Cloud",
+                "C": "Central Finance",
+                "D": "Virtuell"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Welche Faktoren sollten Sie bei der Entscheidung, welche SAP-S/4HANA-Implementierungsoption für Ihr Unternehmen am besten geeignet ist, berücksichtigen? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Geschäftsfunktionen, gesetzliche und regionale Anforderungen",
+                "B": "Ausschließlich die Vorlieben der IT-Abteilung",
+                "C": "IT-Strategie und Innovationszyklen",
+                "D": "Implementierungszeiten",
+                "E": "Anzahl der verwendeten SAP-GUI-Themes"
+            },
+            "correct": ["A", "C", "D"],
+            "link": "/module?id=s4f10#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Welche verschiedenen Typen von SAP-Fiori-Apps können verwendet werden? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Transaktionale Apps",
+                "B": "Analytische Apps",
+                "C": "Administrative Background-Apps",
+                "D": "Infoblätter (Factsheets)"
+            },
+            "correct": ["A", "B", "D"],
+            "link": "/module?id=s4f10#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Auf dem SAP Fiori Launchpad können Benutzer Personalisierungsoptionen auswählen. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10#l1-1"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Nennen Sie mindestens drei Komponenten der Finanzbuchhaltung in SAP S/4HANA. (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "FI-GL (Hauptbuchhaltung)",
+                "B": "FI-AP (Kreditorenbuchhaltung)",
+                "C": "FI-AR (Debitorenbuchhaltung)",
+                "D": "FI-AA (Anlagenbuchhaltung)",
+                "E": "FI-BL (Bankbuchhaltung)",
+                "F": "CO-OM (Gemeinkostencontrolling)",
+                "G": "MM-PUR (Einkauf)"
+            },
+            "correct": ["A", "B", "C", "D", "E"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "In Nebenbüchern wie Kreditorenbuchhaltung und Debitorenbuchhaltung vorgenommene Buchungen werden gleichzeitig im Hauptbuch aufgezeichnet. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Wie wird in SAP ein Unternehmen (selbständig bilanzierende Einheit) abgebildet?",
+            "type": "radio",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Kostenrechnungskreis",
+                "C": "Mandant",
+                "D": "Geschäftsbereich"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Einem Kostenrechnungskreis können mehrere Buchungskreise zugeordnet werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welcher Kontenplan muss einem Buchungskreis zugeordnet werden, damit Buchungen vorgenommen werden können?",
+            "type": "radio",
+            "options": {
+                "A": "Gruppe",
+                "B": "Land",
+                "C": "Operativ",
+                "D": "Keine der genannten Möglichkeiten",
+                "E": "Alle genannten Möglichkeiten"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welches sind die zwei Bestandteile eines Sachkontos?",
+            "type": "checkbox",
+            "options": {
+                "A": "Kontenplansegment",
+                "B": "Buchungskreissegment",
+                "C": "Einkaufsorganisationssegment",
+                "D": "Vertriebsbereichssegment"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Was ist einem Nummernbereich zugeordnet und steuert, wie das Buchungskreissegment eines Sachkontos auf einem Bildschirmbild dargestellt wird?",
+            "type": "radio",
+            "options": {
+                "A": "Kontengruppe",
+                "B": "Feldstatusvariante",
+                "C": "Kontoart",
+                "D": "Belegart"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Abstimmkonten können direkt bebucht werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Was bestimmt den Aufbau einer Bilanz und einer Gewinn- und Verlustrechnung und gibt an, welche Konten welcher Position im Bericht entsprechen?",
+            "type": "radio",
+            "options": {
+                "A": "Bilanz/GuV-Struktur",
+                "B": "Kontenplan",
+                "C": "Kostenrechnungskreis",
+                "D": "Sachkontenstammsatz"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Aus welchen zwei Bestandteilen setzt sich ein Beleg zusammen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Belegkopf",
+                "B": "Belegpositionen",
+                "C": "Beleganhang",
+                "D": "Belegsaldo"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Für Buchungen auf Sachkonten stehen zwei Buchungsschlüssel zur Verfügung: einer für Sollbuchungen und einer für Habenbuchungen. Welche?",
+            "type": "radio",
+            "options": {
+                "A": "Soll: 40, Haben: 50",
+                "B": "Soll: 01, Haben: 15",
+                "C": "Soll: 21, Haben: 31",
+                "D": "Soll: 70, Haben: 75"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Mit einem Buchungsschlüssel kann nur auf eine Kontoart gebucht werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Bei der Buchung eines Belegs wird diesem Beleg eine Nummer zugeordnet. Diese Nummer liegt innerhalb eines Nummernkreises. Welchem Bestandteil im Kopf des Belegs ist dieser zugeordnet?",
+            "type": "radio",
+            "options": {
+                "A": "Belegart",
+                "B": "Buchungsdatum",
+                "C": "Buchungskreis",
+                "D": "Währung"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche Stammsatzeinstellungen müssen für ein Aufwandskonto, das im Rahmen einer FI-Transaktion bebucht wird, vorhanden sein, damit Informationen an das Modul Controlling übergeben werden können?",
+            "type": "radio",
+            "options": {
+                "A": "Sachkontoart = Primärkosten oder Erlöse und Einstellungen zum Kostenartentyp",
+                "B": "Sachkontoart = Bilanzkonto und Abstimmkonto-Kennzeichen",
+                "C": "Sachkontoart = Sekundärkosten und Kostenstellen-Zuordnung"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Wenn eine Transaktion im FI gebucht wird, wird sie automatisch im Bereich AKTIVA/PASSIVA oder GEWINN & VERLUST in der Bilanz/GuV angezeigt. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Jeder Geschäftspartner muss beim Anlegen einer Gruppierung zugeordnet werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Kreditorenkonten bestehen aus zwei Segmenten. Welche?",
+            "type": "checkbox",
+            "options": {
+                "A": "Allgemeine Daten (Mandantenebene)",
+                "B": "Buchungskreisdaten",
+                "C": "Vertriebsbereichsdaten",
+                "D": "Werksdaten"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "In welchem Segment des Kreditorenstammsatzes befindet sich das Abstimmkonto?",
+            "type": "radio",
+            "options": {
+                "A": "Im Buchungskreissegment",
+                "B": "In den allgemeinen Daten",
+                "C": "Im Einkaufsorganisationssegment",
+                "D": "Im Zahlungssegment"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Wenn Sie in SAP S/4HANA Kreditorenbuchungen ausführen, wird ein Informationsbereich zum Kreditor angezeigt. Wozu können Sie diese Information verwenden? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Den Kreditorenstammsatz vor der Ausführung einer Buchung anzeigen und ändern",
+                "B": "Direkt die offenen Posten auf dem Kreditorenkonto aufrufen",
+                "C": "Materialstammdaten des Lieferanten anlegen",
+                "D": "Eine automatische Zahlung veranlassen"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche Sachkontoart wird verwendet, um von FI auf Kostenobjekte im CO zu buchen?",
+            "type": "radio",
+            "options": {
+                "A": "Primärkosten oder Erlöse",
+                "B": "Bilanzkonten",
+                "C": "Sekundärkosten",
+                "D": "Nichtbetriebliche Aufwendungen/Erträge"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Für regelmäßig ausgeführte Buchungen kann welches Programm verwendet werden, um die notwendigen Belege zu erzeugen?",
+            "type": "radio",
+            "options": {
+                "A": "Dauerbuchungsprogramm",
+                "B": "Zahlprogramm",
+                "C": "Mahnprogramm",
+                "D": "Kassenbuch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Was wird durch die Parameter für das Zahlprogramm genau definiert?",
+            "type": "radio",
+            "options": {
+                "A": "Nur Buchungskreise",
+                "B": "Nur Lieferanten und Belege",
+                "C": "Buchungskreise, Kreditoren und Belege"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Wenn die Erstellung des Zahlungsvorschlags abgeschlossen ist, können keine Änderungen an den Zahlungsvorschlägen von SAP S/4HANA vorgenommen werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Aus welchen drei Teilen besteht ein Geschäftspartnerstammsatz, der als Kreditor (FI) und Lieferant (MM) verwendet wird?",
+            "type": "checkbox",
+            "options": {
+                "A": "Allgemeine Daten",
+                "B": "Daten zum Buchungskreis",
+                "C": "Daten zur Einkaufsorganisation",
+                "D": "Daten zum Werk",
+                "E": "Daten zum Vertriebsbereich"
+            },
+            "correct": ["A", "B", "C"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche beiden wichtigen Organisationselemente gehören zur Materialwirtschaft?",
+            "type": "checkbox",
+            "options": {
+                "A": "Werk",
+                "B": "Einkaufsorganisation",
+                "C": "Buchungskreis",
+                "D": "Verkaufsorganisation"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Beim Anlegen einer Bestellung wird gleichzeitig ein Finanzbuchhaltungsbeleg generiert. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "In SAP S/4HANA können Korrekturen in Sonderperioden (z.B. Periode 13-16) für Jahresabschlusskorrekturen gebucht werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Wenn sich der Umrechnungskurs seit der Buchung einer Kreditorenrechnung zu Ihren Gunsten geändert hat, werden die folgenden Soll- und Habentransaktionen vom Programm zur Fremdwährungsbewertung erstellt:",
+            "type": "radio",
+            "options": {
+                "A": "Soll: Bilanzkorrekturkonto; Haben: Ertrag aus Fremdwährungsbewertung",
+                "B": "Soll: Ertrag aus Fremdwährungsbewertung; Haben: Bilanzkorrekturkonto",
+                "C": "Soll: Kreditorenkonto; Haben: Aufwand aus Fremdwährungsbewertung",
+                "D": "Soll: Bankkonto; Haben: Bilanzkorrekturkonto"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Das Programm zur Umgliederung von Verbindlichkeiten kann für drei Zwecke eingesetzt werden. Welche?",
+            "type": "checkbox",
+            "options": {
+                "A": "Umgliederung von Verbindlichkeiten gemäß ihren Restlaufzeiten",
+                "B": "Umgliederung von debitorischen Kreditoren",
+                "C": "Umgliederung von Kreditoren, deren Abstimmkonto sich geändert hat",
+                "D": "Umgliederung von Anlagegütern in das Umlaufvermögen",
+                "E": "Umgliederung von Fremdwährungen in Hauswährung"
+            },
+            "correct": ["A", "B", "C"],
+            "link": "/module?id=s4f10"
+        },
+                {
+            "chapter": "Kapitel 5",
+            "question": "Der Bereich für die allgemeinen Daten des Geschäftspartnerstammsatzes muss für jeden Buchungskreis, der Geschäfte mit diesem Debitor tätigt, separat angelegt werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wodurch wird die Buchung für einen Debitor mit dem Hauptbuch verknüpft?",
+            "type": "radio",
+            "options": {
+                "A": "Abstimmkonto",
+                "B": "Belegart",
+                "C": "Buchungsschlüssel",
+                "D": "Kontengruppe"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wenn eine Teilzahlung für einen Zahlungseingang mit der Methode \"Teilzahlung\" verarbeitet wird, wird die Rechnung beglichen und ein neuer offener Posten in Höhe der Zahlungsdifferenz angelegt. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Verschiedene Ausgangsrechnungen, die nicht zu einem Kundenauftrag gehören, können nur über herkömmliche SAP-GUI-Transaktionen in der Komponente für die Debitorenbuchhaltung erfasst werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wie kann eingesehen werden, ob ein Debitor gemahnt wurde? Wählen Sie die richtige Antwort.",
+            "type": "radio",
+            "options": {
+                "A": "Sie sehen im Korrespondenzbereich des Debitorenstammsatzes nach.",
+                "B": "Sie prüfen die Einzelpostendetails im Debitorenkonto.",
+                "C": "Sowohl A als auch B.",
+                "D": "Keine der genannten Möglichkeiten."
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Mit der transaktionalen App \"Klärungsfälle bearbeiten\" können Sie Folgendes tun: (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Klärungsfälle anhand verschiedener Kriterien suchen und filtern.",
+                "B": "Die Details eines Klärungsfalls anzeigen, wie z.B. Textnotizen und verknüpfte Rechnungen.",
+                "C": "Klärungsfallattribute bearbeiten, wie z.B. den Bearbeiter.",
+                "D": "Textnotizen zu einem Klärungsfall hinzufügen.",
+                "E": "Dateianhänge zu einem Klärungsfall hinzufügen."
+            },
+            "correct": ["A", "B", "C", "D", "E"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wie lauten die drei Elemente, die zusammen einen Vertriebsbereich ergeben?",
+            "type": "checkbox",
+            "options": {
+                "A": "Verkaufsorganisation",
+                "B": "Vertriebsweg",
+                "C": "Sparte",
+                "D": "Werk",
+                "E": "Buchungskreis"
+            },
+            "correct": ["A", "B", "C"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wenn eine Lieferung angelegt wird, werden automatisch Buchhaltungsvorgänge generiert. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wenn die Faktura in der Kundenauftragsbearbeitung angelegt wird, wird automatisch ein Buchhaltungsbeleg generiert, der das Konto des Kunden belastet und den Erlös bucht. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welcher Schlüssel muss in den Stammsatz eines Debitors eingetragen werden, damit dieser Debitor in das Bewertungsprogramm für überfällige Forderungen einbezogen werden kann?",
+            "type": "radio",
+            "options": {
+                "A": "Wertberichtigungsschlüssel",
+                "B": "Mahnschlüssel",
+                "C": "Zahlungsbedingungsschlüssel",
+                "D": "Feldstatusgruppe"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Das Wertberichtigungsprogramm führt eine Buchung durch, die zu Beginn des nächsten Monats storniert wird. Welche Konten werden mit der Buchung be- und entlastet?",
+            "type": "radio",
+            "options": {
+                "A": "Soll: Einzelwertberichtigung; Haben: Wertberichtigung Forderungen",
+                "B": "Soll: Wertberichtigung Forderungen; Haben: Einzelwertberichtigung",
+                "C": "Soll: Debitorenkonto; Haben: Abstimmkonto",
+                "D": "Soll: Bankkonto; Haben: Wertberichtigung Forderungen"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Wie wird beim Anlegen eines Anlagenstammsatzes die Anlagennummer zugeordnet?",
+            "type": "radio",
+            "options": {
+                "A": "Die Anlagennummer wird über die Anlagenklasse zugeordnet.",
+                "B": "Die Anlagennummer wird manuell vergeben.",
+                "C": "Die Anlagennummer wird über den Buchungskreis zugeordnet.",
+                "D": "Die Anlagennummer wird über das Sachkonto abgeleitet."
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Wozu dient der Kontenfindungsschlüssel für die Anlage?",
+            "type": "radio",
+            "options": {
+                "A": "Er verbindet die Anlage mit dem Sachkonto (Abstimmkonto).",
+                "B": "Er berechnet die monatliche Abschreibung.",
+                "C": "Er definiert die voraussichtliche Nutzungsdauer.",
+                "D": "Er verknüpft die Anlage zwingend mit einer Kostenstelle."
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Jede Anlage gehört einem Buchungskreis an. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Eine Bewegungsart gibt an, an welcher Stelle im Anlagengitter die Buchung aufgeführt wird. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welche Methoden stehen für das Buchen von Zugängen in der Anlagenbuchhaltung zur Verfügung? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Ein Anlagenzugang aus einem Kauf gegen Kreditor.",
+                "B": "Ein Anlagenkauf mit automatischer Gegenbuchung.",
+                "C": "Abrechnung ausschließlich über das Kassenbuch.",
+                "D": "Automatische Buchung bei der Warenausgabe im Vertrieb."
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Wozu dient der Asset Explorer?",
+            "type": "radio",
+            "options": {
+                "A": "Er bietet eine Übersicht über die Aktivitäten für eine Anlage nach Bewertungsbereich und Geschäftsjahr (Planwerte, gebuchte Bewegungen, Abschreibungen etc.).",
+                "B": "Er dient ausschließlich zur Anlage und Löschung neuer Buchungskreise in der Anlagenbuchhaltung.",
+                "C": "Er ist ein Tool zur Verwaltung von Mitarbeiterzugriffen auf Anlagegüter.",
+                "D": "Er berechnet automatisch den Verkaufspreis einer Anlage für den externen Markt."
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welche Art von Informationen liefert das Anlagengitter?",
+            "type": "radio",
+            "options": {
+                "A": "Ausschließlich geplante Wartungsintervalle von Maschinen.",
+                "B": "Eine umfassende Übersicht für den Abschluss (Buchwerte zu Beginn/Ende des Jahres, Zugänge, Abgänge, Abschreibungen).",
+                "C": "Eine Liste aller Debitoren und deren offener Posten.",
+                "D": "Echtzeitdaten zu Mitarbeiterstunden, die an Maschinen gearbeitet wurden."
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 7",
+            "question": "Alle Hausbankkonten werden in SAP durch Sachkonten dargestellt. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 7",
+            "question": "Bevor die Details einer Bank in einem Geschäftspartner-Stammsatz erfasst werden können, muss diese Bank in das Bankenverzeichnis aufgenommen werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 7",
+            "question": "Wenn Sie einen Geschäftsvorfall auf der Registerkarte \"Ausgaben bar\" des Kassenbuchs erfassen, wird das Handkassenkonto automatisch im Soll bebucht. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 8",
+            "question": "Mit dem Financial Closing Cockpit können Sie Ihre Abschlussarbeiten auf verschiedenen Organisationsebenen organisieren. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 8",
+            "question": "Erlöse und Kosten, die in einer bestimmten Buchungsperiode gebucht wurden, stammen oft aus einer anderen Periode und müssen abgegrenzt werden. Was bedeutet das?",
+            "type": "radio",
+            "options": {
+                "A": "Sie müssen sofort in voller Höhe storniert werden.",
+                "B": "Sie dürfen erst im Folgejahr gebucht werden.",
+                "C": "Sie müssen über die Perioden verteilt werden, in denen sie entstehen.",
+                "D": "Sie werden auf ein Sperrkonto überwiesen, bis das Geschäftsjahr endet."
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4f10"
+        },
+        {
+            "chapter": "Kapitel 8",
+            "question": "Auf welches Konto überträgt das Programm zur WE/RE-Umgliederung den Saldo, wenn es im WE/RE-Konto beim Abschluss der Bücher einen Habensaldo für eine Einkaufstransaktion gibt?",
+            "type": "radio",
+            "options": {
+                "A": "Gelieferte, aber nicht berechnete Waren",
+                "B": "Berechnete, aber nicht gelieferte Waren",
+                "C": "Skontoerträge",
+                "D": "Rückstellungen für drohende Verluste"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4f10"
+        }
+    ]
+}

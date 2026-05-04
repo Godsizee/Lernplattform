@@ -1,0 +1,1688 @@
+{
+    "id": "S4550",
+    "headline": "S4550: SAP Customizing (Materialwirtschaft & Einkauf)",
+    "description": "Erlerne die Grundlagen des SAP Customizings. Dieser Kurs führt dich durch den SAP Referenz-IMG (Einführungsleitfaden) und zeigt dir, wie du Unternehmensstrukturen und Prozesse im Einkauf (MM) konfigurierst.",
+    "chapters": [
+        {
+            "id": "kapitel-1",
+            "title": "Kapitel 1: Die Unternehmensstruktur",
+            "lessons": [
+                {
+                    "id": "l1-1",
+                    "title": "Grundlagen und Transaktion SPRO",
+                    "content": "<div class=\"takeaway-box\"><strong>💡 Customizing vs. Entwicklung</strong><p>Customizing bedeutet, das System durch Parameter einzustellen (ohne Programmierung von ABAP-Code). Die zentrale Transaktion dafür ist <strong>SPRO</strong>.</p></div><p>Das Customizing einer Unternehmensstruktur erfolgt in SAP immer in zwei strikt getrennten Schritten:</p><div class=\"platform-grid\"><div class=\"platform-card\"><h5>1. Definition</h5><p>Die physische Anlage einer Organisationseinheit (z. B. das Anlegen des Werks '1000' mit Name und Adresse).</p></div><div class=\"platform-card\"><h5>2. Zuordnung</h5><p>Die logische Verknüpfung der Einheiten in der Hierarchie (z. B. das definierte Werk '1000' wird dem Buchungskreis '1000' zugeordnet).</p></div></div>"
+                },
+                {
+                    "id": "l1-2",
+                    "title": "Einkaufsorganisation und Lagerorte",
+                    "content": "<p>In der Materialwirtschaft (MM) spielen Einkaufsorganisationen eine zentrale Rolle bei der Beschaffung. Sie verhandeln rechtlich bindende Konditionen mit Lieferanten.</p><ul><li><strong>Werksspezifischer Einkauf:</strong> Eine Einkaufsorganisation ist genau einem Werk zugeordnet.</li><li><strong>Werksübergreifender Einkauf:</strong> Eine Einkaufsorganisation beschafft für mehrere Werke innerhalb eines Buchungskreises.</li><li><strong>Konzernweiter Einkauf:</strong> Eine Einkaufsorganisation ist nicht an einen spezifischen Buchungskreis gebunden.</li></ul><p><strong>Lagerorte</strong> werden immer direkt unterhalb eines spezifischen Werkes definiert und spiegeln die physischen Aufbewahrungsorte wider.</p>"
+                }
+            ]
+        },
+        {
+            "id": "kapitel-2",
+            "title": "Kapitel 2: Stammdaten und Prozesse",
+            "lessons": [
+                {
+                    "id": "l2-1",
+                    "title": "Steuerung durch Materialarten",
+                    "content": "<p>Jedes Material in SAP muss beim Anlegen einer <strong>Materialart</strong> zugeordnet werden. Diese Materialart steuert maßgeblich das Verhalten des Materials im System (z. B. die Nummernvergabe, die erlaubte Beschaffungsart und welche Fachbereiche Daten pflegen müssen).</p><p>Die häufigsten Standard-Materialarten sind:</p><ul><li><strong>ROH (Rohstoffe):</strong> Werden extern beschafft, gehen in die Fertigung ein und haben typischerweise keine Vertriebssicht.</li><li><strong>HALB (Halbfabrikate):</strong> Können extern beschafft oder im Haus gefertigt werden.</li><li><strong>FERT (Fertigerzeugnisse):</strong> Werden im eigenen Haus produziert und an Kunden verkauft.</li><li><strong>HAWA (Handelswaren):</strong> Werden eingekauft und ohne weitere Verarbeitung direkt weiterverkauft.</li></ul>"
+                }
+            ]
+        }
+    ],
+    "quiz": [
+        {
+            "chapter": "Kapitel 1",
+            "question": "Welche der folgenden Optionen können Sie in SAP S/4HANA für ein Land festlegen? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Datumsformat",
+                "B": "Zeitzone",
+                "C": "Länge der Postleitzahl",
+                "D": "Länge der Lieferantennamen"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Auf welcher Organisationsebene werden Länder definiert?",
+            "type": "radio",
+            "options": {
+                "A": "Mandant",
+                "B": "Werk",
+                "C": "Einkaufsorganisation",
+                "D": "Buchungskreis"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Welcher Kurstyp wird üblicherweise in der Materialwirtschaft verwendet?",
+            "type": "radio",
+            "options": {
+                "A": "EUR",
+                "B": "EURX",
+                "C": "M",
+                "D": "0001"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Auf welcher Organisationsebene werden Umrechnungskurse gepflegt?",
+            "type": "radio",
+            "options": {
+                "A": "Werk",
+                "B": "Einkaufsorganisation",
+                "C": "Buchungskreis",
+                "D": "Mandant"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Maßeinheiten, die dieselbe Größe messen und daher ineinander umgerechnet werden können, sind denselben _________ zugeordnet.",
+            "type": "radio",
+            "options": {
+                "A": "Einheitengruppen",
+                "B": "Dimensionen",
+                "C": "Messwertgruppen",
+                "D": "ISO-Codes"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Was ist eine Voraussetzung für die Verwendung von Maßeinheiten in einem EDI-Prozess (Electronic Data Interface)?",
+            "type": "radio",
+            "options": {
+                "A": "SI-Einheit",
+                "B": "ISO-Code",
+                "C": "Übersetzung in alle Systemsprachen",
+                "D": "Weniger als drei Dezimalstellen"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Welches Ankreuzfeld muss für eine Maßeinheit markiert werden, die im Einkauf verwendet werden soll?",
+            "type": "radio",
+            "options": {
+                "A": "wertmäßiges Obligo",
+                "B": "primärer Code",
+                "C": "kaufmännische Maßeinheit",
+                "D": "SI-Einheit"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Auf welcher Organisationsebene wird die Basismengeneinheit im Materialstamm definiert?",
+            "type": "radio",
+            "options": {
+                "A": "Werk",
+                "B": "Buchungskreis",
+                "C": "Einkaufsorganisation",
+                "D": "Mandant"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Für welches Element können Sonderregeln in Kalendern angelegt werden?",
+            "type": "radio",
+            "options": {
+                "A": "Feiertagskalender",
+                "B": "Fabrikkalender",
+                "C": "Planungskalender",
+                "D": "Arbeitsplatz"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Welchen der folgenden Elemente können Fabrikkalender zugeordnet werden? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Werke",
+                "B": "Lagerorte",
+                "C": "Arbeitsplätze",
+                "D": "Buchungskreise"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 1",
+            "question": "Wann können Planungskalender verwendet werden?",
+            "type": "radio",
+            "options": {
+                "A": "beim Anlegen von Bestellungen",
+                "B": "beim Anlegen von Dispositionsprofilen",
+                "C": "beim Anlegen von Abruferstellungsprofilen",
+                "D": "beim Anlegen von Kontrakten"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550#l1-1"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Eine Einkaufsorganisation muss immer einem Buchungskreis zugeordnet sein. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Welche der folgenden Elemente können Sie pro Buchungskreis festlegen? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Kontenplan",
+                "B": "Bestellwährung",
+                "C": "Hauswährung",
+                "D": "Sparten"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Welche der folgenden Zuordnungen ist für das Anlegen von Bestellungen obligatorisch?",
+            "type": "radio",
+            "options": {
+                "A": "Buchungskreis – Einkaufsorganisation",
+                "B": "Referenzeinkaufsorganisation – Einkaufsorganisation",
+                "C": "Werk – Einkaufsorganisation",
+                "D": "Standardeinkaufsorganisation – Werk"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Für welche Vorgänge ist eine Standardeinkaufsorganisation erforderlich? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Lohnbearbeitung",
+                "B": "Konsignation",
+                "C": "Streckenabwicklung",
+                "D": "Pipeline"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Auf welcher Organisationsebene werden Einkäufergruppen definiert?",
+            "type": "radio",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Werk",
+                "C": "Mandant",
+                "D": "Einkaufsorganisation"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Ein Werk kann mehreren Buchungskreisen zugeordnet werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Der Lagerortschlüssel 0001 kann mehrfach verwendet werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Welche der folgenden Elemente können Sie als Bewertungsebenen festlegen? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Mandant",
+                "B": "Werk",
+                "C": "Buchungskreis",
+                "D": "Lagerort"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Welche der folgenden Funktionen können auf Werksebene ausgeführt werden? (Mehrere Antworten möglich)",
+            "type": "checkbox",
+            "options": {
+                "A": "Mengenmäßige Bestandsführung",
+                "B": "Wertmäßige Bestandsführung",
+                "C": "Materialbedarfsplanung",
+                "D": "Rechnungsprüfung"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 2",
+            "question": "Welche der folgenden Funktionen werden auf Lagerortebene ausgeführt?",
+            "type": "radio",
+            "options": {
+                "A": "Prognose",
+                "B": "Inventur",
+                "C": "Kapazitätsplanung",
+                "D": "Instandhaltungsplanung"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche Arten der Fortschreibung von Verwaltungsdaten in Materialstammsätzen sind möglich?",
+            "type": "checkbox",
+            "options": {
+                "A": "Werksabhängige Fortschreibung",
+                "B": "Statusabhängige Fortschreibung",
+                "C": "Fortschreibung auf Tabellenebene",
+                "D": "Fortschreibung auf Lagerortebene"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Auf welcher Organisationsebene werden Buchungsperioden für die Materialwirtschaft definiert?",
+            "type": "radio",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Werk",
+                "C": "Lagerort",
+                "D": "Geschäftsbereich"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Was gehört zu den Einstellungen zu zentralen Feldern im Materialstamm?",
+            "type": "checkbox",
+            "options": {
+                "A": "Warengruppen definieren",
+                "B": "Nummernkreise festlegen",
+                "C": "Eigenschaften der Systemmeldungen festlegen",
+                "D": "Materialstatus definieren"
+            },
+            "correct": ["A", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche Informationen zu Buchungskreisen werden in der Sicht \"Materialwirtschaft\" (Transaktion OMSY) angezeigt?",
+            "type": "checkbox",
+            "options": {
+                "A": "das Beginndatum des aktuellen Geschäftsjahrs",
+                "B": "welches die nächste Buchungsperiode ist",
+                "C": "welches die vorhergehende Buchungsperiode war",
+                "D": "ob Buchungen in die vorhergehende Buchungsperiode zulässig sind"
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Was können Sie in den Eigenschaften der Materialarten festlegen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Feldreferenz",
+                "B": "Reihenfolge der Felder",
+                "C": "Bildreferenz",
+                "D": "Bildfolge"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche Beschaffungsart wird in Materialstammsätzen vorgeschlagen, wenn für die entsprechende Materialart die interne Beschaffung und die Fremdbeschaffung zulässig sind?",
+            "type": "radio",
+            "options": {
+                "A": "Keine",
+                "B": "X",
+                "C": "E",
+                "D": "F"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Über welche Pflegestatuswerte muss ein bewertetes Material mindestens verfügen, damit es über eine Bestellung beschafft werden kann?",
+            "type": "radio",
+            "options": {
+                "A": "K (Grunddaten), E (Einkauf) und B (Buchhaltung)",
+                "B": "E (Einkauf) und B (Buchhaltung)",
+                "C": "E (Einkauf) und D (Disposition)",
+                "D": "E (Einkauf) und G (Kalkulation)"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Was ist die Maximallänge (also die Anzahl der Zeichen) von Materialnummern in SAP S/4HANA ohne aktive Feldlängenerweiterung?",
+            "type": "radio",
+            "options": {
+                "A": "8",
+                "B": "10",
+                "C": "15",
+                "D": "18"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Wie viele Feldauswahlgruppen können Sie in SAP S/4HANA verwenden?",
+            "type": "radio",
+            "options": {
+                "A": "175",
+                "B": "220",
+                "C": "240",
+                "D": "500"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Für welche Einflussfaktoren können Sie Feldreferenzen definieren?",
+            "type": "checkbox",
+            "options": {
+                "A": "Buchungskreise",
+                "B": "Werke",
+                "C": "Warengruppen",
+                "D": "Materialarten"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche Feldeigenschaft hat die höchste Priorität?",
+            "type": "radio",
+            "options": {
+                "A": "Nur anzeigen",
+                "B": "Ausblenden",
+                "C": "Mussfeld",
+                "D": "Kannfeld"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Auf welcher der folgenden Ebenen können Sie fixierungsrelevante Felder festlegen?",
+            "type": "radio",
+            "options": {
+                "A": "Mandant",
+                "B": "Material",
+                "C": "Benutzer",
+                "D": "Planung"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Wenn Sie ein Feld als fixierungsrelevant kennzeichnen und in einem fixierten Materialstammsatz bereits Änderungen an diesem Feld geplant sind, werden diese Änderungen vom System gesichert. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Für welche Objekte können Sie Bildreferenzen definieren?",
+            "type": "checkbox",
+            "options": {
+                "A": "Werke",
+                "B": "Benutzer",
+                "C": "Branchen",
+                "D": "Einkäufergruppen"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche der folgenden Elemente können Sie im Customizing für den Materialstamm konfigurieren?",
+            "type": "checkbox",
+            "options": {
+                "A": "Reihenfolge der Hauptbilder",
+                "B": "Reihenfolge der Felder auf einem Subscreen",
+                "C": "Funktionscodes für Hauptbilder",
+                "D": "Funktionscodes für Nebenbilder"
+            },
+            "correct": ["A", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Mit welchem Tool oder Programm können Sie eigene Subscreens anlegen?",
+            "type": "radio",
+            "options": {
+                "A": "Object Navigator",
+                "B": "Screen Writer",
+                "C": "Screen Editor",
+                "D": "Screen Painter"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "In welcher Reihenfolge konfigurieren Sie die Bildanzeige im Materialstamm?",
+            "type": "radio",
+            "options": {
+                "A": "Subscreens → Bildsequenz → Datenbilder",
+                "B": "Datenbilder → Subscreens → Bildsequenz",
+                "C": "Bildsequenz → Datenbilder → Subscreens",
+                "D": "Bildsequenz → Subscreens → Datenbilder"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Was steuert die Feldauswahl für Geschäftspartner?",
+            "type": "checkbox",
+            "options": {
+                "A": "Kontengruppe",
+                "B": "Geschäftspartnerrolle",
+                "C": "Mandant",
+                "D": "Einkaufsorganisation"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Auf welcher Ebene können Sie abweichende Einkaufsdaten für Geschäftspartner festlegen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Werke",
+                "B": "Lieferantenteilsortimente",
+                "C": "Warengruppen",
+                "D": "Materialarten"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welche Partnerrolle können Sie für die Preisfindung verwenden?",
+            "type": "radio",
+            "options": {
+                "A": "Bestelladresse",
+                "B": "Abweichender Zahlungsempfänger",
+                "C": "Rechnungssteller",
+                "D": "Warenlieferant"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 3",
+            "question": "Welchen der folgenden Elemente können Partnerschemata zugeordnet werden?",
+            "type": "checkbox",
+            "options": {
+                "A": "Lieferanten",
+                "B": "Kontengruppen",
+                "C": "Belegarten",
+                "D": "Lieferantenteilsortimente"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welches Konto wird beim Buchen einer Rechnung in der Logistik-Rechnungsprüfung aus dem Geschäftspartnersatz ermittelt?",
+            "type": "radio",
+            "options": {
+                "A": "WE/RE-Verrechnungskonto",
+                "B": "Bankkonto",
+                "C": "Abstimmkonto",
+                "D": "Preisdifferenzenkonto"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welches der folgenden Szenarien hat Preisdifferenzenbuchungen zur Folge?",
+            "type": "radio",
+            "options": {
+                "A": "Bewerteter Wareneingang; Material ist zum Standardpreis von 10 EUR bewertet; Bestellpreis beträgt 12 EUR",
+                "B": "Bewerteter Wareneingang; Material ist zum gleitenden Durchschnittspreis von 10 EUR bewertet; Bestellung ist kostenlos",
+                "C": "Wareneingang per Bestandsaufnahme in den frei verwendbaren Bestand; Material ist zum Standardpreis von 10 EUR bewertet; es ist kein externer Betrag eingegeben",
+                "D": "Wareneingang zu Konsignationsbestellungen"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche Buchungen sind für die Kontenfindung relevant?",
+            "type": "checkbox",
+            "options": {
+                "A": "Umbuchung zwischen zwei Lagerorten innerhalb eines Werkes",
+                "B": "Umbuchung zwischen zwei Werken",
+                "C": "Umbuchung aus dem frei verwendbaren Bestand in den gesperrten Bestand",
+                "D": "Umbuchung aus dem Konsignationsbestand in den eigenen Bestand"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche Bewegungsarten sind für die Kontenfindung relevant?",
+            "type": "checkbox",
+            "options": {
+                "A": "101 (Wareneingang zur Bestellung in das Lager)",
+                "B": "103 (Wareneingang zur Bestellung in den WE-Sperrbestand)",
+                "C": "105 (Freigabe des WE-Sperrbestands an das Lager)",
+                "D": "109 (Wareneingang aus dem bewerteten Sperrbestand)"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Bei jeder Wareneingangsbuchung mit Bezug zu einer Bestellung wird ein Buchhaltungsbeleg erzeugt. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Die Bewegungsart, mit der ein Wareneingang erfasst wird, wirkt sich auf die Sachkonten der Wareneingangsbuchung aus. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche der folgenden Elemente stellen Ebenen für die Bewertung und die Kontenfindung in der Materialwirtschaft (MM) dar?",
+            "type": "checkbox",
+            "options": {
+                "A": "Bewertungskreis",
+                "B": "Bewertungsart",
+                "C": "Bewertungsabschnitt",
+                "D": "Bewertungsgruppe"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Aus welcher Organisationsebene wird der Kontenplan ermittelt?",
+            "type": "radio",
+            "options": {
+                "A": "Werk",
+                "B": "Mandant",
+                "C": "Buchungskreis",
+                "D": "Bewertungskreis"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Was ordnen Sie Werken zu, für die dieselben Einstellungen zur Kontenfindung gelten sollen?",
+            "type": "radio",
+            "options": {
+                "A": "Dieselbe Bewertungsart",
+                "B": "Dieselbe Bewertungsklasse",
+                "C": "Dieselbe Bewertungsmodifikation",
+                "D": "Dieselbe Bewertungsmodifikationskonstante"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Die Ebene der Materialbewertung kann im Produktivsystem geändert werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Um die Produktionsplanung (Komponente PP) verwenden zu können, müssen Sie die Materialbewertung auf Buchungskreisebene einstellen. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Die Kontenfindung erfolgt immer werksabhängig. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Einem Buchungskreis kann nur ein operativer Kontenplan zugeordnet werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Was können Sie einer Materialart für die Kontenfindung zuordnen?",
+            "type": "radio",
+            "options": {
+                "A": "Bewertungsklassen",
+                "B": "Bewertungsmodifikationskonstante",
+                "C": "Kontoklassenreferenz",
+                "D": "Kontomodifikation"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche der folgenden Elemente sind direkt miteinander verknüpft?",
+            "type": "checkbox",
+            "options": {
+                "A": "Bewertungsklasse – Kontoklassenreferenz",
+                "B": "Bewertungsklasse – Materialart",
+                "C": "Preissteuerung – Kontoklassenreferenz",
+                "D": "Kontoklassenreferenz – Materialart"
+            },
+            "correct": ["A", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Auf welchen Ebenen können Sie Bewertungsklassen zu Materialstammsätzen zuordnen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Bewertungskreis",
+                "B": "Mandant",
+                "C": "Dispositionsbereich",
+                "D": "Bewertungsart"
+            },
+            "correct": ["A", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Eine Bewertungsklasse kann mehreren Kontoklassenreferenzen zugeordnet werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Sie können einer Materialart mehrere Kontenklassenreferenzen zuordnen. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche Anwendungsbereiche können Sie bei der Simulation der Kontenfindung auswählen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Zahlungsverkehr",
+                "B": "Rechnungsprüfungsvorgänge",
+                "C": "Einkaufsvorgänge",
+                "D": "Bewegungen in der Bestandsführung"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welcher Buchungsschlüssel wird für Bestandsbuchungen verwendet?",
+            "type": "radio",
+            "options": {
+                "A": "PRD",
+                "B": "WRX",
+                "C": "UMB",
+                "D": "BSX"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welchen der folgenden Elemente werden Wertestrings (Buchungsregeln) zugeordnet?",
+            "type": "radio",
+            "options": {
+                "A": "Bewegungsarten",
+                "B": "Bestandsarten",
+                "C": "Bewertungsarten",
+                "D": "Materialarten"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welcher Buchungsschlüssel ist in einigen Wertestrings zweimal enthalten?",
+            "type": "radio",
+            "options": {
+                "A": "WRX",
+                "B": "BSX",
+                "C": "UMB",
+                "D": "PRD"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welcher Vorgang ist für die Kontomodifikation relevant?",
+            "type": "radio",
+            "options": {
+                "A": "BSX",
+                "B": "GBB",
+                "C": "UMB",
+                "D": "WRX"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welchen Elementen können Sie Kontomodifikationen zuordnen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Materialarten",
+                "B": "Bewegungsarten",
+                "C": "Positionstypen",
+                "D": "Kontierungstypen"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Wertestrings können in jedem Unternehmen den spezifischen Anforderungen entsprechend verändert und erweitert werden. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "In einem SAP-System können Sie die Verbräuche von eigenen Materialien und die Verbräuche von Konsignationsmaterialien in verschiedenen Kostenarten erfassen. Entscheiden Sie, ob diese Aussage richtig oder falsch ist.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Für welche der folgenden Objekte können Sie Vorschlagskonten im Einkauf nutzen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Einkäufergruppen",
+                "B": "Warengruppen",
+                "C": "Kontierungstypen",
+                "D": "Positionstypen"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welcher Vorgangsschlüssel ist relevant für die automatische Ermittlung des Vorschlagskontos in Einkaufsbelegen?",
+            "type": "radio",
+            "options": {
+                "A": "BSX",
+                "B": "WRX",
+                "C": "PRD",
+                "D": "GBB"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche Customizing-Einstellungen können Sie hinsichtlich der ungeplanten Bezugsnebenkosten in der Logistik-Rechnungsprüfung vornehmen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Die Kosten sollen auf ein Preisdifferenzenkonto gebucht werden.",
+                "B": "Die Kosten sollen auf ein bestimmtes Bestandskonto gebucht werden.",
+                "C": "Die Kosten sollen auf die Rechnungspositionen verteilt werden.",
+                "D": "Die Kosten sollen auf ein eigenes Sachkonto gebucht werden."
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Wo weisen Sie Vorgangsschlüssel für geplante Bezugsnebenkosten zu?",
+            "type": "radio",
+            "options": {
+                "A": "In Bestellungen",
+                "B": "In den Customizing-Einstellungen für Konditionsarten",
+                "C": "In den Customizing-Einstellungen für Eingangsrechnungen",
+                "D": "In den Customizing-Einstellungen für Kalkulationsschemata"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Überprüfen Sie die folgende Aussage zum Aufwandskonto, das in kontierten Bestellanforderungs- und Bestellpositionen von SAP S/4HANA vorgeschlagen werden soll, auf ihre Richtigkeit: Das Vorschlagskonto im Einkauf kann je nach verwendetem Kontierungstyp variieren.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Überprüfen Sie die folgende Aussage zum Aufwandskonto, das in kontierten Bestellanforderungs- und Bestellpositionen von SAP S/4HANA vorgeschlagen werden soll, auf ihre Richtigkeit: Im Einkauf wird ein Vorschlagskonto nur für Positionen mit Materialnummer ermittelt.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Überprüfen Sie die folgende Aussage zum Aufwandskonto, das in kontierten Bestellanforderungs- und Bestellpositionen von SAP S/4HANA vorgeschlagen werden soll, auf ihre Richtigkeit: Das Vorschlagskonto im Einkauf hängt von der Warengruppe aus dem Materialstammsatz ab.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Überprüfen Sie die folgende Aussage zum Aufwandskonto, das in kontierten Bestellanforderungs- und Bestellpositionen von SAP S/4HANA vorgeschlagen werden soll, auf ihre Richtigkeit: Für Positionen ohne Materialstammsatz schlägt das System nur ein einziges Konto vor.",
+            "type": "radio",
+            "options": {
+                "A": "Richtig",
+                "B": "Falsch"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Auf welcher Ebene legen Sie anfänglich die Bewertungsarten für die getrennte Bewertung fest?",
+            "type": "radio",
+            "options": {
+                "A": "Mandant",
+                "B": "Buchungskreis",
+                "C": "Werk",
+                "D": "Bewertungskreis"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Auf welcher Ebene können Sie die getrennte Bewertung für ein Material aktivieren?",
+            "type": "radio",
+            "options": {
+                "A": "Mandant",
+                "B": "Einkaufsorganisation",
+                "C": "Bewertungskreis",
+                "D": "Lagerort"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Für welche der folgenden Elemente können Sie bei der lokalen Definition von Bewertungsarten abweichende Einstellungen vornehmen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Preissteuerung",
+                "B": "Beschaffungsarten",
+                "C": "Kontoklassenreferenz",
+                "D": "Bewertungswährung"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 4",
+            "question": "Welche spezifischen Einträge sind in der Buchhaltungssicht auf Werksebene für ein Material mit getrennter Bewertung (Bewertungskreis = Werk) erforderlich?",
+            "type": "checkbox",
+            "options": {
+                "A": "Bewertungstyp",
+                "B": "Preissteuerung V (gleitender Durchschnittspreis)",
+                "C": "Preissteuerung S (Standardpreis)",
+                "D": "Bewertungsart"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Von welchen der folgenden Schlüssel ist die Nummernvergabe für Einkaufsbelege im Standard abhängig?",
+            "type": "radio",
+            "options": {
+                "A": "Einkaufsorganisation",
+                "B": "Einkäufergruppe",
+                "C": "Belegart",
+                "D": "Buchungskreis"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was ist die maximale Länge von Einkaufsbelegnummern?",
+            "type": "radio",
+            "options": {
+                "A": "8",
+                "B": "10",
+                "C": "12",
+                "D": "18"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welche der folgenden Optionen können Sie für Bestellbelegarten festlegen? (Wählen Sie die richtigen Antworten.)",
+            "type": "checkbox",
+            "options": {
+                "A": "Zulässige Positionstypen",
+                "B": "Zulässige Kontierungstypen",
+                "C": "Verknüpfung Banf - Belegart",
+                "D": "Verknüpfung Rahmenvertrag - Belegart"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Für welche Belegtypen können Sie zeitabhängige Konditionen zulassen? (Wählen Sie die richtigen Antworten.)",
+            "type": "checkbox",
+            "options": {
+                "A": "Bestellanforderung",
+                "B": "Bestellung",
+                "C": "Anfrage",
+                "D": "Lieferplan"
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Für welchen Belegtyp können Sie die Gesamtfreigabe festlegen?",
+            "type": "radio",
+            "options": {
+                "A": "Bestellanforderung",
+                "B": "Bestellung",
+                "C": "Anfrage",
+                "D": "Lieferplan"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Für welche Transaktion müssen Sie eine Vorschlagsbelegart für die automatische Bestellerzeugung beim Wareneingang definieren?",
+            "type": "radio",
+            "options": {
+                "A": "ME59N",
+                "B": "MIGO",
+                "C": "MB11",
+                "D": "MB01"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Worin liegt der Vorteil der Versionsverwaltung im Einkauf?",
+            "type": "radio",
+            "options": {
+                "A": "Änderungen an Langtexten können nachverfolgt werden.",
+                "B": "Nachrichten werden in einer speziellen Tabelle gesichert.",
+                "C": "Die Versionsverwaltung kann in ausgewählten Bestellungen aktiviert werden.",
+                "D": "Nachrichten können vor der Freigabe ausgegeben werden."
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wo müssen Sie den internen Schlüssel eines Positionstyps verwenden?",
+            "type": "radio",
+            "options": {
+                "A": "Planaufträge",
+                "B": "Freigabeverfahren",
+                "C": "Rechnungsprüfung",
+                "D": "Stücklisten"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was steuern die Positionstypen im Einkauf? (Wählen Sie die richtigen Antworten.)",
+            "type": "checkbox",
+            "options": {
+                "A": "Ob Positionen ohne Materialnummer zulässig sind",
+                "B": "Ob eine Wareneingangsbuchung zulässig ist",
+                "C": "Ob Lieferantenbestätigungen zulässig sind",
+                "D": "Ob Rücklieferungen zulässig sind"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wofür können Sie Feldauswahlschlüssel definieren? (Wählen Sie die richtigen Antworten.)",
+            "type": "checkbox",
+            "options": {
+                "A": "Positionstypen",
+                "B": "Belegtypen",
+                "C": "Belegarten",
+                "D": "Kontierungstypen"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welcher Benutzerparameter wird für Funktionsberechtigungen im Einkauf verwendet?",
+            "type": "radio",
+            "options": {
+                "A": "EVO",
+                "B": "EKG",
+                "C": "FOB",
+                "D": "EFB"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Für welchen Belegtyp können Sie Feldauswahlschlüssel in Abhängigkeit vom Freigabekennzeichen definieren?",
+            "type": "radio",
+            "options": {
+                "A": "Anfragen",
+                "B": "Kontrakte",
+                "C": "Bestellungen",
+                "D": "Bestellanforderungen"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welchem Objekt müssen Sie Kontierungstypen zuordnen?",
+            "type": "radio",
+            "options": {
+                "A": "Belegarten",
+                "B": "Feldauswahlschlüssel",
+                "C": "Belegtypen",
+                "D": "Positionstypen"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was wird durch Kontierungstypen gesteuert? (Wählen Sie die richtigen Antworten.)",
+            "type": "checkbox",
+            "options": {
+                "A": "Ob ein Material erlaubt ist",
+                "B": "Ob die Bestandsführung erlaubt ist",
+                "C": "Ob die Kontierung beim Rechnungseingang änderbar ist",
+                "D": "Wie mit Teilrechnungen zu verfahren ist"
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was kann im Hinblick auf die Kontenfindung in Kontierungstypen gepflegt werden?",
+            "type": "radio",
+            "options": {
+                "A": "Bewertungsmodifikationskonstante",
+                "B": "Bewertungsklasse",
+                "C": "Kontomodifikation",
+                "D": "Kontoklassenreferenz"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wofür können Sie eigene Textarten definieren? (Wählen Sie die richtigen Antworten.)",
+            "type": "checkbox",
+            "options": {
+                "A": "Materialstamm",
+                "B": "Infosatz",
+                "C": "Lieferantenstamm",
+                "D": "Einkaufsbelegtyp"
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welche Textart aus Bestellanforderungen kann nicht in Folgebelege übernommen werden?",
+            "type": "radio",
+            "options": {
+                "A": "Positionstext",
+                "B": "Anlieferungstext",
+                "C": "Kopfnotiz",
+                "D": "Positionsnotiz"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was können Sie in den Kopierregeln für Textverknüpfungen definieren?",
+            "type": "radio",
+            "options": {
+                "A": "Kennzeichen \"Fix\"",
+                "B": "Änderungskennzeichen",
+                "C": "Druckkennzeichen",
+                "D": "Löschkennzeichen"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Für welche Anwendung können Sie Verknüpfungen für Bestelltexte definieren?",
+            "type": "radio",
+            "options": {
+                "A": "Finanzwesen",
+                "B": "Bestandsführung",
+                "C": "Logistik-Rechnungsprüfung",
+                "D": "Controlling"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wofür können Sie Texte zur Nachrichtenverarbeitung definieren?",
+            "type": "checkbox",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Einkäufergruppe",
+                "C": "Einkaufsorganisation",
+                "D": "Anfrage"
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wovon hängen Überschriften in Einkaufsbelegen ab?",
+            "type": "checkbox",
+            "options": {
+                "A": "Belegtyp",
+                "B": "Belegart",
+                "C": "Druckvorgang",
+                "D": "Text-ID"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wovon hängen Fußzeilen in Einkaufsbelegen ab?",
+            "type": "radio",
+            "options": {
+                "A": "Belegart",
+                "B": "Druckvorgang",
+                "C": "Einkaufsorganisation",
+                "D": "Belegtyp"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welche Änderungen in Bestellungen sind für die Ausgabe relevant?",
+            "type": "checkbox",
+            "options": {
+                "A": "Änderungen der Menge",
+                "B": "Änderungen des Lieferdatums",
+                "C": "Änderungen des statistischen Lieferdatums",
+                "D": "Änderungen der Bestätigung"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Auf welcher Ebene können Sie Nachrichtenschemata im Einkauf zuordnen?",
+            "type": "radio",
+            "options": {
+                "A": "Einkaufsorganisation",
+                "B": "Belegart",
+                "C": "Anwendung",
+                "D": "Werk"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wo können Sie Drucker zur Ausgabe von Nachrichten pflegen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Nachrichtenschema",
+                "B": "Konditionssatz",
+                "C": "Ihren Benutzervorgaben",
+                "D": "Druckkennzeichen"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welche Nachrichtenart wird beim Ändern einer Bestellung am häufigsten verwendet?",
+            "type": "radio",
+            "options": {
+                "A": "NEU",
+                "B": "AEN",
+                "C": "AUFB",
+                "D": "MAHN"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Wo definieren Sie die bei der Nachrichtenfindung zu verwendenden Schlüsselfelder?",
+            "type": "radio",
+            "options": {
+                "A": "Zugriffsfolge",
+                "B": "Belegart",
+                "C": "Konditionssatz",
+                "D": "Konditionstabelle"
+            },
+            "correct": ["D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welche ist die richtige Reihenfolge bei der Nachrichtenfindung?",
+            "type": "radio",
+            "options": {
+                "A": "Zugriffsfolge → Nachrichtenart → Nachrichtenschema → Konditionssatz",
+                "B": "Konditionssatz → Zugriffsfolge → Nachrichtenschema → Nachrichtenart",
+                "C": "Nachrichtenschema → Nachrichtenart → Zugriffsfolge → Konditionssatz",
+                "D": "Nachrichtenart → Nachrichtenschema → Konditionssatz → Zugriffsfolge"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was ist zur Nachrichtenfindungsanalyse erforderlich?",
+            "type": "radio",
+            "options": {
+                "A": "Konditionssatz",
+                "B": "Nachrichtenschema",
+                "C": "Zugriffsfolge",
+                "D": "Druckansicht"
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was legen Sie in einem Konditionssatz fest?",
+            "type": "checkbox",
+            "options": {
+                "A": "Ausgabesprache",
+                "B": "Ausgabemedium",
+                "C": "Ausgabezeitpunkt",
+                "D": "Ausgabeanlagen"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was können Sie für Änderungsnachrichten festlegen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Anderer Ausgabezeitpunkt",
+                "B": "Andere Sprache für das Nachrichtenschema",
+                "C": "Neue Nachrichtenfindung",
+                "D": "Neues Freigabeverfahren"
+            },
+            "correct": ["A", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Welche Ausgabekanäle werden in der SAP-S/4HANA-Ausgabeverwaltung unterstützt?",
+            "type": "checkbox",
+            "options": {
+                "A": "Fax",
+                "B": "Drucken",
+                "C": "E-Mail"
+            },
+            "correct": ["B", "C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 5",
+            "question": "Was wird für die Nachrichtenfindung in der SAP-S/4HANA-Ausgabeverwaltung verwendet?",
+            "type": "radio",
+            "options": {
+                "A": "Konditionstabellen",
+                "B": "Konditionssätze",
+                "C": "Entscheidungstabellen",
+                "D": "Zugriffsfolgen"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Wovon hängt die Nummernvergabe für Materialbelege ab?",
+            "type": "radio",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Belegart",
+                "C": "Vorgangsart",
+                "D": "Werk"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Wovon hängt die Nummernvergabe für Buchhaltungsbelege ab?",
+            "type": "checkbox",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Belegart",
+                "C": "Werk",
+                "D": "Nummernkreisgruppe"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Was können Sie in einer Buchhaltungsbelegart festlegen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Buchungsschlüssel",
+                "B": "Feldauswahl für alle Felder",
+                "C": "Netto-Belegart",
+                "D": "Storno-Belegart"
+            },
+            "correct": ["C", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welche der folgenden Buchhaltungsbelegarten wird normalerweise für sonstige Wareneingänge (Wareneingang ohne Referenz) verwendet?",
+            "type": "radio",
+            "options": {
+                "A": "WA",
+                "B": "WE",
+                "C": "WF",
+                "D": "WN"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Auf welcher Ebene können Sie die Feldauswahl für die Transaktion MIGO festlegen?",
+            "type": "radio",
+            "options": {
+                "A": "Bewegungsart",
+                "B": "Werk",
+                "C": "Lagerort",
+                "D": "Benutzer"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welche der folgenden Optionen können Sie für die Transaktion MIGO festlegen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Aktive Vorgänge",
+                "B": "Vorgangsschlüssel in Buchungen",
+                "C": "Nummernkreise",
+                "D": "Mögliche Referenzbelege"
+            },
+            "correct": ["A", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Was müssen Sie tun, wenn Sie ein Feld in der Transaktion MIGO für eine bestimmte Bewegungsart ausblenden möchten?",
+            "type": "radio",
+            "options": {
+                "A": "Den Auswahlknopf „Ausblenden“ für das Feld aktivieren.",
+                "B": "Das Feld aus der Feldtabelle löschen.",
+                "C": "Einen neuen Feldauswahlschlüssel definieren.",
+                "D": "Kontomodifikationen für alle möglichen Vorgangsschlüssel pflegen."
+            },
+            "correct": ["B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welche der folgenden Optionen können Sie für Bewegungsarten definieren?",
+            "type": "checkbox",
+            "options": {
+                "A": "Wertestring",
+                "B": "Erlaubte Transaktionen",
+                "C": "Erlaubte Werke",
+                "D": "Verbrauchsbuchung"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Auf welcher Ebene können Sie Gründe für Warenbewegungen definieren?",
+            "type": "radio",
+            "options": {
+                "A": "Buchungskreis",
+                "B": "Werk",
+                "C": "Bewegungsart",
+                "D": "Sonderbestandskennzeichen"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welcher Benutzerparameter steuert die Art der Systemmeldungen?",
+            "type": "radio",
+            "options": {
+                "A": "EVO",
+                "B": "EFB",
+                "C": "MSV",
+                "D": "SAK"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Was ist für eine Fehlteilprüfung unerlässlich?",
+            "type": "checkbox",
+            "options": {
+                "A": "Prüfgruppe im Materialstamm",
+                "B": "Prüfregel für die Transaktion",
+                "C": "Material muss am Buchungsdatum des Wareneingangs ein Fehltein sein",
+                "D": "Mail an Einkauf muss gepflegt sein"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Welche Feldkombination kann zur Druckerfindung in der Bestandsführung verwendet werden?",
+            "type": "checkbox",
+            "options": {
+                "A": "Werk/Benutzer",
+                "B": "Nachrichtenart/Werk/Lagerort",
+                "C": "Nachrichtenart/Benutzergruppe",
+                "D": "Nachrichtenart/Benutzer"
+            },
+            "correct": ["B", "D"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "In welcher Sicht im Materialstamm können Sie die Etikettierungsart und die Etikettierungsform für den Etikettendruck pflegen?",
+            "type": "radio",
+            "options": {
+                "A": "Disposition",
+                "B": "Lagerverwaltung",
+                "C": "Allg. Werksdaten/Lagerung 1",
+                "D": "Belegdaten"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 6",
+            "question": "Was können Sie in der Transaktion MIGO für Nachrichten in der Bestandsführung auswählen?",
+            "type": "radio",
+            "options": {
+                "A": "Druckversion",
+                "B": "Positionsdruckkennzeichen",
+                "C": "Drucker",
+                "D": "Nachrichtenart"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 7",
+            "question": "Welche der folgenden Aktivitäten können Sie über das Customizing ausführen?",
+            "type": "checkbox",
+            "options": {
+                "A": "Customizing-Dokumentation lesen",
+                "B": "Customizing-Aktivitätsstatus prüfen",
+                "C": "Einkaufsbelege anlegen"
+            },
+            "correct": ["A", "B"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 7",
+            "question": "Welchem der folgenden Elemente können Sie ein bestimmtes Customizing-Projekt, mit dem Sie häufig arbeiten, hinzufügen?",
+            "type": "radio",
+            "options": {
+                "A": "Favoriten",
+                "B": "Ihren Benutzervorgaben",
+                "C": "Ihrem Arbeitsvorrat",
+                "D": "Ihren persönlichen Einstellungen"
+            },
+            "correct": ["C"],
+            "link": "/module?id=s4550"
+        },
+        {
+            "chapter": "Kapitel 7",
+            "question": "Bei welcher der folgenden Aktivitäten empfiehlt es sich, ein neues Customizing-Projekt anzulegen?",
+            "type": "radio",
+            "options": {
+                "A": "Einführen Ihrer SAP-Implementierung in einem neuen Land",
+                "B": "Anlegen eines neuen Dispositionsbereichs",
+                "C": "Testen der Support Packages",
+                "D": "Konvertieren der Formulare von SAPScript in PDF"
+            },
+            "correct": ["A"],
+            "link": "/module?id=s4550"
+        }
+    ]
+}
