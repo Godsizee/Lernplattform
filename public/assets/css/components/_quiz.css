@@ -279,9 +279,12 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Focus Mode Adjustments */
-body.quiz-focus-mode .learning-sidebar,
+/* Focus Mode Adjustments - Force hide all platform elements */
+body.quiz-focus-mode .sidebar,
+body.quiz-focus-mode .topbar,
+body.quiz-focus-mode .view-header,
 body.quiz-focus-mode .learning-header,
+body.quiz-focus-mode .learning-tabs,
 body.quiz-focus-mode .student-notes-section,
 body.quiz-focus-mode .lesson-header,
 body.quiz-focus-mode .article-meta,
@@ -289,13 +292,18 @@ body.quiz-focus-mode .lesson-footer-nav {
     display: none !important;
 }
 
+body.quiz-focus-mode .main-content {
+    margin-left: 0 !important;
+    padding-top: 2rem !important;
+}
+
 body.quiz-focus-mode .learning-layout {
     display: block;
-    margin-top: 2rem;
+    margin-top: 0;
 }
 
 body.quiz-focus-mode .learning-main {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
