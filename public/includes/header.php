@@ -107,12 +107,12 @@ if ($isSoftRoute) {
     ?>
     <div id="system-banner" class="system-broadcast-banner banner-<?= htmlspecialchars($announcement['type']) ?>" data-announcement-id="<?= $announcementId ?>" style="display: none;">
         <div class="banner-content">
-            <i class="ph ph-megaphone banner-main-icon"></i>
+            <i class="ph ph-bell banner-main-icon"></i>
             <div class="banner-text">
                 <?= $formattedMessage ?>
             </div>
             <button id="close-system-banner" class="banner-close" title="Dauerhaft ausblenden">
-                <i class="ph ph-x"></i>
+                <i class="ph ph-x-circle"></i>
             </button>
         </div>
     </div>
