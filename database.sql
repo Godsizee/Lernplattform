@@ -1,6 +1,19 @@
--- PostgreSQL Schema for Code & Cash
+-- ==========================================================================
+-- Code & Cash | Lernplattform - Vollständiges Datenbank-Schema
+-- Konsolidierte Fassung (PostgreSQL)
+-- ==========================================================================
 
-CREATE TABLE IF NOT EXISTS users (
+-- Bestehende Tabellen löschen (Reihenfolge wegen Foreign Keys!)
+DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS lesson_notes;
+DROP TABLE IF EXISTS bookmarks;
+DROP TABLE IF EXISTS user_progress;
+DROP TABLE IF EXISTS lessons;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS users;
+
+-- 1. Benutzer-Tabelle
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -9,51 +22,50 @@ CREATE TABLE IF NOT EXISTS users (
     streak INT DEFAULT 0,
     bio TEXT DEFAULT '',
     theme VARCHAR(20) DEFAULT 'dark',
+    remember_token VARCHAR(255) DEFAULT NULL,
+    is_banned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS subjects (
+-- 2. Fach-Tabelle (Subjects)
+CREATE TABLE subjects (
     id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     color VARCHAR(50) NOT NULL,
     icon VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS lessons (
+-- 3. Lektionen-Tabelle (Artikel & Quizze)
+CREATE TABLE lessons (
     id SERIAL PRIMARY KEY,
     subject_id INT NOT NULL,
     author_id INT DEFAULT NULL,
     title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL, -- Für HTML/Vorschau
+    content_raw TEXT DEFAULT '', -- Für Markdown oder Quiz-JSON
     type VARCHAR(20) DEFAULT 'article' CHECK (type IN ('article', 'quiz')),
-    content TEXT NOT NULL DEFAULT '',
-    content_raw TEXT DEFAULT '',
     status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('draft', 'published')),
+    sort_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS user_progress (
+-- 4. Fortschritts-Tabelle (User Progress)
+CREATE TABLE user_progress (
     user_id INT NOT NULL,
     lesson_id INT NOT NULL,
     status VARCHAR(50) DEFAULT 'completed' CHECK (status IN ('pending', 'completed')),
+    score INT DEFAULT NULL, -- Speichert das Quiz-Ergebnis (0-100)
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, lesson_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS audit_logs (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    action VARCHAR(255) NOT NULL,
-    details TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS bookmarks (
+-- 5. Lesezeichen (Bookmarks)
+CREATE TABLE bookmarks (
     user_id INT NOT NULL,
     lesson_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,7 +74,8 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS lesson_notes (
+-- 6. Persönliche Notizen
+CREATE TABLE lesson_notes (
     user_id INT NOT NULL,
     lesson_id INT NOT NULL,
     content TEXT NOT NULL,
@@ -72,12 +85,26 @@ CREATE TABLE IF NOT EXISTS lesson_notes (
     FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 );
 
--- Dummy Data for Subjects
+-- 7. Audit-Logs (System-Protokoll)
+CREATE TABLE audit_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ==========================================================================
+-- Standard-Daten (Initial-Setup)
+-- ==========================================================================
+
 INSERT INTO subjects (title, color, icon) VALUES 
 ('Datenbanken (SQL)', '#3b82f6', 'ph-database'),
 ('BWL', '#10b981', 'ph-chart-bar'),
 ('SAP ERP', '#f59e0b', 'ph-buildings'),
-('Java', '#ef4444', 'ph-coffee');
+('Java', '#ef4444', 'ph-coffee'),
+('SAP Academy Quiz Center', '#a855f7', 'ph-exam');
 
 -- Dummy Data for Lessons
 INSERT INTO lessons (subject_id, title, content) VALUES 
