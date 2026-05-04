@@ -204,39 +204,83 @@ class AdminController extends Controller {
 
     /**
      * Fach erstellen oder aktualisieren
-     */
     public function saveSubject() {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $id = $input['id'] ?? null;
         $title = trim($input['title'] ?? '');
-        $color = trim($input['color'] ?? '#a972ff');
-        $icon = trim($input['icon'] ?? 'ph-book');
+        $color = trim($input['color'] ?? '#3b82f6');
+        $icon = trim($input['icon'] ?? 'ph-folder');
 
-        if (!$title) return $this->json(['error' => 'Titel erforderlich'], 400);
-
-        if ($id) {
-            $this->lessonRepo->updateSubject($id, $title, $color, $icon);
-            $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SUBJECT_UPDATE', "Hat das Fach '$title' (ID: $id) aktualisiert.");
-        } else {
-            $id = $this->lessonRepo->createSubject($title, $color, $icon);
-            $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SUBJECT_CREATE', "Hat ein neues Fach '$title' (ID: $id) erstellt.");
+        if (empty($title)) {
+            return $this->json(['error' => 'Titel darf nicht leer sein.'], 400);
         }
 
-        return $this->json(['success' => true, 'id' => $id]);
+        try {
+            if ($id) {
+                // Update
+                $stmt = $this->db->prepare("UPDATE subjects SET title = ?, color = ?, icon = ? WHERE id = ?");
+                $stmt->execute([$title, $color, $icon, $id]);
+                $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SUBJECT_UPDATED', "Fach aktualisiert: $title (ID: $id)");
+            } else {
+                // Create
+                $stmt = $this->db->prepare("INSERT INTO subjects (title, color, icon) VALUES (?, ?, ?)");
+                $stmt->execute([$title, $color, $icon]);
+                $id = $this->db->lastInsertId();
+                $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SUBJECT_CREATED', "Fach erstellt: $title (ID: $id)");
+            }
+            return $this->json(['success' => true, 'id' => $id]);
+        } catch (Exception $e) {
+            return $this->json(['error' => 'Fehler beim Speichern: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteSubject() {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $id = filter_var($input['id'] ?? 0, FILTER_VALIDATE_INT);
+        if (!$id) return $this->json(['error' => 'Ungültige ID'], 400);
+
+        try {
+            $stmt = $this->db->prepare("DELETE FROM subjects WHERE id = ?");
+            $stmt->execute([$id]);
+            $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SUBJECT_DELETED', "Fach gelöscht (ID: $id)");
+            return $this->json(['success' => true]);
+        } catch (Exception $e) {
+            return $this->json(['error' => 'Fehler beim Löschen: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Fach löschen
+     * Ruft die aktuellen Announcement-Einstellungen ab
      */
-    public function deleteSubject() {
+    public function getAnnouncement() {
+        $settingRepo = $this->container->get('SettingRepository');
+        $announcementJson = $settingRepo->get('global_announcement');
+        $announcement = $announcementJson ? json_decode($announcementJson, true) : [
+            'message' => '',
+            'type' => 'info',
+            'is_active' => false
+        ];
+        return $this->json($announcement);
+    }
+
+    /**
+     * Speichert das globale Announcement Banner
+     */
+    public function saveAnnouncement() {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
-        $id = $input['id'] ?? 0;
+        $message = trim($input['message'] ?? '');
+        $type = in_array($input['type'] ?? '', ['info', 'warning', 'danger', 'success']) ? $input['type'] : 'info';
+        $isActive = (bool)($input['is_active'] ?? false);
 
-        if (!$id) return $this->json(['error' => 'ID fehlt'], 400);
+        $settingRepo = $this->container->get('SettingRepository');
+        $settingRepo->set('global_announcement', json_encode([
+            'message' => $message,
+            'type' => $type,
+            'is_active' => $isActive
+        ]));
 
-        $this->lessonRepo->deleteSubject($id);
-        $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_SUBJECT_DELETE', "Hat das Fach mit ID $id gelöscht.");
-        
+        $this->auditRepo->log($_SESSION['user_id'], 'ADMIN_BROADCAST_UPDATED', "Global Announcement auf '$type' gesetzt (Aktiv: " . ($isActive ? 'Ja' : 'Nein') . ").");
+
         return $this->json(['success' => true]);
     }
 }

@@ -92,7 +92,28 @@ if ($isSoftRoute) {
 </head>
 <body class="<?= $hideSidebar ? 'auth-mode' : '' ?>">
     
-    <!-- NEU: God-Mode Banner (User Impersonation) -->
+    <!-- NEU: System Broadcast Banner -->
+    <?php
+    $settingRepo = $GLOBALS['container']->get('SettingRepository');
+    $announcementJson = $settingRepo->get('global_announcement');
+    $announcement = $announcementJson ? json_decode($announcementJson, true) : null;
+    
+    if ($announcement && !empty($announcement['is_active']) && !empty($announcement['message'])):
+        $parsedown = new Parsedown();
+        $parsedown->setSafeMode(true); // Verhindert HTML-Injection (XSS), erlaubt aber Markdown
+        $formattedMessage = $parsedown->line($announcement['message']);
+    ?>
+    <div class="system-broadcast-banner banner-<?= htmlspecialchars($announcement['type']) ?>">
+        <div class="banner-content">
+            <i class="ph-bold ph-megaphone"></i>
+            <div class="banner-text">
+                <?= $formattedMessage ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- God-Mode Banner (User Impersonation) -->
     <?php if (isset($_SESSION['admin_id'])): ?>
     <div style="background: var(--color-danger); color: white; text-align: center; padding: 0.6rem 1rem; font-size: 0.95rem; z-index: 10001; position: sticky; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; gap: 1rem; box-shadow: 0 4px 15px rgba(248, 81, 73, 0.4);">
         <span><i class="ph-bold ph-mask-happy"></i> <strong>God-Mode:</strong> Eingeloggt als <?= htmlspecialchars($user['name']) ?></span>

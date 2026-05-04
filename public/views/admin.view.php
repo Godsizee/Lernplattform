@@ -20,6 +20,7 @@ if ($user['role'] !== 'admin') {
         <button class="learning-tab" data-target="admin-users" style="display: inline-flex; align-items: center; gap: 0.5rem;"><i class="ph ph-users"></i> Nutzerverwaltung</button>
         <button class="learning-tab" data-target="admin-content" style="display: inline-flex; align-items: center; gap: 0.5rem;"><i class="ph ph-books"></i> Inhalte (Lektionen)</button>
         <button class="learning-tab" data-target="admin-audit" style="display: inline-flex; align-items: center; gap: 0.5rem;"><i class="ph ph-list-dashes"></i> Aktivitäten-Log</button>
+        <button class="learning-tab" data-target="admin-system" style="display: inline-flex; align-items: center; gap: 0.5rem;"><i class="ph ph-gear"></i> System</button>
     </div>
 
     <div id="admin-dashboard" class="admin-panel active-panel fade-in">
@@ -87,6 +88,46 @@ if ($user['role'] !== 'admin') {
         <div class="audit-timeline" id="audit-timeline">
             <div class="loader"><i class="ph ph-spinner-gap ph-spin"></i> Lade Logs...</div>
         </div>
+    </div>
+
+    <!-- NEU: System-Einstellungen (Announcement Banner) -->
+    <div id="admin-system" class="admin-panel content-card" style="display:none;">
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+            <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.75rem;"><i class="ph ph-megaphone" style="color: var(--color-primary);"></i> Globale Ankündigung (Banner)</h2>
+        </div>
+        
+        <form id="announcement-form" class="fade-in">
+            <div class="form-group">
+                <label for="announcement-message">Nachricht (Markdown unterstützt)</label>
+                <textarea id="announcement-message" class="form-control" rows="3" placeholder="Wichtige Wartungsarbeiten am Samstag..."></textarea>
+                <p class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem;">Markdown wie **fett**, *kursiv* oder `Code` ist erlaubt.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+                <div class="form-group">
+                    <label for="announcement-type">Banner-Typ</label>
+                    <select id="announcement-type" class="form-control">
+                        <option value="info">Information (Blau)</option>
+                        <option value="warning">Warnung (Gelb/Orange)</option>
+                        <option value="danger">Kritisch (Rot)</option>
+                        <option value="success">Erfolg (Grün)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <label class="switch-container" style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-top: 0.5rem;">
+                        <input type="checkbox" id="announcement-active" class="custom-checkbox">
+                        <span style="font-weight: 500;">Banner aktiv anzeigen</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-glass);">
+                <button type="submit" class="btn btn-primary" id="btn-save-announcement">
+                    <i class="ph ph-floppy-disk"></i> Einstellungen speichern
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

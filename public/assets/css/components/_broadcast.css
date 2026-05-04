@@ -1,0 +1,99 @@
+/* components/_broadcast.css */
+
+.system-broadcast-banner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10005; /* Über der Topbar */
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 1200px;
+    width: 100%;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.banner-content i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.banner-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+/* Parsedown/Markdown Support im Banner */
+.banner-text p {
+    margin: 0;
+    display: inline;
+}
+
+.banner-text a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.banner-text strong {
+    font-weight: 700;
+}
+
+.banner-text code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Typen */
+.banner-info {
+    background: rgba(59, 130, 246, 0.85); /* Tailwind Blue 500 */
+    border-bottom-color: rgba(59, 130, 246, 1);
+}
+
+.banner-success {
+    background: rgba(16, 185, 129, 0.85); /* Tailwind Emerald 500 */
+    border-bottom-color: rgba(16, 185, 129, 1);
+}
+
+.banner-warning {
+    background: rgba(245, 158, 11, 0.85); /* Tailwind Amber 500 */
+    color: #1a1a1a;
+}
+.banner-warning .banner-content {
+    color: #1a1a1a;
+}
+.banner-warning a {
+    color: #1a1a1a;
+}
+.banner-warning code {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.banner-danger {
+    background: rgba(239, 68, 68, 0.85); /* Tailwind Red 500 */
+    border-bottom-color: rgba(239, 68, 68, 1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .banner-content {
+        font-size: 0.85rem;
+        gap: 0.5rem;
+    }
+}

@@ -83,10 +83,65 @@ export class Admin {
             await this.loadContentManager();
 
             await this.loadAuditLogs();
+            await this.loadAnnouncementSettings();
         } catch (error) {
             console.error('Error loading admin data:', error);
             Toast.error('Fehler beim Laden der Admin-Daten.');
         }
+    }
+
+    async loadAnnouncementSettings() {
+        const form = document.getElementById('announcement-form');
+        if (!form) return;
+
+        try {
+            const announcement = await ApiService.admin.getAnnouncement();
+            
+            document.getElementById('announcement-message').value = announcement.message || '';
+            document.getElementById('announcement-type').value = announcement.type || 'info';
+            document.getElementById('announcement-active').checked = !!announcement.is_active;
+
+            this.initAnnouncementEvents();
+        } catch (error) {
+            console.error('Error loading announcement settings:', error);
+        }
+    }
+
+    initAnnouncementEvents() {
+        const form = document.getElementById('announcement-form');
+        if (!form || form.dataset.initialized) return;
+
+        form.dataset.initialized = "true";
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-save-announcement');
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Speichere...';
+
+            const data = {
+                message: document.getElementById('announcement-message').value,
+                type: document.getElementById('announcement-type').value,
+                is_active: document.getElementById('announcement-active').checked
+            };
+
+            try {
+                await ApiService.admin.saveAnnouncement(data);
+                Toast.success('System-Einstellungen wurden erfolgreich gespeichert.');
+                
+                // Seite evtl. neu laden oder Banner direkt aktualisieren
+                // Da der Banner in der header.php gerendert wird, ist ein Reload am einfachsten
+                // für eine sofortige globale Sichtbarkeit.
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                Toast.error(error.message || 'Fehler beim Speichern.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        });
     }
 
     async loadContentManager() {

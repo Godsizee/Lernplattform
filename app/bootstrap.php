@@ -44,11 +44,15 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// Require third-party Parsedown (no namespace)
+require_once __DIR__ . '/Core/Parsedown.php';
+
 use App\Core\Database;
 use App\Core\Container;
 use App\Repositories\UserRepository;
 use App\Repositories\LessonRepository;
 use App\Repositories\AuditLogRepository;
+use App\Repositories\SettingRepository;
 
 $container = new Container();
 
@@ -58,10 +62,12 @@ try {
     $userRepo = new UserRepository($db);
     $lessonRepo = new LessonRepository($db);
     $auditRepo = new AuditLogRepository($db);
+    $settingRepo = new SettingRepository($db);
 
     $container->set('UserRepository', $userRepo);
     $container->set('LessonRepository', $lessonRepo);
     $container->set('AuditLogRepository', $auditRepo);
+    $container->set('SettingRepository', $settingRepo);
     
 } catch (Exception $e) {
     error_log("Database Connection Error: " . $e->getMessage());

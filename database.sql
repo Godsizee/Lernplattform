@@ -95,6 +95,13 @@ CREATE TABLE audit_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- 8. System-Einstellungen (Globaler Key-Value Store)
+CREATE TABLE system_settings (
+    setting_key VARCHAR(50) PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ==========================================================================
 -- Standard-Daten (Initial-Setup)
 -- ==========================================================================
@@ -113,3 +120,7 @@ INSERT INTO lessons (subject_id, title, content) VALUES
 (2, 'Was ist BWL?', '<p>Die Betriebswirtschaftslehre befasst sich mit wirtschaftlichen Vorgängen im Unternehmen. Ziel ist es, Ressourcen effizient einzusetzen.</p>'),
 (3, 'SAP ERP Navigation', '<p>Die SAP GUI ist die Standard-Oberfläche. Wichtige Transaktionen für Administratoren sind z.B. <code>SU01</code> (Benutzerpflege) und <code>SE16N</code> (Tabellenanzeige).</p>'),
 (4, 'Java Hello World', '<p>Der klassische Einstieg in die objektorientierte Programmierung mit Java.</p><div class="code-block"><pre><code>public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello World!");\n  }\n}</code></pre></div>');
+
+-- Standard-Einstellungen
+INSERT INTO system_settings (setting_key, setting_value) VALUES 
+('global_announcement', '{"message": "", "type": "info", "is_active": false}');

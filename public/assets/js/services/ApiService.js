@@ -138,6 +138,11 @@ export class ApiService {
         deleteSubject: (id) => ApiService.request('admin/subjects/delete', {
             method: 'POST',
             body: JSON.stringify({ id })
+        }),
+        getAnnouncement: () => ApiService.request('admin/announcement'),
+        saveAnnouncement: (data) => ApiService.request('admin/announcement', {
+            method: 'POST',
+            body: JSON.stringify(data)
         })
     };
 

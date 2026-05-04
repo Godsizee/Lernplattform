@@ -62,6 +62,8 @@ $router->post('/api/admin/lessons/bulk-status', 'AdminController@bulkStatus');
 $router->post('/api/admin/lessons/bulk-delete', 'AdminController@bulkDelete');
 $router->post('/api/admin/subjects', 'AdminController@saveSubject');
 $router->post('/api/admin/subjects/delete', 'AdminController@deleteSubject');
+$router->get('/api/admin/announcement', 'AdminController@getAnnouncement');
+$router->post('/api/admin/announcement', 'AdminController@saveAnnouncement');
 
 // Score Migration Route
 $router->get('/scripts/apply_score_migration.php', function() {
