@@ -280,6 +280,7 @@ export class Learning {
     }
 
     setFocusMode(active) {
+        // Diese Methode bleibt als API erhalten, wird aber jetzt von der QuizEngine gesteuert
         if (active) {
             document.body.classList.add('quiz-focus-mode');
         } else {
@@ -290,8 +291,11 @@ export class Learning {
     renderLesson(container, lesson, isCompleted) {
         const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
         
-        // Focus Mode für Quizze
-        this.setFocusMode(lesson.type === 'quiz');
+        // Focus Mode wird jetzt intern von der QuizEngine gesteuert, falls es ein Quiz ist.
+        // Wir stellen sicher, dass er beim Laden einer normalen Lektion aus ist.
+        if (lesson.type !== 'quiz') {
+            this.setFocusMode(false);
+        }
 
         let contentHtml = '';
         if (lesson.type === 'quiz') {

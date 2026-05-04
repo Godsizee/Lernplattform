@@ -12,6 +12,7 @@ export class QuizEngine {
         this.incorrectlyAnsweredQuestions = [];
         this.currentQuestionIndex = 0;
         this.score = 0;
+        this.isFocusMode = true; // Default ON
         
         this.sessionKey = 'quizState_lesson_' + this.lessonId;
         
@@ -30,6 +31,15 @@ export class QuizEngine {
         this.container.innerHTML = `
             <div class="quiz-modern-wrapper">
                 <div class="quiz-header-minimal">
+                    <div class="quiz-controls-left">
+                        <div class="focus-toggle-wrapper" data-tooltip="Fokus-Modus umschalten">
+                            <label class="focus-switch">
+                                <input type="checkbox" id="focus-mode-toggle" checked>
+                                <span class="focus-slider"></span>
+                            </label>
+                            <span class="focus-label"><i class="ph ph-eye-closed"></i> Fokus-Modus</span>
+                        </div>
+                    </div>
                     <div class="quiz-progress-info">
                         <span id="quiz-progress-text"></span>
                         <div class="quiz-progress-track">
@@ -101,6 +111,25 @@ export class QuizEngine {
                 this.startQuiz(this.incorrectlyAnsweredQuestions);
             }
         });
+
+        // Focus Toggle Logic
+        const focusToggle = this.container.querySelector('#focus-mode-toggle');
+        if (focusToggle) {
+            focusToggle.addEventListener('change', (e) => {
+                this.isFocusMode = e.target.checked;
+                this.updateFocusUI();
+            });
+            // Initial state
+            this.updateFocusUI();
+        }
+    }
+
+    updateFocusUI() {
+        if (this.isFocusMode) {
+            document.body.classList.add('quiz-focus-mode');
+        } else {
+            document.body.classList.remove('quiz-focus-mode');
+        }
     }
 
     saveState() {

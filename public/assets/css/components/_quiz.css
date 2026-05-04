@@ -15,22 +15,86 @@
 /* Minimalistischer Header */
 .quiz-header-minimal {
     margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
 }
 
-.quiz-progress-track {
-    height: 6px;
+.quiz-controls-left {
+    display: flex;
+    align-items: center;
+}
+
+.focus-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
     background: var(--bg-dark);
-    border-radius: 3px;
-    margin-top: 0.8rem;
-    overflow: hidden;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    border: 1px solid var(--border-glass);
 }
 
-.quiz-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-primary), #a855f7);
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.focus-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Switch Styling */
+.focus-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.focus-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.focus-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-surface);
+    transition: .4s;
+    border-radius: 20px;
+    border: 1px solid var(--border-glass);
+}
+
+.focus-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-secondary);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .focus-slider {
+    background-color: var(--color-primary);
+}
+
+input:checked + .focus-slider:before {
+    transform: translateX(16px);
+    background-color: white;
+}
+
+.quiz-progress-info {
+    flex: 1;
 }
 
 .question-badge {
@@ -284,27 +348,34 @@ body.quiz-focus-mode .sidebar,
 body.quiz-focus-mode .topbar,
 body.quiz-focus-mode .view-header,
 body.quiz-focus-mode .learning-header,
-body.quiz-focus-mode .learning-tabs,
-body.quiz-focus-mode .student-notes-section,
-body.quiz-focus-mode .lesson-header,
-body.quiz-focus-mode .article-meta,
-body.quiz-focus-mode .lesson-footer-nav {
+body.quiz-focus-mode .learning-tabs {
     display: none !important;
 }
 
 body.quiz-focus-mode .main-content {
     margin-left: 0 !important;
     padding-top: 2rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 body.quiz-focus-mode .learning-layout {
-    display: block;
+    display: flex;
+    justify-content: center;
     margin-top: 0;
 }
 
 body.quiz-focus-mode .learning-main {
-    max-width: 1000px;
+    width: 100%;
+    max-width: 900px;
     margin: 0 auto;
+}
+
+body.quiz-focus-mode .student-notes-section,
+body.quiz-focus-mode .lesson-header,
+body.quiz-focus-mode .article-meta,
+body.quiz-focus-mode .lesson-footer-nav {
+    display: none !important;
 }
 
 .option-card {
