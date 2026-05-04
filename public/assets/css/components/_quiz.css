@@ -280,41 +280,70 @@
 }
 
 /* Focus Mode Adjustments */
-body.quiz-focus-mode .learning-sidebar {
+body.quiz-focus-mode .learning-sidebar,
+body.quiz-focus-mode .learning-header,
+body.quiz-focus-mode .student-notes-section,
+body.quiz-focus-mode .lesson-header,
+body.quiz-focus-mode .article-meta,
+body.quiz-focus-mode .lesson-footer-nav {
     display: none !important;
+}
+
+body.quiz-focus-mode .learning-layout {
+    display: block;
+    margin-top: 2rem;
 }
 
 body.quiz-focus-mode .learning-main {
-    flex: 1;
-    max-width: 1000px;
+    max-width: 900px;
     margin: 0 auto;
 }
 
-body.quiz-focus-mode .student-notes-section {
-    display: none !important;
+.option-card {
+    position: relative;
+    background: var(--bg-dark);
+    border: 2px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 0; /* Important: Padding to label */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.option-card label {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    width: 100%;
+    padding: 1.2rem 1.5rem; /* Large clickable area */
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
 }
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .quiz-modern-wrapper {
-        padding: 1.5rem;
+        padding: 1.2rem;
         margin: -1rem; /* Full width on mobile */
         border: none;
         border-radius: 0;
-        min-height: calc(100vh - 100px);
+        min-height: calc(100vh - 120px);
     }
     
     .question-heading {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         margin-bottom: 1.5rem;
     }
     
-    .option-card {
+    .option-card label {
         padding: 1rem;
     }
     
     .option-text {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
     .quiz-footer-actions {
@@ -325,15 +354,18 @@ body.quiz-focus-mode .student-notes-section {
         background: var(--bg-surface);
         padding: 1rem;
         border-top: 1px solid var(--border-glass);
-        box-shadow: 0 -10px 20px rgba(0,0,0,0.2);
-        z-index: 100;
-        justify-content: stretch;
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.3);
+        z-index: 1000;
+        display: flex;
+        gap: 0.5rem;
     }
     
     .quiz-btn {
-        width: 100%;
+        flex: 1;
         justify-content: center;
+        padding: 0.8rem;
     }
     
-    .result-title { font-size: 1.8rem; }
+    .result-title { font-size: 1.6rem; }
+    .result-actions { flex-direction: column; width: 100%; }
 }

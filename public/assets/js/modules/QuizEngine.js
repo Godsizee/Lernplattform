@@ -171,7 +171,6 @@ export class QuizEngine {
         
         this.optionsContainer.innerHTML = '';
 
-        const shuffledKeys = Object.keys(question.options).sort(() => Math.random() - 0.5);
         shuffledKeys.forEach(key => {
             const optionCard = document.createElement('div');
             optionCard.className = 'option-card';
@@ -182,16 +181,25 @@ export class QuizEngine {
                     <span class="option-text">${escapeHTML(question.options[key])}</span>
                 </label>
             `;
-            optionCard.addEventListener('click', () => {
+            
+            // Handle click on the card itself
+            optionCard.addEventListener('click', (e) => {
                 if (this.checkBtn.style.display === 'none') return;
+                
                 const input = optionCard.querySelector('input');
+                
+                // If the user clicked the label or marker directly, 
+                // we don't need to manually toggle since the browser does it.
+                // But we want to ensure the card's visual state updates.
+                
                 if (question.type === 'radio') {
                     this.optionsContainer.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
                     optionCard.classList.add('selected');
-                    input.checked = true;
                 } else {
-                    optionCard.classList.toggle('selected');
-                    input.checked = !input.checked;
+                    // For checkboxes, toggle selected class
+                    setTimeout(() => {
+                        optionCard.classList.toggle('selected', input.checked);
+                    }, 50);
                 }
             });
             this.optionsContainer.appendChild(optionCard);
@@ -220,6 +228,7 @@ export class QuizEngine {
                 card.classList.add('wrong');
             }
             input.disabled = true;
+            card.style.cursor = 'default';
         });
 
         if (isCorrect) {
