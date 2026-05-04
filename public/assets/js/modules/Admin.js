@@ -175,9 +175,7 @@ export class Admin {
             banner.style.display = active ? 'flex' : 'none';
             banner.innerHTML = `
                 <div class="banner-content">
-                    <div class="banner-icon-wrapper">
-                        <i class="ph-bold ph-megaphone"></i>
-                    </div>
+                    <i class="ph ph-megaphone banner-main-icon"></i>
                     <div class="banner-text">${this.announcementEditor.parser.parse(message)}</div>
                     <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none'"><i class="ph ph-x"></i></button>
                 </div>

@@ -107,9 +107,7 @@ if ($isSoftRoute) {
     ?>
     <div id="system-banner" class="system-broadcast-banner banner-<?= htmlspecialchars($announcement['type']) ?>" data-announcement-id="<?= $announcementId ?>" style="display: none;">
         <div class="banner-content">
-            <div class="banner-icon-wrapper">
-                <i class="ph-bold ph-megaphone"></i>
-            </div>
+            <i class="ph ph-megaphone banner-main-icon"></i>
             <div class="banner-text">
                 <?= $formattedMessage ?>
             </div>
