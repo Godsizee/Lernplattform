@@ -1,4 +1,6 @@
 /* modules/QuizEngine.js */
+import { escapeHTML } from '../utils/Helpers.js';
+
 export class QuizEngine {
     constructor(container, questions, options = {}) {
         this.container = container;
@@ -10,7 +12,6 @@ export class QuizEngine {
         this.incorrectlyAnsweredQuestions = [];
         this.currentQuestionIndex = 0;
         this.score = 0;
-        this.draggedItem = null;
         
         this.sessionKey = 'quizState_lesson_' + this.lessonId;
         
@@ -21,34 +22,59 @@ export class QuizEngine {
                 this.startQuiz(this.questions);
             }
         } else {
-            this.container.innerHTML = '<div class="form-error">Keine Fragen in diesem Quiz gefunden.</div>';
+            this.container.innerHTML = '<div class="quiz-empty-state">Keine Fragen in diesem Quiz gefunden.</div>';
         }
     }
 
     initDOM() {
         this.container.innerHTML = `
-            <div class="quiz-engine-container">
-                <div class="quiz-progress-bar">
-                    <div class="quiz-progress-inner" id="quiz-progress-bar-inner"></div>
-                </div>
-                <div class="quiz-progress-text" id="quiz-progress-text"></div>
-                
-                <div id="quiz-screen">
-                    <h3 id="question-text" class="question-text"></h3>
-                    <div id="options-container" class="options-container"></div>
-                    <div id="feedback-area" class="feedback-area"></div>
-                    <div class="quiz-actions">
-                        <button id="check-answer-btn" class="btn btn-primary">Antwort prüfen</button>
-                        <button id="next-question-btn" class="btn btn-primary" style="display:none;">Nächste Frage</button>
+            <div class="quiz-modern-wrapper">
+                <div class="quiz-header-minimal">
+                    <div class="quiz-progress-info">
+                        <span id="quiz-progress-text"></span>
+                        <div class="quiz-progress-track">
+                            <div class="quiz-progress-fill" id="quiz-progress-bar-inner"></div>
+                        </div>
                     </div>
                 </div>
                 
-                <div id="quiz-result-screen" style="display:none;" class="quiz-result-screen">
-                    <h2 id="result-headline" class="result-headline"></h2>
-                    <p id="result-text" class="result-text">Du hast <strong id="score-final">0</strong> von <strong id="total-final">0</strong> Fragen richtig beantwortet (<strong id="percentage-final">0</strong>%).</p>
-                    <div class="quiz-result-actions">
-                        <button id="retry-incorrect-btn" class="btn btn-warning" style="display:none;">Falsche wiederholen</button>
-                        <button id="restart-quiz-btn" class="btn btn-secondary">Quiz neu starten</button>
+                <div id="quiz-screen" class="quiz-active-screen">
+                    <div class="question-container">
+                        <div class="question-badge">Frage ${this.currentQuestionIndex + 1}</div>
+                        <h2 id="question-text" class="question-heading"></h2>
+                    </div>
+                    
+                    <div id="options-container" class="options-grid"></div>
+                    
+                    <div id="feedback-area" class="feedback-overlay"></div>
+                    
+                    <div class="quiz-footer-actions">
+                        <button id="check-answer-btn" class="quiz-btn quiz-btn-primary">Antwort prüfen</button>
+                        <button id="next-question-btn" class="quiz-btn quiz-btn-success" style="display:none;">
+                            Nächste Frage <i class="ph ph-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="quiz-result-screen" style="display:none;" class="quiz-finished-screen">
+                    <div class="result-circle-wrapper">
+                        <div class="result-percentage" id="percentage-final">0%</div>
+                        <svg class="result-svg">
+                            <circle class="bg" cx="60" cy="60" r="54"></circle>
+                            <circle class="progress" cx="60" cy="60" r="54" id="result-stroke"></circle>
+                        </svg>
+                    </div>
+                    
+                    <h2 id="result-headline" class="result-title"></h2>
+                    <p id="result-text" class="result-subtitle"></p>
+                    
+                    <div class="result-actions">
+                        <button id="retry-incorrect-btn" class="quiz-btn quiz-btn-warning" style="display:none;">
+                            <i class="ph ph-arrow-counter-clockwise"></i> Falsche wiederholen
+                        </button>
+                        <button id="restart-quiz-btn" class="quiz-btn quiz-btn-secondary">
+                            <i class="ph ph-arrows-clockwise"></i> Alles neu starten
+                        </button>
                     </div>
                 </div>
             </div>
@@ -106,8 +132,6 @@ export class QuizEngine {
                         this.clearState();
                         return false;
                     }
-                    this.quizScreen.style.display = 'block';
-                    this.resultScreen.style.display = 'none';
                     this.displayQuestion();
                     return true;
                 }
@@ -134,139 +158,163 @@ export class QuizEngine {
 
     displayQuestion() {
         this.feedbackArea.innerHTML = '';
+        this.feedbackArea.classList.remove('active');
         this.nextBtn.style.display = 'none';
-        this.checkBtn.style.display = 'inline-block';
+        this.checkBtn.style.display = 'inline-flex';
         this.checkBtn.disabled = false;
         
         this.updateProgress();
         
         const question = this.selectedQuestions[this.currentQuestionIndex];
         this.questionText.textContent = question.question;
+        this.container.querySelector('.question-badge').textContent = `Frage ${this.currentQuestionIndex + 1} von ${this.selectedQuestions.length}`;
+        
         this.optionsContainer.innerHTML = '';
 
-        if (question.type === 'radio' || question.type === 'checkbox') {
-            this.displayStandardQuestion(question);
-        } else if (question.type === 'matching') {
-            this.displayMatchingQuestion(question);
-        } else if (question.type === 'ordering') {
-            this.displayOrderingQuestion(question);
-        }
-    }
-
-    displayStandardQuestion(question) {
         const shuffledKeys = Object.keys(question.options).sort(() => Math.random() - 0.5);
         shuffledKeys.forEach(key => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'quiz-option-item';
-            const label = document.createElement('label');
-            const input = document.createElement('input');
-            input.type = question.type;
-            input.name = 'quiz_option';
-            input.value = key;
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(' ' + question.options[key]));
-            optionDiv.appendChild(label);
-            this.optionsContainer.appendChild(optionDiv);
+            const optionCard = document.createElement('div');
+            optionCard.className = 'option-card';
+            optionCard.innerHTML = `
+                <input type="${question.type}" name="quiz_opt" id="opt_${key}" value="${key}">
+                <label for="opt_${key}">
+                    <span class="option-marker">${key}</span>
+                    <span class="option-text">${escapeHTML(question.options[key])}</span>
+                </label>
+            `;
+            optionCard.addEventListener('click', () => {
+                if (this.checkBtn.style.display === 'none') return;
+                const input = optionCard.querySelector('input');
+                if (question.type === 'radio') {
+                    this.optionsContainer.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+                    optionCard.classList.add('selected');
+                    input.checked = true;
+                } else {
+                    optionCard.classList.toggle('selected');
+                    input.checked = !input.checked;
+                }
+            });
+            this.optionsContainer.appendChild(optionCard);
         });
     }
 
-    displayMatchingQuestion(question) {
-        // Reduced logic for SAP standard migration support.
-        const msg = document.createElement('p');
-        msg.textContent = "(Matching questions not fully supported in this reduced view. Skipping...)";
-        this.optionsContainer.appendChild(msg);
-    }
-
-    displayOrderingQuestion(question) {
-        const msg = document.createElement('p');
-        msg.textContent = "(Ordering questions not fully supported in this reduced view. Skipping...)";
-        this.optionsContainer.appendChild(msg);
-    }
-
     checkAnswer() {
-        this.checkBtn.disabled = true;
         const question = this.selectedQuestions[this.currentQuestionIndex];
+        const selectedInputs = this.optionsContainer.querySelectorAll('input:checked');
+        if (selectedInputs.length === 0) return;
+
+        this.checkBtn.disabled = true;
         let isCorrect = false;
 
-        if (question.type === 'radio' || question.type === 'checkbox') {
-            const correctAnswers = Array.isArray(question.correct) ? question.correct.sort() : [question.correct];
-            const selectedInputs = this.optionsContainer.querySelectorAll('input:checked');
-            const userAnswers = Array.from(selectedInputs).map(input => input.value).sort();
-            isCorrect = JSON.stringify(correctAnswers) === JSON.stringify(userAnswers);
+        const correctAnswers = Array.isArray(question.correct) ? question.correct.sort() : [question.correct];
+        const userAnswers = Array.from(selectedInputs).map(input => input.value).sort();
+        isCorrect = JSON.stringify(correctAnswers) === JSON.stringify(userAnswers);
+        
+        this.optionsContainer.querySelectorAll('.option-card').forEach(card => {
+            const input = card.querySelector('input');
+            const val = input.value;
             
-            this.optionsContainer.querySelectorAll('label').forEach(label => {
-                const input = label.querySelector('input');
-                if (correctAnswers.includes(input.value)) {
-                    label.classList.add('correct-answer');
-                } else if (Array.from(selectedInputs).includes(input)) {
-                    label.classList.add('wrong-answer');
-                }
-                input.disabled = true;
-            });
-        }
+            if (correctAnswers.includes(val)) {
+                card.classList.add('correct');
+            } else if (input.checked) {
+                card.classList.add('wrong');
+            }
+            input.disabled = true;
+        });
 
         if (isCorrect) {
             this.score++;
-            this.showFeedback('Richtig!', 'success');
+            this.showFeedback('Hervorragend! Das ist absolut richtig.', 'success');
         } else {
             this.incorrectlyAnsweredQuestions.push(question);
-            let solutionHtml = '';
-            const correctAnswersArray = Array.isArray(question.correct) ? question.correct : [question.correct];
-            solutionHtml = correctAnswersArray.map(key => question.options[key]).join(', ');
-            this.showFeedback(`Leider falsch. Die richtige Antwort ist: <br><strong>${solutionHtml}</strong>`, 'fail');
+            const solutionText = correctAnswers.map(k => `<strong>${k}</strong>`).join(', ');
+            this.showFeedback(`Nicht ganz richtig. Die korrekte Lösung wäre: ${solutionText}`, 'error');
         }
         
-        this.nextBtn.style.display = 'inline-block';
+        this.nextBtn.style.display = 'inline-flex';
         this.checkBtn.style.display = 'none';
+        this.saveState();
     }
 
     showFeedback(message, type) {
-        this.feedbackArea.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}">${message}</div>`;
+        this.feedbackArea.className = `feedback-overlay active ${type}`;
+        this.feedbackArea.innerHTML = `
+            <div class="feedback-content">
+                <i class="ph ${type === 'success' ? 'ph-check-circle' : 'ph-x-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
     }
 
     nextQuestion() {
         this.currentQuestionIndex++;
-        
         if (this.currentQuestionIndex < this.selectedQuestions.length) {
-            this.saveState();
             this.displayQuestion();
         } else {
-            this.progressBar.style.width = `100%`;
-            this.clearState();
             this.showResults();
         }
     }
 
-    showResults() {
-        this.quizScreen.style.display = 'none';
-        this.resultScreen.style.display = 'block';
-        
-        const total = this.selectedQuestions.length;
-        const percentage = total > 0 ? Math.round((this.score / total) * 100) : 0;
-        
-        this.container.querySelector('#score-final').textContent = this.score;
-        this.container.querySelector('#total-final').textContent = total;
-        this.container.querySelector('#percentage-final').textContent = percentage;
-        
-        const resultHeadline = this.container.querySelector('#result-headline');
-        
-        if (percentage >= 60) {
-            resultHeadline.textContent = "Glückwunsch! Quiz bestanden.";
-            resultHeadline.style.color = 'var(--color-success)';
-            this.onComplete(true); // Callback if passed
-        } else {
-            resultHeadline.textContent = "Nicht bestanden. Versuche es erneut.";
-            resultHeadline.style.color = 'var(--color-warning)';
-        }
-        
-        if (this.retryIncorrectBtn) {
-            this.retryIncorrectBtn.style.display = this.incorrectlyAnsweredQuestions.length > 0 ? 'inline-block' : 'none';
-        }
+    updateProgress() {
+        const percent = (this.currentQuestionIndex / this.selectedQuestions.length) * 100;
+        this.progressBar.style.width = `${percent}%`;
     }
 
-    updateProgress() {
-        const progressPercentage = (this.currentQuestionIndex / this.selectedQuestions.length) * 100;
-        this.progressBar.style.width = `${progressPercentage}%`;
-        this.progressText.textContent = `Frage ${this.currentQuestionIndex + 1} von ${this.selectedQuestions.length}`;
+    showResults() {
+        this.clearState();
+        this.quizScreen.style.display = 'none';
+        this.resultScreen.style.display = 'flex';
+        
+        const total = this.selectedQuestions.length;
+        const percentage = Math.round((this.score / total) * 100);
+        
+        const stroke = this.container.querySelector('#result-stroke');
+        const radius = 54;
+        const circumference = 2 * Math.PI * radius;
+        stroke.style.strokeDasharray = `${circumference} ${circumference}`;
+        stroke.style.strokeDashoffset = circumference;
+        
+        setTimeout(() => {
+            const offset = circumference - (percentage / 100) * circumference;
+            stroke.style.strokeDashoffset = offset;
+            this.animateValue('percentage-final', 0, percentage, 1000, '%');
+        }, 100);
+
+        const headline = this.container.querySelector('#result-headline');
+        const text = this.container.querySelector('#result-text');
+        
+        if (percentage >= 80) {
+            headline.textContent = "Meisterhaft!";
+            text.textContent = `Du hast ${this.score} von ${total} Fragen richtig beantwortet. Eine exzellente Leistung!`;
+            headline.style.color = 'var(--color-success)';
+        } else if (percentage >= 60) {
+            headline.textContent = "Bestanden!";
+            text.textContent = `Du hast ${this.score} von ${total} Fragen richtig beantwortet. Gut gemacht!`;
+            headline.style.color = 'var(--color-primary)';
+        } else {
+            headline.textContent = "Versuch's nochmal!";
+            text.textContent = `Du hast nur ${this.score} von ${total} Fragen richtig beantwortet. Übung macht den Meister.`;
+            headline.style.color = 'var(--color-warning)';
+        }
+        
+        this.retryIncorrectBtn.style.display = this.incorrectlyAnsweredQuestions.length > 0 ? 'inline-flex' : 'none';
+        
+        // Final Callback to save score
+        this.onComplete(percentage);
+    }
+
+    animateValue(id, start, end, duration, suffix = '') {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start) + suffix;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
     }
 }

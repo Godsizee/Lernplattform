@@ -136,14 +136,18 @@ class ArticleController extends Controller {
 
         $lessonId = filter_var($input['lesson_id'] ?? null, FILTER_VALIDATE_INT);
         $completed = $input['completed'] ?? true;
+        $score = isset($input['score']) ? filter_var($input['score'], FILTER_VALIDATE_INT) : null;
         
         if (!$lessonId) return $this->json(['error' => 'Ungültige ID.'], 400);
 
-        $this->lessonRepo->saveProgress($userId, $lessonId, $completed ? 'completed' : 'pending');
+        $this->lessonRepo->saveProgress($userId, $lessonId, $completed ? 'completed' : 'pending', $score);
         
         $lessonTitle = $this->lessonRepo->getLessonTitle($lessonId);
         $action = $completed ? 'LESSON_COMPLETED' : 'LESSON_RESET';
-        $this->auditRepo->log($userId, $action, "Status für '$lessonTitle' geändert.");
+        $msg = "Status für '$lessonTitle' geändert.";
+        if ($score !== null) $msg .= " Ergebnis: $score%.";
+        
+        $this->auditRepo->log($userId, $action, $msg);
 
         return $this->json(['success' => true]);
     }

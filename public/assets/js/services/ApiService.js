@@ -76,9 +76,9 @@ export class ApiService {
     };
 
     static progress = {
-        toggle: (lessonId, completed) => this.request('progress/toggle', {
+        toggle: (lessonId, completed, score = null) => this.request('progress/toggle', {
             method: 'POST',
-            body: JSON.stringify({ lesson_id: lessonId, completed })
+            body: JSON.stringify({ lesson_id: lessonId, completed, score })
         })
     };
 

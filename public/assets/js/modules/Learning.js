@@ -279,8 +279,20 @@ export class Learning {
         }
     }
 
+    setFocusMode(active) {
+        if (active) {
+            document.body.classList.add('quiz-focus-mode');
+        } else {
+            document.body.classList.remove('quiz-focus-mode');
+        }
+    }
+
     renderLesson(container, lesson, isCompleted) {
         const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
+        
+        // Focus Mode für Quizze
+        this.setFocusMode(lesson.type === 'quiz');
+
         let contentHtml = '';
         if (lesson.type === 'quiz') {
             contentHtml = '<div id="quiz-container-inner"></div>';
@@ -376,9 +388,17 @@ export class Learning {
                 const quizContainer = container.querySelector('#quiz-container-inner');
                 new QuizEngine(quizContainer, quizData, {
                     lessonId: lesson.id,
-                    onComplete: (passed) => {
-                        if (passed && !isCompleted) {
-                            // User still has to manually complete it, but we could trigger it automatically if we wanted.
+                    onComplete: async (percentage) => {
+                        try {
+                            await ApiService.progress.toggle(lesson.id, true, percentage);
+                            Toast.success(`Ergebnis gespeichert: ${percentage}%`);
+                            // Progress lokal aktualisieren
+                            if (!this.progress.includes(parseInt(lesson.id))) {
+                                this.progress.push(parseInt(lesson.id));
+                            }
+                            this.renderTOC();
+                        } catch (e) {
+                            Toast.error("Fehler beim Speichern des Ergebnisses.");
                         }
                     }
                 });
@@ -399,15 +419,21 @@ export class Learning {
         // Visual Feedback für TOC (keine aktive Lektion)
         this.activeLessonId = null;
         this.updateTOCHighlight();
+        this.setFocusMode(false);
 
         // Gruppierung nach Büchern für die Karten
         const books = {};
         this.lessonsMetadata.forEach(lesson => {
             const match = lesson.title.match(/^Quiz:\s*(.*?)\s*-\s*(.*)$/);
             const bookName = match ? match[1] : 'Allgemein';
-            if (!books[bookName]) books[bookName] = { title: bookName, lessons: [], completed: 0 };
+            if (!books[bookName]) books[bookName] = { title: bookName, lessons: [], completed: 0, bestScore: 0 };
             books[bookName].lessons.push(lesson);
-            if (this.progress.includes(lesson.id)) books[bookName].completed++;
+            
+            // Score tracking
+            if (lesson.score !== null) {
+                books[bookName].completed++;
+                if (lesson.score > books[bookName].bestScore) books[bookName].bestScore = lesson.score;
+            }
         });
 
         const bookEntries = Object.values(books);
@@ -416,7 +442,7 @@ export class Learning {
             <div class="quiz-hub-container fade-in">
                 <div class="quiz-hub-welcome">
                     <h1>Willkommen im SAP Quiz Center</h1>
-                    <p>Wähle eines der SAP Module aus, um dein Wissen gezielt zu testen. Alle Fragen stammen direkt aus den offiziellen SAP Academy Unterlagen.</p>
+                    <p>Wähle eines der SAP Module aus, um dein Wissen gezielt zu testen. Deine Ergebnisse werden direkt gespeichert.</p>
                 </div>
                 
                 <div class="quiz-hub-grid">
@@ -427,12 +453,12 @@ export class Learning {
                             <div class="book-card" data-book="${escapeHTML(book.title)}">
                                 <div class="book-icon"><i class="ph ph-books"></i></div>
                                 <h3 class="book-title">${escapeHTML(book.title)}</h3>
-                                <div class="book-meta">${total} Kapitel • Modularer Aufbau</div>
+                                <div class="book-meta">${total} Kapitel • Beste Quote: ${book.bestScore}%</div>
                                 
                                 <div class="book-progress-container">
                                     <div class="book-progress-bar" style="width: ${percentage}%"></div>
                                 </div>
-                                <div class="book-stats">${percentage}% abgeschlossen</div>
+                                <div class="book-stats">${book.completed} von ${total} abgeschlossen</div>
                             </div>
                         `;
                     }).join('')}

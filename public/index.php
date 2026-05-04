@@ -63,9 +63,9 @@ $router->post('/api/admin/lessons/bulk-delete', 'AdminController@bulkDelete');
 $router->post('/api/admin/subjects', 'AdminController@saveSubject');
 $router->post('/api/admin/subjects/delete', 'AdminController@deleteSubject');
 
-// Temporary Setup Route
-$router->get('/scripts/setup_quiz_center.php', function() {
-    require __DIR__ . '/../scripts/setup_quiz_center.php';
+// Score Migration Route
+$router->get('/scripts/apply_score_migration.php', function() {
+    require_once __DIR__ . '/../scripts/apply_score_migration.php';
 });
 
 // Media

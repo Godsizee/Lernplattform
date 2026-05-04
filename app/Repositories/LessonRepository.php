@@ -41,7 +41,7 @@ class LessonRepository {
             SELECT l.id, l.subject_id, l.author_id, l.title, l.type $contentFields,
                    l.status as article_status, l.created_at, l.updated_at,
                    s.title as subject_title, s.color as subject_color,
-                   up.status,
+                   up.status, up.score,
                    u.name as author_name
             FROM lessons l
             JOIN subjects s ON l.subject_id = s.id
@@ -73,17 +73,18 @@ class LessonRepository {
         return $stmt->fetchAll();
     }
 
-    public function saveProgress(int $userId, int $lessonId, string $status): void {
+    public function saveProgress(int $userId, int $lessonId, string $status, ?int $score = null): void {
         $stmt = $this->db->prepare("
-            INSERT INTO user_progress (user_id, lesson_id, status) 
-            VALUES (:user_id, :lesson_id, :status)
+            INSERT INTO user_progress (user_id, lesson_id, status, score) 
+            VALUES (:user_id, :lesson_id, :status, :score)
             ON CONFLICT (user_id, lesson_id) 
-            DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP
+            DO UPDATE SET status = EXCLUDED.status, score = EXCLUDED.score, updated_at = CURRENT_TIMESTAMP
         ");
         $stmt->execute([
             ':user_id' => $userId,
             ':lesson_id' => $lessonId,
-            ':status' => $status
+            ':status' => $status,
+            ':score' => $score
         ]);
     }
 
