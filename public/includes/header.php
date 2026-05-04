@@ -100,14 +100,16 @@ if ($isSoftRoute) {
     if ($announcement && !empty($announcement['is_active']) && !empty($announcement['message'])):
         $parsedown = new Parsedown();
         $parsedown->setSafeMode(true);
-        $formattedMessage = $parsedown->line($announcement['message']);
+        $formattedMessage = $parsedown->text($announcement['message']);
         
         // Eindeutiger Hash für diese Nachricht (damit sie bei Änderungen wieder erscheint)
         $announcementId = md5($announcement['message'] . ($announcement['type'] ?? 'info'));
     ?>
     <div id="system-banner" class="system-broadcast-banner banner-<?= htmlspecialchars($announcement['type']) ?>" data-announcement-id="<?= $announcementId ?>" style="display: none;">
         <div class="banner-content">
-            <i class="ph-bold ph-megaphone"></i>
+            <div class="banner-icon-wrapper">
+                <i class="ph-bold ph-megaphone"></i>
+            </div>
             <div class="banner-text">
                 <?= $formattedMessage ?>
             </div>
