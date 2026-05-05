@@ -193,9 +193,25 @@
         top: 0;
         left: 0; 
         box-shadow: none; 
-        align-self: flex-start; /* Zwingend erforderlich für sticky im Flex-Layout */
-        height: 100vh; /* Zwingend erforderlich, damit sie den Viewport ausfüllt */
-        overflow-y: auto; /* Erlaubt das Scrollen des Menüs, falls es sehr lang wird */
+        align-self: flex-start; 
+        height: 100vh; 
+        overflow-y: auto; 
+    }
+
+    .sidebar:not(.collapsed) .sidebar-brand {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+        margin-bottom: 3rem;
+        padding-top: 1rem;
+    }
+
+    .sidebar:not(.collapsed) .brand-logo-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
     
     .sidebar.collapsed {
