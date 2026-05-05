@@ -76,6 +76,13 @@
     
     --shadow-desktop: 0 20px 50px rgba(0, 0, 0, 0.3);
     --shadow-premium: 0 0 40px rgba(169, 114, 255, 0.1);
+    
+    /* Sexy Desktop Enhancements */
+    --glass-bg: rgba(22, 27, 34, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glow-primary: 0 0 20px rgba(169, 114, 255, 0.3);
+    --glow-secondary: 0 0 20px rgba(240, 113, 103, 0.3);
+    --gradient-premium: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
 }
 
 :root.light-mode {
