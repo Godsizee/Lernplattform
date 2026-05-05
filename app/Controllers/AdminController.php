@@ -8,12 +8,14 @@ class AdminController extends Controller {
     private $userRepo;
     private $auditRepo;
     private $lessonRepo;
+    protected $db;
 
     public function __construct($container) {
         parent::__construct($container);
         $this->userRepo = $container->get('UserRepository');
         $this->auditRepo = $container->get('AuditLogRepository');
         $this->lessonRepo = $container->get('LessonRepository');
+        $this->db = \App\Core\Database::getInstance()->getConnection();
         $this->requireAdmin();
     }
 
@@ -303,31 +305,66 @@ class AdminController extends Controller {
     }
 
     /**
-     * Generiert einen SQL-Dump der Datenbank via pg_dump und sendet ihn an den Browser
+     * Generiert einen SQL-Dump der Datenbank via PHP (Fallback, da pg_dump oft fehlt)
      */
     public function downloadBackup() {
-        $host = getenv('DB_HOST') ?: '127.0.0.1';
-        $port = getenv('DB_PORT') ?: 5432;
-        $db   = getenv('DB_NAME') ?: 'code_and_cash';
-        $user = getenv('DB_USER') ?: 'lern_user';
-        $pass = getenv('DB_PASS') ?: '';
-
         $filename = "backup_" . date('Y-m-d_H-i-s') . ".sql";
         
-        // Header für den Download setzen
-        header('Content-Type: application/sql');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        
-        // PGPASSWORD setzen, damit pg_dump nicht interaktiv nach dem Passwort fragt
-        putenv("PGPASSWORD=$pass");
-        
-        // Befehl ausführen
-        $cmd = "pg_dump -h " . escapeshellarg($host) . " -p " . escapeshellarg($port) . " -U " . escapeshellarg($user) . " " . escapeshellarg($db);
-        
-        // Direkte Ausgabe an den Browser
-        passthru($cmd);
-        
-        $this->auditRepo->log($_SESSION['user_id'], 'SYSTEM_BACKUP', "Vollständiges Datenbank-Backup heruntergeladen ($filename).");
-        exit;
+        try {
+            // Tabellen in der richtigen Reihenfolge (wegen Foreign Keys)
+            $tables = ['users', 'subjects', 'lessons', 'user_progress', 'audit_logs', 'bookmarks', 'notes', 'settings'];
+            $output = "-- Code & Cash Lernplattform - SQL Dump\n";
+            $output .= "-- Generiert am: " . date('Y-m-d H:i:s') . "\n";
+            $output .= "-- Host: " . (getenv('DB_HOST') ?: 'localhost') . "\n\n";
+            $output .= "SET FOREIGN_KEY_CHECKS=0;\n\n"; // Falls MySQL/MariaDB
+            
+            foreach ($tables as $table) {
+                // Prüfen ob Tabelle existiert (Postgres Syntax)
+                $check = $this->db->query("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '$table')");
+                if (!$check->fetchColumn()) continue;
+
+                $output .= "-- Table: $table\n";
+                $output .= "TRUNCATE TABLE $table CASCADE;\n"; // Leert die Tabelle vor dem Import
+                
+                $stmt = $this->db->query("SELECT * FROM $table");
+                $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                
+                if (empty($rows)) {
+                    $output .= "-- Keine Daten für $table\n\n";
+                    continue;
+                }
+
+                foreach ($rows as $row) {
+                    $keys = array_keys($row);
+                    $values = array_values($row);
+                    
+                    // Werte für SQL escapen
+                    $escapedValues = array_map(function($v) {
+                        if ($v === null) return 'NULL';
+                        if (is_numeric($v)) return $v;
+                        return $this->db->quote($v);
+                    }, $values);
+                    
+                    $output .= "INSERT INTO $table (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $escapedValues) . ");\n";
+                }
+                $output .= "\n";
+            }
+            
+            $output .= "SET FOREIGN_KEY_CHECKS=1;\n";
+
+            header('Content-Type: application/sql');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Content-Length: ' . strlen($output));
+            
+            echo $output;
+            $this->auditRepo->log($_SESSION['user_id'], 'SYSTEM_BACKUP', "Datenbank-Backup via PHP-Export heruntergeladen ($filename).");
+            exit;
+
+        } catch (Exception $e) {
+            // Falls ein Fehler auftritt, geben wir ihn als Textdatei aus, statt einer leeren SQL
+            header('Content-Type: text/plain');
+            echo "Fehler beim Erstellen des Backups:\n" . $e->getMessage();
+            exit;
+        }
     }
 }
