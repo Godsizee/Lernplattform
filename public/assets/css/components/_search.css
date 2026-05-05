@@ -2,31 +2,6 @@
 .global-search-container {
     position: relative;
     width: 100%;
-    max-width: 100%;
-    z-index: 50;
-}
-
-.search-input-wrapper {
-    position: relative;
-    width: 100%;
-    transition: var(--transition);
-}
-
-.global-search-container .search-icon {
-    position: absolute;
-    left: 1.2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-    font-size: 1.2rem;
-    pointer-events: none;
-    transition: color 0.3s ease;
-    z-index: 2;
-}
-
-.global-search-container input {
-    width: 100%;
-    padding: 0.85rem 1.5rem 0.85rem 3rem;
     border-radius: 30px;
     background: var(--bg-surface);
     border: 1px solid var(--border-glass);
