@@ -16,6 +16,7 @@ export class Learning {
         this.currentSubjectId = null;
         this.activeLessonId = null;
         this.fontSizeOffset = parseFloat(localStorage.getItem('lern_font_offset')) || 0;
+        this.isZenMode = localStorage.getItem('lern_zen_mode') === 'true';
     }
 
     async loadData() {
@@ -309,21 +310,23 @@ export class Learning {
     }
 
     setFocusMode(active) {
-        // Diese Methode bleibt als API erhalten, wird aber jetzt von der QuizEngine gesteuert
         if (active) {
-            document.body.classList.add('quiz-focus-mode');
+            document.body.classList.add('focus-mode');
         } else {
-            document.body.classList.remove('quiz-focus-mode');
+            document.body.classList.remove('focus-mode');
         }
     }
 
     renderLesson(container, lesson, isCompleted) {
         const canEdit = this.isAdmin || (lesson.author_id && lesson.author_id == this.currentUserId);
         
-        // Focus Mode wird jetzt intern von der QuizEngine gesteuert, falls es ein Quiz ist.
-        // Wir stellen sicher, dass er beim Laden einer normalen Lektion aus ist.
-        if (lesson.type !== 'quiz') {
-            this.setFocusMode(false);
+        // Zen-Modus Initialisierung
+        if (lesson.type === 'quiz') {
+            document.body.classList.add('quiz-active');
+            this.setFocusMode(true); // Quizzes immer im Fokus-Modus starten
+        } else {
+            document.body.classList.remove('quiz-active');
+            this.setFocusMode(this.isZenMode);
         }
 
         let contentHtml = '';
@@ -337,10 +340,34 @@ export class Learning {
         
         const nextLesson = this.getNextLesson(lesson.id);
 
+        const breadcrumbHtml = `
+            <div class="breadcrumbs fade-in">
+                <a href="#" onclick="window.Router.navigate('/'); return false;"><i class="ph ph-house"></i> Startseite</a>
+                <i class="ph ph-caret-right breadcrumb-separator"></i>
+                <span>${escapeHTML(lesson.subject_title || 'Kurs')}</span>
+                <i class="ph ph-caret-right breadcrumb-separator"></i>
+                <span style="color: var(--text-primary); font-weight: 600;">${escapeHTML(lesson.title)}</span>
+            </div>
+        `;
+
         container.innerHTML = `
             <div class="content-card learning-content fade-in" style="margin-bottom: 0;">
+                ${breadcrumbHtml}
                 <div class="lesson-header">
                     <h2 class="lesson-title">${escapeHTML(lesson.title)}</h2>
+                    
+                    ${lesson.type !== 'quiz' ? `
+                    <div class="focus-toggle-wrapper" data-tooltip="Zen-Modus: Alles ausblenden">
+                        <label class="focus-switch">
+                            <input type="checkbox" id="lesson-focus-toggle" ${this.isZenMode ? 'checked' : ''}>
+                            <span class="focus-slider"></span>
+                        </label>
+                        <span class="focus-label">
+                            <i class="ph ${this.isZenMode ? 'ph-eye-closed' : 'ph-eye'}"></i>
+                            <span class="focus-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Zen</span>
+                        </span>
+                    </div>
+                    ` : ''}
                 </div>
                 ${this.renderArticleMeta(lesson, canEdit)}
                 <div class="lesson-body">
@@ -392,6 +419,20 @@ export class Learning {
         container.querySelectorAll('.toggle-lesson-btn').forEach(btn => {
             btn.addEventListener('click', () => this.toggleLesson(lesson.id, !isCompleted));
         });
+
+        // Zen-Modus Toggle
+        const zenToggle = container.querySelector('#lesson-focus-toggle');
+        if (zenToggle) {
+            zenToggle.addEventListener('change', (e) => {
+                this.isZenMode = e.target.checked;
+                localStorage.setItem('lern_zen_mode', this.isZenMode);
+                this.setFocusMode(this.isZenMode);
+                
+                // Icon Update
+                const icon = e.target.closest('.focus-toggle-wrapper').querySelector('i');
+                icon.className = this.isZenMode ? 'ph ph-eye-closed' : 'ph ph-eye';
+            });
+        }
 
         const bookmarkBtn = container.querySelector('.bookmark-btn');
         if (bookmarkBtn) {
@@ -566,6 +607,10 @@ export class Learning {
         const dateStr = new Date(lesson.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
         metaHtml += `<span class="article-date"><i class="ph ph-calendar-blank"></i> ${dateStr}</span>`;
         
+        // Lesezeit
+        const readTime = this.calculateReadingTime(lesson.content_raw || lesson.content);
+        metaHtml += `<span class="article-read-time" title="Geschätzte Lesezeit"><i class="ph ph-hourglass-low"></i> ${readTime} Min.</span>`;
+
         // Font Size Toggles
         metaHtml += `
             <div class="font-size-toggles" style="display: flex; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); margin-left: auto; padding: 2px;">
@@ -743,5 +788,13 @@ export class Learning {
         const base = window.innerWidth < 768 ? 1.05 : 1.15;
         const newSize = (base + this.fontSizeOffset).toFixed(2);
         body.style.setProperty('--content-base-size', `${newSize}rem`);
+    }
+
+    calculateReadingTime(text) {
+        if (!text) return 1;
+        // Strip markdown-like things if possible, but simple split is usually enough
+        const words = text.trim().split(/\s+/).length;
+        const time = Math.ceil(words / 220); // 220 WPM
+        return time > 0 ? time : 1;
     }
 }

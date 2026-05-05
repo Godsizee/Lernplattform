@@ -1,5 +1,174 @@
 /* components/_lesson-content.css */
 
+/* === Orientierung: Breadcrumbs === */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+.breadcrumbs a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.breadcrumbs a:hover {
+    color: var(--text-primary);
+}
+.breadcrumb-separator {
+    color: var(--border-glass);
+    font-size: 0.8rem;
+}
+
+/* === Universal Focus Mode (Zen Mode) === */
+body.focus-mode .sidebar,
+body.focus-mode .topbar,
+body.focus-mode .view-header,
+body.focus-mode .learning-header,
+body.focus-mode .learning-tabs {
+    display: none !important;
+}
+
+body.focus-mode .main-content {
+    margin-left: 0 !important;
+    padding-top: var(--space-xl) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+body.focus-mode .learning-layout {
+    display: flex;
+    justify-content: center;
+    margin-top: 0;
+}
+
+.learning-main {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.focus-mode .learning-main {
+    width: 100%;
+    max-width: 1150px;
+    margin: 0 auto;
+}
+
+/* Elemente, die im Fokus-Modus ausgeblendet werden (außer bei Quizzes, dort wird mehr ausgeblendet) */
+body.focus-mode:not(.quiz-active) .student-notes-section,
+body.focus-mode:not(.quiz-active) .article-meta,
+body.focus-mode:not(.quiz-active) .lesson-footer-nav {
+    display: none !important;
+}
+
+/* Im Fokus-Modus bei Quizzes alles ausblenden was nicht zum Quiz gehört */
+body.focus-mode.quiz-active .learning-content > *:not(.lesson-body) {
+    display: none !important;
+}
+
+/* === Focus Toggle UI (Zen Mode Switch) === */
+.focus-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-dark);
+    padding: 0.4rem 1.1rem 0.4rem 0.6rem;
+    border-radius: 30px;
+    border: 1px solid var(--border-glass);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.focus-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
+    letter-spacing: 0.02em;
+}
+
+.focus-icon-container {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.focus-icon-container i {
+    position: absolute;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focus-icon-on { opacity: 0; transform: scale(0.5) rotate(-45deg); }
+.focus-icon-off { opacity: 1; transform: scale(1) rotate(0); }
+
+input:checked ~ .focus-label .focus-icon-on { opacity: 1; transform: scale(1) rotate(0); }
+input:checked ~ .focus-label .focus-icon-off { opacity: 0; transform: scale(0.5) rotate(45deg); }
+
+.focus-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.focus-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.focus-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-surface);
+    transition: background-color 0.4s ease;
+    border-radius: 22px;
+    border: 1.5px solid var(--border-glass);
+}
+
+.focus-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--text-secondary);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .focus-slider {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(169, 114, 255, 0.2);
+}
+
+input:checked + .focus-slider:before {
+    transform: translate(16px, -50%);
+    background-color: white;
+}
+
+
+
 /* === Mobile Basis: Edge-to-Edge Content === */
 .learning-content {
     padding: var(--space-md) 0 0 0;

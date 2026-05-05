@@ -132,9 +132,9 @@ export class QuizEngine {
 
     updateFocusUI() {
         if (this.isFocusMode) {
-            document.body.classList.add('quiz-focus-mode');
+            document.body.classList.add('focus-mode');
         } else {
-            document.body.classList.remove('quiz-focus-mode');
+            document.body.classList.remove('focus-mode');
         }
     }
 
