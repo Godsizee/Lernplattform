@@ -531,3 +531,38 @@ html:not(.light-mode) .lesson-body [style*="color: #856404"] { color: #fde047 !i
     .next-lesson-title { font-size: 1.4rem; }
     .lesson-footer-nav .toggle-lesson-btn { width: auto; }
 }
+
+/* ==========================================================================
+   LEGACY CONTENT FIX (Datenbank-Inhalte mit harten Inline-Styles)
+   ========================================================================== */
+
+/* Erzwinge Lesbarkeit bei harten Farbvorgaben aus der DB */
+.lesson-body [style*="color: #333"],
+.lesson-body [style*="color:#333"],
+.lesson-body [style*="color: rgb(51, 51, 51)"] {
+    color: var(--text-primary) !important;
+}
+
+/* Neutralisiere helle Hintergrund-Inline-Styles für Dark Mode */
+.lesson-body [style*="background: #f8f9fa"],
+.lesson-body [style*="background:#f8f9fa"],
+.lesson-body [style*="background: #eee"],
+.lesson-body [style*="background:#eee"] {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Fix für die gelbe Infobox am Ende */
+.lesson-body div[style*="background: #fff3cd"],
+.lesson-body div[style*="background:#fff3cd"] {
+    background: rgba(255, 189, 0, 0.1) !important;
+    color: var(--color-warning) !important;
+    border-color: var(--color-warning) !important;
+}
+
+/* Korrektur für Tabellen-Header mit blauem Verlauf */
+.lesson-body tr[style*="background: linear-gradient"],
+.lesson-body thead[style*="background: linear-gradient"],
+.lesson-body tr[style*="background:linear-gradient"],
+.lesson-body thead[style*="background:linear-gradient"] {
+    background: var(--gradient-premium) !important;
+}
