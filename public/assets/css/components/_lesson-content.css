@@ -75,7 +75,8 @@
 }
 
 .lesson-body {
-    font-size: 0.95rem;
+    --content-base-size: 1.05rem;
+    font-size: var(--content-base-size);
     line-height: 1.8;
     color: var(--text-primary);
     font-weight: 300;
@@ -469,7 +470,7 @@ html:not(.light-mode) .lesson-body [style*="color: #856404"] { color: #fde047 !i
     }
 
     .lesson-body { 
-        font-size: 1.1rem; 
+        --content-base-size: 1.15rem;
         line-height: 1.85;
     }
 

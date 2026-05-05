@@ -32,6 +32,9 @@ require_once __DIR__ . '/../includes/header.php';
                 <i class="ph ph-arrow-left"></i> Abbrechen
             </a>
             <div class="editor-action-buttons">
+                <span id="auto-save-indicator" class="text-muted" style="font-size: 0.8rem; display: none; align-items: center; gap: 0.4rem; margin-right: 1rem;">
+                    <i class="ph ph-cloud-check"></i> Gespeichert: <span class="time">Gerade eben</span>
+                </span>
                 <button type="button" id="btn-save-draft" class="btn btn-secondary">
                     <i class="ph ph-floppy-disk"></i> <span>Als Entwurf speichern</span>
                 </button>

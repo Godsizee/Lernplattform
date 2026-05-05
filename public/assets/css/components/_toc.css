@@ -59,6 +59,12 @@
     transform: none !important;
 }
 
+.toc-link:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    background: rgba(169, 114, 255, 0.1);
+}
+
 .light-mode .toc-link {
     background: #ffffff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);

@@ -109,6 +109,15 @@ export default async function init() {
             };
 
             localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+
+            // UI Update: Auto-Save Indikator
+            const indicator = document.getElementById('auto-save-indicator');
+            if (indicator) {
+                indicator.style.display = 'inline-flex';
+                const now = new Date();
+                indicator.querySelector('.time').textContent = 
+                    now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+            }
         }, 5000);
     }
 

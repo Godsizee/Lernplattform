@@ -19,6 +19,9 @@ if (isset($isSoftRoute) && $isSoftRoute) {
         window.CURRENT_PAGE_SCRIPT = '<?= $pageScript ?? '' ?>';
     </script>
 
+    <!-- Vendor Scripts -->
+    <script src="<?= BASE_URL ?>/assets/vendor/confetti.browser.min.js"></script>
+
     <!-- Core App Script (Globale Helfer & Theme) -->
     <script type="module" src="<?= BASE_URL ?>/assets/js/app.js"></script>
 </body>

@@ -341,6 +341,16 @@ export class QuizEngine {
             text.textContent = `Du hast nur ${this.score} von ${total} Fragen richtig beantwortet. Übung macht den Meister.`;
             headline.style.color = 'var(--color-warning)';
         }
+
+        // NEU: Konfetti-Effekt bei Erfolg (mind. 60%)
+        if (percentage >= 60 && typeof window.confetti === 'function') {
+            window.confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#a972ff', '#3fb950', '#ffbd00']
+            });
+        }
         
         this.retryIncorrectBtn.style.display = this.incorrectlyAnsweredQuestions.length > 0 ? 'inline-flex' : 'none';
         

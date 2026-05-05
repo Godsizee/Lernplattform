@@ -15,6 +15,7 @@ export class Learning {
         this.lessonsMetadata = [];
         this.currentSubjectId = null;
         this.activeLessonId = null;
+        this.fontSizeOffset = parseFloat(localStorage.getItem('lern_font_offset')) || 0;
     }
 
     async loadData() {
@@ -255,6 +256,14 @@ export class Learning {
             e.preventDefault();
             this.loadLesson(lesson.id);
         });
+
+        // Keyboard Navigation Support
+        link.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.loadLesson(lesson.id);
+            }
+        });
         
         li.appendChild(link);
         return li;
@@ -434,6 +443,17 @@ export class Learning {
 
         // UX: Scroll-Indikator initialisieren
         this.initScrollIndicator();
+        
+        // A11y: Schriftgröße anwenden
+        this.applyFontSize();
+
+        // Font Toggles binden
+        container.querySelectorAll('.font-decrease').forEach(btn => {
+            btn.addEventListener('click', () => this.adjustFontSize(-0.1));
+        });
+        container.querySelectorAll('.font-increase').forEach(btn => {
+            btn.addEventListener('click', () => this.adjustFontSize(0.1));
+        });
     }
 
     renderQuizHub() {
@@ -546,6 +566,14 @@ export class Learning {
         const dateStr = new Date(lesson.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
         metaHtml += `<span class="article-date"><i class="ph ph-calendar-blank"></i> ${dateStr}</span>`;
         
+        // Font Size Toggles
+        metaHtml += `
+            <div class="font-size-toggles" style="display: flex; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); margin-left: auto; padding: 2px;">
+                <button class="btn-icon-admin font-decrease" title="Schrift verkleinern" style="padding: 0.3rem 0.6rem; font-size: 0.7rem; border: none; background: transparent; color: var(--text-secondary); cursor: pointer;">A-</button>
+                <div style="width: 1px; background: var(--border-glass); margin: 4px 0;"></div>
+                <button class="btn-icon-admin font-increase" title="Schrift vergrößern" style="padding: 0.3rem 0.6rem; font-size: 0.7rem; border: none; background: transparent; color: var(--text-secondary); cursor: pointer;">A+</button>
+            </div>`;
+        
         if (canEdit) {
             metaHtml += `
                 <div class="article-actions">
@@ -562,7 +590,7 @@ export class Learning {
                 </div>`;
         } else {
             metaHtml += `
-                <div class="article-actions">
+                <div class="article-actions" style="margin-left: 0;">
                     <button class="bookmark-btn ${lesson.is_bookmarked ? 'active' : ''}" title="Für später speichern">
                         <i class="ph ${lesson.is_bookmarked ? 'ph-bookmark-simple-fill' : 'ph-bookmark-simple'}"></i>
                         <span>${lesson.is_bookmarked ? 'Gemerkt' : 'Merken'}</span>
@@ -581,6 +609,16 @@ export class Learning {
             if (markAsCompleted) {
                 if (!this.progress.includes(parseInt(lessonId))) this.progress.push(parseInt(lessonId));
                 Toast.success('Lektion als abgeschlossen markiert.');
+
+                // NEU: Konfetti-Kanonenschlag
+                if (typeof window.confetti === 'function') {
+                    window.confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#a972ff', '#3fb950', '#ffbd00'] // Brand Colors
+                    });
+                }
             } else {
                 this.progress = this.progress.filter(id => id != lessonId);
                 Toast.info('Lektion als ungelesen markiert.');
@@ -690,5 +728,20 @@ export class Learning {
                 }
             }, 1000);
         });
+    }
+
+    adjustFontSize(delta) {
+        this.fontSizeOffset = Math.max(-0.2, Math.min(0.4, this.fontSizeOffset + delta));
+        localStorage.setItem('lern_font_offset', this.fontSizeOffset);
+        this.applyFontSize();
+    }
+
+    applyFontSize() {
+        const body = document.querySelector('.lesson-body');
+        if (!body) return;
+        
+        const base = window.innerWidth < 768 ? 1.05 : 1.15;
+        const newSize = (base + this.fontSizeOffset).toFixed(2);
+        body.style.setProperty('--content-base-size', `${newSize}rem`);
     }
 }
