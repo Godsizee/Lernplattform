@@ -151,10 +151,13 @@
     .learning-layout {
         flex-direction: row;
         gap: 3.5rem;
+        max-width: var(--desktop-max-width);
+        margin: 0 auto;
+        width: 100%;
     }
 
     .learning-sidebar {
-        width: 260px;
+        width: var(--sidebar-width-desktop);
         flex-shrink: 0;
         position: sticky;
         top: 100px;
@@ -165,10 +168,27 @@
         margin-bottom: 0;
     }
 
+    .learning-main {
+        max-width: var(--reading-width);
+        margin: 0 auto;
+        flex: 1;
+        min-width: 0;
+    }
+
     .lesson-placeholder {
         border: 1px dashed var(--border-glass);
         padding: var(--space-2xl);
         height: 50vh;
         min-height: 400px;
+    }
+}
+
+@media (min-width: 1440px) {
+    .learning-layout {
+        gap: 5rem;
+    }
+
+    .learning-sidebar {
+        width: var(--sidebar-width-wide);
     }
 }

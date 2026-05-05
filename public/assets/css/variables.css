@@ -67,6 +67,15 @@
     --color-java: var(--color-danger);
     
     --shadow-color: rgba(169, 114, 255, 0.15);
+
+    /* Desktop Specific Tokens */
+    --desktop-max-width: 1440px;
+    --reading-width: 900px;
+    --sidebar-width-desktop: 280px;
+    --sidebar-width-wide: 320px;
+    
+    --shadow-desktop: 0 20px 50px rgba(0, 0, 0, 0.3);
+    --shadow-premium: 0 0 40px rgba(169, 114, 255, 0.1);
 }
 
 :root.light-mode {

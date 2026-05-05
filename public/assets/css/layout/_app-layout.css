@@ -77,6 +77,14 @@ body.auth-mode .main-content {
     }
 
     .main-content {
-        padding: 1.2rem 3rem;
+        padding: var(--space-2xl) 3rem;
+        max-width: var(--desktop-max-width);
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 1440px) {
+    .main-content {
+        padding: var(--space-3xl) 4rem;
     }
 }

@@ -191,6 +191,23 @@
 
 /* === Desktop: Vertikale Liste mit Tracker-Linie === */
 @media (min-width: 1024px) {
+    .toc-container {
+        position: sticky;
+        top: 100px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+    
+    .toc-container::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .toc-container::-webkit-scrollbar-thumb {
+        background: var(--border-glass);
+        border-radius: 10px;
+    }
+
     .toc-header {
         display: block;
         font-size: 0.8rem;
