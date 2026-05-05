@@ -6,16 +6,15 @@
     width: 280px;
     height: 100vh;
     z-index: 1000;
-    background: var(--bg-surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-right: var(--border-glass);
-    padding: 2rem 1.5rem;
+    background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-right: 1px solid var(--glass-border);
+    padding: 2.5rem 1.5rem;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar.mobile-open {
@@ -28,18 +27,37 @@
 }
 
 .sidebar-brand {
-    font-size: 1.5rem; 
-    font-weight: 800; 
+    font-size: 1.2rem; 
+    font-weight: 900; 
     font-family: var(--font-display); 
     display: flex; 
+    flex-direction: column;
     align-items: center; 
-    gap: 0.5rem; 
-    margin-bottom: 1.5rem; 
-    background: linear-gradient(to right, var(--color-primary), var(--color-secondary)); 
-    -webkit-background-clip: text; 
-    -webkit-text-fill-color: transparent; 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
+    gap: 1.2rem; 
+    margin-bottom: 3.5rem; 
+    position: relative;
+    letter-spacing: 0.1em;
+}
+
+/* Der "Sexy" Logo Glow */
+.sidebar-brand::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(169, 114, 255, 0.15) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.brand-text {
+    background: linear-gradient(135deg, #ffffff 0%, #a972ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(169, 114, 255, 0.3));
 }
 
 .brand-logo-img { 
@@ -58,58 +76,45 @@
 }
 
 .nav-item { 
-    padding: 0.8rem 1rem; 
-    border-radius: var(--radius-sm); 
-    color: var(--text-secondary); 
+    padding: 0.9rem 1.2rem; 
+    border-radius: 12px; 
+    color: var(--color-text-muted); 
     font-weight: 500; 
     display: flex; 
     align-items: center; 
-    gap: 0.8rem; 
+    gap: 1rem; 
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
     border: 1px solid transparent; 
-    overflow: hidden;
-    white-space: nowrap; 
+    margin-bottom: 0.25rem;
 }
 
-.nav-item:hover, .nav-item.active { 
-    background: rgba(255, 255, 255, 0.05); 
-    color: var(--text-primary); 
-    border-color: var(--border-glass); 
+.nav-item i { 
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
 }
 
-@media (min-width: 1024px) {
-    .nav-item {
-        position: relative;
-    }
+.nav-item:hover { 
+    background: rgba(255, 255, 255, 0.03); 
+    color: #ffffff; 
+    border-color: rgba(255, 255, 255, 0.05);
+    transform: translateX(4px);
+}
 
-    .nav-item:hover {
-        transform: translateX(5px);
-        background: rgba(169, 114, 255, 0.08);
-        border-color: rgba(169, 114, 255, 0.2);
-    }
+.nav-item:hover i {
+    transform: scale(1.1);
+    color: var(--color-primary);
+}
 
-    .nav-item::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 20%;
-        height: 60%;
-        width: 3px;
-        background: var(--color-primary);
-        border-radius: 0 4px 4px 0;
-        transform: scaleY(0);
-        transition: transform 0.3s ease;
-    }
+.nav-item.active { 
+    background: rgba(169, 114, 255, 0.1); 
+    color: #ffffff; 
+    border-color: rgba(169, 114, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(169, 114, 255, 0.15);
+}
 
-    .nav-item.active::after,
-    .nav-item:hover::after {
-        transform: scaleY(1);
-    }
-
-    .nav-item.active {
-        background: rgba(169, 114, 255, 0.1);
-        box-shadow: var(--shadow-premium);
-    }
+.nav-item.active i { 
+    color: var(--color-primary); 
+    filter: drop-shadow(0 0 8px rgba(169, 114, 255, 0.5));
 }
 
 .light-mode .nav-item:hover, 
