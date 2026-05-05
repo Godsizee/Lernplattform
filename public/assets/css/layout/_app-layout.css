@@ -4,13 +4,12 @@
     flex-direction: column;
     min-height: 100vh;
     width: 100%;
-    /* overflow-x: hidden; WURDE ENTFERNT: Zerstört position: sticky! */
     overflow-x: clip; 
 }
 
 .main-content {
     flex: 1;
-    padding: 1.5rem 1rem;
+    padding: var(--space-lg) var(--content-padding);
     width: 100%;
     display: block;
     position: relative;
@@ -20,7 +19,7 @@
 .auth-wrapper {
     width: 100%;
     max-width: 400px;
-    margin: 2rem auto;
+    margin: var(--space-xl) auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -36,17 +35,17 @@ body.auth-mode .main-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: var(--content-padding);
 }
 
 /* Content Headers */
 .view-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: var(--space-xl);
 }
 
 .view-header h1 {
     font-size: var(--font-size-h1);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-sm);
     letter-spacing: -0.02em;
     word-wrap: break-word;
     background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
@@ -57,17 +56,6 @@ body.auth-mode .main-content {
 .view-header p {
     color: var(--text-secondary);
     font-size: 1.1rem;
-}
-
-/* Desktop Layout Adjustments */
-@media (min-width: 768px) {
-    .app-layout {
-        flex-direction: row;
-    }
-
-    .main-content {
-        padding: 1.2rem 3rem;
-    }
 }
 
 /* SPA Soft-Routing Transitions */
@@ -82,11 +70,13 @@ body.auth-mode .main-content {
     transform: translateY(10px);
 }
 
-.fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
-}
+/* Desktop Layout: Sidebar neben Content */
+@media (min-width: 768px) {
+    .app-layout {
+        flex-direction: row;
+    }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    .main-content {
+        padding: 1.2rem 3rem;
+    }
 }

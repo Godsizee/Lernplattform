@@ -16,6 +16,24 @@ body {
     overflow-x: clip; 
 }
 
+html {
+    /* Smoothes Scrollen für Anker-Links & TOC Navigation */
+    scroll-behavior: smooth;
+    /* Verhindert Textgrößen-Anpassung auf iOS bei Orientierungswechsel */
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Touch-Optimierung: Sofortiges Feedback statt 300ms-Delay */
+a,
+button,
+input,
+select,
+textarea,
+[role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
 /* Bilder dürfen niemals ihren Container sprengen */
 img,
 svg,

@@ -1,210 +1,112 @@
 /* components/_toc.css */
-/* Minimalistisches, grenzenloses Inhaltsverzeichnis mit vertikaler Tracker-Linie */
+/* Inhaltsverzeichnis – Mobile First */
 
+/* === Mobile Basis: Horizontale, wischbare Chips === */
 .toc-container {
     padding: 0;
 }
 
 .toc-header {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    font-weight: 700;
-    margin-bottom: 1.2rem;
-    padding-left: 1.5rem;
+    display: none;
 }
 
 .toc-list {
     list-style: none;
     position: relative;
-    padding: 0;
-    margin: 0;
+    padding: 0.5rem var(--content-padding);
+    margin: 0 calc(-1 * var(--content-padding));
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    gap: 0.8rem;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Die vertikale Linie, die alle Punkte verbindet */
+.toc-list::-webkit-scrollbar {
+    display: none;
+}
+
 .toc-list::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 7px;
-    width: 2px;
-    background: var(--border-glass);
-    border-radius: 2px;
-    z-index: 1;
+    display: none;
 }
 
 .toc-item {
     position: relative;
     z-index: 2;
-    margin-bottom: 0.2rem;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    margin: 0;
 }
 
 .toc-link {
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem 0.5rem 2.2rem;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-glass);
+    border-radius: 30px;
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     line-height: 1.4;
+    transform: none !important;
 }
 
-/* Der Indikator-Punkt für jede Lektion */
+.light-mode .toc-link {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
 .toc-link::before {
-    content: '';
-    position: absolute;
-    left: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--bg-dark);
-    border: 2px solid var(--border-glass);
-    transition: all 0.3s ease;
-    box-sizing: border-box;
+    display: none;
 }
 
 .toc-link:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.02);
-    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .light-mode .toc-link:hover {
     background: rgba(0, 0, 0, 0.02);
 }
 
-.toc-link:hover::before {
-    border-color: var(--text-primary);
-}
-
-/* Aktive (gerade gelesene) Lektion */
 .toc-link.active {
-    color: var(--color-primary);
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 15px rgba(169, 114, 255, 0.3);
     font-weight: 600;
-    background: linear-gradient(90deg, rgba(169, 114, 255, 0.08) 0%, transparent 100%);
-    transform: translateX(4px);
 }
 
 .light-mode .toc-link.active {
-    background: linear-gradient(90deg, rgba(139, 92, 246, 0.08) 0%, transparent 100%);
+    background: var(--brand-primary);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
-.toc-link.active::before {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    box-shadow: 0 0 10px rgba(169, 114, 255, 0.4);
-}
-
-.light-mode .toc-link.active::before {
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
-}
-
-/* Abgeschlossene Lektionen (Grüner Punkt) */
 .toc-link.completed:not(.active) {
-    color: var(--text-secondary);
-}
-
-.toc-link.completed::before {
-    background: var(--color-success);
     border-color: var(--color-success);
+    color: var(--color-success);
+    background: rgba(16, 185, 129, 0.1);
 }
 
-/* ==========================================================================
-   Mobile First: Horizontales, wischbares Inhaltsverzeichnis (Chips-Style)
-   ========================================================================== */
-@media (max-width: 1024px) {
-    .toc-header {
-        display: none; /* Spart Platz auf Mobile */
-    }
-    
-    .toc-list {
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none; /* Firefox */
-        gap: 0.8rem;
-        padding: 0.5rem 1rem;
-        margin: 0 -1rem; /* Edge-to-Edge Scrollen */
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .toc-list::-webkit-scrollbar {
-        display: none; /* Safari/Chrome */
-    }
-
-    .toc-list::before {
-        display: none; /* Vertikale Linie komplett ausblenden */
-    }
-
-    .toc-item {
-        scroll-snap-align: start;
-        flex-shrink: 0;
-        margin: 0;
-    }
-
-    .toc-link {
-        padding: 0.6rem 1.2rem;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid var(--border-glass);
-        border-radius: 30px; /* Pillen-Form */
-        font-size: 0.9rem;
-        font-weight: 600;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transform: none !important;
-    }
-
-    .light-mode .toc-link {
-        background: #ffffff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    .toc-link::before {
-        display: none; /* Indikator-Punkt in der Pille ausblenden */
-    }
-
-    .toc-link:hover {
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .toc-link.active {
-        background: var(--color-primary);
-        color: #ffffff;
-        border-color: var(--color-primary);
-        box-shadow: 0 4px 15px rgba(169, 114, 255, 0.3);
-    }
-
-    .light-mode .toc-link.active {
-        background: var(--brand-primary);
-        color: #ffffff;
-        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-    }
-
-    .toc-link.completed:not(.active) {
-        border-color: var(--color-success);
-        color: var(--color-success);
-        background: rgba(16, 185, 129, 0.1);
-    }
-}
 
 /* ==========================================================================
-   TOC Grouping (Collapsible Chapters)
+   TOC Grouping (Collapsible Chapters) – Mobile
    ========================================================================== */
 .toc-group {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
     position: relative;
     z-index: 2;
+    scroll-snap-align: start;
+    flex-shrink: 0;
 }
 
 .toc-group-header {
@@ -214,24 +116,23 @@
     padding: 0.6rem 1rem;
     background: var(--bg-surface);
     border: 1px solid var(--border-glass);
-    border-radius: var(--radius-sm);
+    border-radius: 30px;
     cursor: pointer;
     font-weight: 600;
     color: var(--text-primary);
     transition: var(--transition);
     user-select: none;
+    white-space: nowrap;
+    gap: 0.5rem;
 }
 
 .toc-group-header:hover {
     border-color: var(--color-primary);
-    background: var(--bg-surface-hover);
 }
 
 .toc-group-header.expanded {
-    background: linear-gradient(90deg, rgba(169, 114, 255, 0.05) 0%, transparent 100%);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-bottom-color: transparent;
+    border-radius: 15px;
+    border-bottom: 1px solid var(--border-glass);
 }
 
 .toc-group-title {
@@ -246,84 +147,231 @@
 
 .toc-group-list {
     list-style: none;
-    padding: 0.5rem 0 0.5rem 0;
+    padding: 0.5rem 0;
     margin: 0;
-    background: rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    z-index: 100;
+    min-width: 220px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
     border: 1px solid var(--border-glass);
-    border-top: none;
-    border-bottom-left-radius: var(--radius-sm);
-    border-bottom-right-radius: var(--radius-sm);
-    position: relative;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .light-mode .toc-group-list {
-    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    background: #ffffff;
 }
 
-/* Anpassung der vertikalen Linie für Gruppen-Inhalte */
 .toc-group-list::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 14px;
-    width: 2px;
-    background: var(--border-glass);
-    border-radius: 2px;
-    z-index: 1;
+    display: none;
 }
 
 .toc-group-list .toc-link {
-    padding-left: 2.5rem;
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    white-space: normal;
 }
 
-.toc-group-list .toc-link::before {
-    left: 11px;
+.toc-group-list .toc-item {
+    border-bottom: 1px solid var(--border-glass);
+    flex-shrink: initial;
 }
 
-@media (max-width: 1024px) {
-    .toc-group {
-        scroll-snap-align: start;
-        flex-shrink: 0;
+.toc-group-list .toc-item:last-child {
+    border-bottom: none;
+}
+
+
+/* === Desktop: Vertikale Liste mit Tracker-Linie === */
+@media (min-width: 1024px) {
+    .toc-header {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        padding-left: 1.5rem;
     }
-    .toc-group-header {
-        border-radius: 30px;
-        white-space: nowrap;
-        gap: 0.5rem;
+
+    .toc-list {
+        display: block;
+        overflow-x: visible;
+        scroll-snap-type: none;
+        padding: 0;
+        margin: 0;
+        gap: 0;
     }
-    .toc-group-header.expanded {
-        border-radius: 15px;
-        border-bottom: 1px solid var(--border-glass);
-    }
-    .toc-group-list {
+
+    .toc-list::before {
+        display: block;
+        content: '';
         position: absolute;
-        top: calc(100% + 5px);
-        left: 0;
-        z-index: 100;
-        min-width: 220px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        border-radius: var(--radius-md);
-        background: var(--bg-surface);
-        max-height: 60vh;
-        overflow-y: auto;
+        top: 0;
+        bottom: 0;
+        left: 7px;
+        width: 2px;
+        background: var(--border-glass);
+        border-radius: 2px;
+        z-index: 1;
     }
-    .light-mode .toc-group-list {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        background: #ffffff;
+
+    .toc-item {
+        scroll-snap-align: unset;
+        flex-shrink: initial;
+        margin-bottom: 0.2rem;
     }
-    .toc-group-list::before {
-        display: none;
-    }
-    .toc-group-list .toc-link {
-        padding: 0.8rem 1.2rem;
+
+    .toc-link {
+        padding: 0.5rem 1rem 0.5rem 2.2rem;
+        background: transparent;
         border: none;
-        border-radius: 0;
+        border-radius: var(--radius-sm);
+        white-space: normal;
+        font-size: 0.95rem;
+        transform: none;
+    }
+
+    .light-mode .toc-link {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .toc-link::before {
+        display: block;
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--bg-dark);
+        border: 2px solid var(--border-glass);
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .toc-link:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.02);
+        transform: translateX(4px);
+    }
+
+    .light-mode .toc-link:hover {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+    .toc-link:hover::before {
+        border-color: var(--text-primary);
+    }
+
+    .toc-link.active {
+        color: var(--color-primary);
+        font-weight: 600;
+        background: linear-gradient(90deg, rgba(169, 114, 255, 0.08) 0%, transparent 100%);
+        transform: translateX(4px);
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    .light-mode .toc-link.active {
+        background: linear-gradient(90deg, rgba(139, 92, 246, 0.08) 0%, transparent 100%);
+        box-shadow: none;
+    }
+
+    .toc-link.active::before {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 10px rgba(169, 114, 255, 0.4);
+    }
+
+    .light-mode .toc-link.active::before {
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+    }
+
+    .toc-link.completed:not(.active) {
+        color: var(--text-secondary);
+        border-color: transparent;
         background: transparent;
     }
-    .toc-group-list .toc-item {
-        border-bottom: 1px solid var(--border-glass);
+
+    .toc-link.completed::before {
+        background: var(--color-success);
+        border-color: var(--color-success);
     }
-    .toc-group-list .toc-item:last-child {
+
+    /* TOC Groups Desktop */
+    .toc-group {
+        margin-bottom: 0.5rem;
+        scroll-snap-align: unset;
+        flex-shrink: initial;
+    }
+
+    .toc-group-header {
+        border-radius: var(--radius-sm);
+        white-space: normal;
+    }
+
+    .toc-group-header.expanded {
+        background: linear-gradient(90deg, rgba(169, 114, 255, 0.05) 0%, transparent 100%);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
+        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .toc-group-list {
+        position: relative;
+        top: 0;
+        left: 0;
+        z-index: auto;
+        min-width: auto;
+        box-shadow: none;
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-glass);
+        border-top: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    .light-mode .toc-group-list {
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow: none;
+    }
+
+    .toc-group-list::before {
+        display: block;
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 14px;
+        width: 2px;
+        background: var(--border-glass);
+        border-radius: 2px;
+        z-index: 1;
+    }
+
+    .toc-group-list .toc-link {
+        padding-left: 2.5rem;
+    }
+
+    .toc-group-list .toc-link::before {
+        left: 11px;
+    }
+
+    .toc-group-list .toc-item {
         border-bottom: none;
     }
 }

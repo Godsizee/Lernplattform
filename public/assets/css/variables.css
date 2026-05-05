@@ -1,4 +1,13 @@
 /* public/assets/css/variables.css */
+
+/*
+ * ===== BREAKPOINT REFERENZ (Mobile First) =====
+ * sm:  @media (min-width: 480px)   – Galaxy Fold → Smartphone
+ * md:  @media (min-width: 768px)   – Smartphone → Tablet
+ * lg:  @media (min-width: 1024px)  – Tablet → Desktop
+ * xl:  @media (min-width: 1280px)  – Desktop → Wide
+ */
+
 :root {
     /* DARK MODE (Default) */
     --color-primary: #a972ff;
@@ -32,6 +41,18 @@
     --radius-md: 16px;
     --radius-sm: 8px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Spacing Scale (Mobile First) */
+    --space-xs: 0.25rem;   /* 4px  */
+    --space-sm: 0.5rem;    /* 8px  */
+    --space-md: 1rem;      /* 16px */
+    --space-lg: 1.5rem;    /* 24px */
+    --space-xl: 2rem;      /* 32px */
+    --space-2xl: 3rem;     /* 48px */
+    --space-3xl: 4rem;     /* 64px */
+
+    /* Content Padding (Mobile Basis) */
+    --content-padding: 1rem;
     
     /* Fluid Typography - Abgeänderte Minimal-Größen für extrem schmale Bildschirme */
     --font-size-h1: clamp(1.5rem, 6vw, 2.8rem);

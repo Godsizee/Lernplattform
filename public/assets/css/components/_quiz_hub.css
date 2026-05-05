@@ -1,20 +1,21 @@
 /* components/_quiz_hub.css */
 
+/* === Mobile Basis === */
 .quiz-hub-container {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 2rem 0;
+    padding: var(--space-xl) 0;
 }
 
 .quiz-hub-welcome {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: var(--space-2xl);
 }
 
 .quiz-hub-welcome h1 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 800;
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-md);
     background: linear-gradient(135deg, var(--color-primary), #60a5fa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -29,15 +30,15 @@
 
 .quiz-hub-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2rem;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
 }
 
 .book-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-lg);
-    padding: 2rem;
+    padding: var(--space-xl);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
@@ -74,7 +75,7 @@
 
 .book-icon {
     font-size: 3.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-lg);
     background: var(--bg-dark);
     width: 100px;
     height: 100px;
@@ -96,13 +97,13 @@
 .book-title {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-sm);
 }
 
 .book-meta {
     font-size: 0.9rem;
     color: var(--text-secondary);
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-lg);
 }
 
 .book-progress-container {
@@ -110,7 +111,7 @@
     background: var(--bg-dark);
     height: 8px;
     border-radius: 4px;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-sm);
     overflow: hidden;
 }
 
@@ -127,11 +128,13 @@
     color: var(--text-secondary);
 }
 
-@media (max-width: 768px) {
+/* === Desktop Enhancement === */
+@media (min-width: 768px) {
     .quiz-hub-welcome h1 {
-        font-size: 1.8rem;
+        font-size: 2.5rem;
     }
+
     .quiz-hub-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }

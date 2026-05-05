@@ -1,40 +1,66 @@
 /* layout/_learning-layout.css */
+
+/* === Mobile Basis === */
 .learning-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-glass);
+    margin-bottom: var(--space-md);
+    gap: 0.5rem;
 }
 
 .learning-subject-title {
     margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-size: 1.25rem;
     letter-spacing: -0.02em;
     background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
+/* Der Button "Beitrag erstellen" wird zu einem kleinen, runden Icon-Button auf Mobile */
+.create-btn-mobile {
+    padding: 0 !important;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.create-btn-mobile span {
+    display: none;
+}
+
+.create-btn-mobile i {
+    margin: 0 !important;
+    font-size: 1.3rem;
+}
+
 .learning-layout {
     display: flex;
+    flex-direction: column;
     align-items: flex-start;
-    gap: 3.5rem;
+    gap: 0;
     position: relative;
 }
 
 .learning-sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 100px;
-    align-self: flex-start;
-    height: calc(100vh - 120px);
-    overflow-y: auto;
-    padding-bottom: 2rem;
-    scrollbar-width: none; 
+    width: 100%;
+    position: relative;
+    top: 0;
+    height: auto;
+    max-height: none;
+    background: transparent;
+    padding: 0 0 var(--space-md) 0;
+    border-bottom: none;
+    margin-bottom: var(--space-lg);
+    box-shadow: none;
+    overflow-y: visible;
+    scrollbar-width: none;
 }
 
 .learning-sidebar::-webkit-scrollbar {
@@ -52,13 +78,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 50vh;
-    min-height: 400px;
+    height: auto;
+    min-height: 50vh;
     text-align: center;
     background: transparent;
-    border: 1px dashed var(--border-glass);
+    border: none;
     border-radius: var(--radius-lg);
-    padding: 3rem;
+    padding: var(--space-xl) var(--content-padding);
 }
 
 .placeholder-icon {
@@ -71,7 +97,7 @@
     align-items: center;
     justify-content: center;
     font-size: 2.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-lg);
     box-shadow: 0 0 30px rgba(169, 114, 255, 0.15);
 }
 
@@ -82,7 +108,7 @@
 }
 
 .lesson-placeholder h3 {
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-sm);
     font-size: 1.4rem;
     color: var(--text-primary);
 }
@@ -92,74 +118,57 @@
     line-height: 1.6;
 }
 
-/* ==========================================================================
-   Responsive Verhalten - Mobile First Level Up
-   ========================================================================== */
-@media (max-width: 1024px) {
-    .learning-header {
-        margin-bottom: 1rem;
-        border-bottom: none;
-        padding-bottom: 0;
+/* === Smartphone → Normaler Button-Text sichtbar === */
+@media (min-width: 480px) {
+    .learning-subject-title {
+        font-size: clamp(1.5rem, 4vw, 2rem);
     }
 
-    .learning-layout {
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .learning-sidebar {
-        width: 100%;
-        position: relative; 
-        top: 0;
+    .create-btn-mobile {
+        padding: 0.85rem 1.6rem !important;
+        width: auto;
         height: auto;
-        max-height: none;
-        background: transparent;
-        padding: 0 0 1rem 0;
-        border-bottom: none;
-        margin-bottom: 1.5rem;
-        box-shadow: none;
+        border-radius: var(--radius-sm);
     }
 
-    .learning-main {
-        max-width: 100%;
+    .create-btn-mobile span {
+        display: inline;
     }
-    
-    .lesson-placeholder {
-        border: none;
-        padding: 2rem 1rem;
-        height: auto;
-        min-height: 50vh;
+
+    .create-btn-mobile i {
+        font-size: 1rem;
     }
 }
 
-/* Fix für extrem schmale Bildschirme (Galaxy Fold Front-Display etc.) */
-@media (max-width: 480px) {
+/* === Desktop: Sidebar sticky neben Content === */
+@media (min-width: 1024px) {
     .learning-header {
-        gap: 0.5rem;
+        margin-bottom: 2.5rem;
+        padding-bottom: var(--space-md);
+        border-bottom: 1px solid var(--border-glass);
     }
-    
-    .learning-subject-title {
-        font-size: 1.25rem;
+
+    .learning-layout {
+        flex-direction: row;
+        gap: 3.5rem;
     }
-    
-    /* Der Button "Beitrag erstellen" wird zu einem kleinen, runden Icon-Button */
-    .create-btn-mobile {
-        padding: 0 !important;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+
+    .learning-sidebar {
+        width: 260px;
         flex-shrink: 0;
+        position: sticky;
+        top: 100px;
+        align-self: flex-start;
+        height: calc(100vh - 120px);
+        overflow-y: auto;
+        padding-bottom: var(--space-xl);
+        margin-bottom: 0;
     }
-    
-    .create-btn-mobile span {
-        display: none;
-    }
-    
-    .create-btn-mobile i {
-        margin: 0 !important;
-        font-size: 1.3rem;
+
+    .lesson-placeholder {
+        border: 1px dashed var(--border-glass);
+        padding: var(--space-2xl);
+        height: 50vh;
+        min-height: 400px;
     }
 }

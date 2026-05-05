@@ -1,8 +1,11 @@
 /* components/_notifications.css */
+
+/* === Mobile Basis: Full-width Toasts === */
 .toast-container {
     position: fixed;
-    top: 2rem;
-    right: 2rem;
+    top: 1.5rem;
+    right: 1.5rem;
+    left: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -12,9 +15,10 @@
 
 .toast {
     pointer-events: auto;
-    min-width: 280px;
+    min-width: unset;
+    width: 100%;
     max-width: 400px;
-    padding: 1rem 1.25rem;
+    padding: var(--space-md) 1.25rem;
     background: var(--bg-glass);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -75,14 +79,16 @@
     }
 }
 
-@media (max-width: 768px) {
+/* === Desktop: Rechts oben positioniert === */
+@media (min-width: 768px) {
     .toast-container {
-        top: 1.5rem;
-        right: 1.5rem;
-        left: 1.5rem;
+        top: 2rem;
+        right: 2rem;
+        left: auto;
     }
+
     .toast {
-        min-width: unset;
-        width: 100%;
+        min-width: 280px;
+        width: auto;
     }
 }
