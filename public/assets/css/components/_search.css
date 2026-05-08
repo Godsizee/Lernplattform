@@ -9,30 +9,24 @@
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--bg-surface);
-    border-radius: 12px;
-    border: 1px solid var(--border-glass);
-    padding: 0.6rem 1.2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--border-glass);
+    padding: 0.5rem 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
 }
 
 .search-input-wrapper:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 4px rgba(169, 114, 255, 0.15), 0 10px 30px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-    background: var(--bg-dark);
+    border-bottom-color: var(--color-primary);
+    transform: translateY(-1px);
 }
 
 .light-mode .search-input-wrapper:focus-within {
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), 0 10px 30px rgba(139, 92, 246, 0.08);
-    background: #ffffff;
+    border-bottom-color: var(--color-primary);
 }
 
 .search-icon {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     color: var(--text-secondary);
     margin-right: 0.8rem;
     transition: color 0.3s ease;
@@ -48,30 +42,34 @@
     border: none;
     outline: none;
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-size: 1rem;
     width: 100%;
+    padding: 0;
+    letter-spacing: 0.02em;
 }
 
 .search-input-wrapper input::placeholder {
     color: var(--text-secondary);
-    opacity: 0.6;
+    opacity: 0.5;
+    font-weight: 400;
 }
 
 .search-shortcut {
     position: absolute;
-    right: 1rem;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(128, 128, 128, 0.15);
-    border: 1px solid rgba(128, 128, 128, 0.2);
+    background: transparent;
+    border: 1px solid var(--border-glass);
     color: var(--text-secondary);
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
     font-weight: 600;
     pointer-events: none;
     display: none;
     transition: opacity 0.2s ease;
+    opacity: 0.7;
 }
 
 .search-input-wrapper:focus-within .search-shortcut {
