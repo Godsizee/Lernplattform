@@ -57,10 +57,13 @@ export class Sidebar {
      * @param {string} path 
      */
     updateActiveLink(path) {
-        const navItems = this.sidebar.querySelectorAll('.nav-item');
+        const navItems = this.sidebar ? this.sidebar.querySelectorAll('.nav-item') : [];
+        const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
         const cleanPath = path.split('?')[0]; // Ignore query params for active state
         
-        navItems.forEach(item => {
+        const allItems = [...navItems, ...bottomNavItems];
+        
+        allItems.forEach(item => {
             const href = item.getAttribute('href');
             if (!href) return;
 

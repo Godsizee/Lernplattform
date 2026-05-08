@@ -75,3 +75,31 @@
 .subject-card:hover .subject-icon-img { 
     transform: scale(1.1) rotate(5deg); 
 }
+
+@media (max-width: 768px) {
+    .subject-grid {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding: 0.5rem 0;
+        gap: 0;
+        scrollbar-width: none;
+    }
+    
+    .subject-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .subject-card {
+        flex: 0 0 100%;
+        scroll-snap-align: start;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
+    }
+}

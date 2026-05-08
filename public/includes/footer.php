@@ -12,6 +12,28 @@ if (isset($isSoftRoute) && $isSoftRoute) {
 ?>
             </div> <!-- End view-container -->
         </main> <!-- End main-content -->
+
+        <?php if (isset($hideSidebar) && !$hideSidebar): ?>
+        <!-- Bottom Navigation (Mobile Only) -->
+        <nav class="bottom-nav">
+            <a href="<?= BASE_URL ?>/" class="bottom-nav-item <?= $currentRoute === '/' ? 'active' : '' ?>">
+                <i class="ph ph-squares-four"></i>
+                <span class="bottom-nav-text">Dashboard</span>
+            </a>
+            <a href="<?= BASE_URL ?>/learning" class="bottom-nav-item <?= $currentRoute === '/learning' ? 'active' : '' ?>">
+                <i class="ph ph-books"></i>
+                <span class="bottom-nav-text">Lernen</span>
+            </a>
+            <a href="<?= BASE_URL ?>/editor" class="bottom-nav-item <?= $currentRoute === '/editor' ? 'active' : '' ?>">
+                <i class="ph ph-article"></i>
+                <span class="bottom-nav-text">Editor</span>
+            </a>
+            <a href="<?= BASE_URL ?>/profile" class="bottom-nav-item <?= $currentRoute === '/profile' ? 'active' : '' ?>">
+                <i class="ph ph-user-circle"></i>
+                <span class="bottom-nav-text">Profil</span>
+            </a>
+        </nav>
+        <?php endif; ?>
     </div> <!-- End app-layout -->
 
     <!-- Globale Variablen für den Router -->

@@ -2,9 +2,9 @@
 import { ApiService } from '../services/ApiService.js';
 
 export class Search {
-    constructor() {
-        this.input = document.getElementById('global-search-input');
-        this.resultsDropdown = document.getElementById('search-results-dropdown');
+    constructor(inputId = 'global-search-input', dropdownId = 'search-results-dropdown') {
+        this.input = document.getElementById(inputId);
+        this.resultsDropdown = document.getElementById(dropdownId);
         this.debounceTimer = null;
         this.selectedIndex = -1;
         this.results = [];

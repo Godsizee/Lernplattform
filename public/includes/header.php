@@ -205,6 +205,33 @@ if ($isSoftRoute) {
         <main class="main-content">
             
             <?php if (!$hideSidebar): ?>
+            <!-- Mobile Header (Mobile Only) -->
+            <header class="mobile-header">
+                <div class="mobile-header-brand">
+                    <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Code & Cash Logo" class="brand-logo-img">
+                </div>
+                <div class="mobile-header-actions">
+                    <button class="mobile-search-toggle" id="mobile-search-toggle" title="Suche öffnen">
+                        <i class="ph ph-magnifying-glass"></i>
+                    </button>
+                    <button class="theme-toggle-js mobile-theme-toggle" title="Theme wechseln">
+                        <i class="ph ph-moon theme-icon-js"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Mobile Search Overlay (Mobile Only) -->
+            <div class="mobile-search-overlay" id="mobile-search-overlay">
+                <div class="mobile-search-bar">
+                    <i class="ph ph-magnifying-glass mobile-search-bar-icon"></i>
+                    <input type="text" id="mobile-search-input" placeholder="Suchen..." autocomplete="off">
+                    <button class="mobile-search-close" id="mobile-search-close" title="Suche schließen">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <div class="search-results-dropdown" id="mobile-search-results-dropdown" style="display: none;"></div>
+            </div>
+
             <!-- Topbar -->
             <header class="topbar">
                 <button id="mobile-nav-toggle" class="mobile-nav-toggle" title="Menü öffnen">

@@ -13,7 +13,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Globale UI-Komponenten initialisieren
     new ThemeToggle();
     const sidebar = new Sidebar();
-    new Search();
+    new Search('global-search-input', 'search-results-dropdown');
+    new Search('mobile-search-input', 'mobile-search-results-dropdown');
+
+    // Mobile Search Overlay Toggle
+    const mobileSearchToggle = document.getElementById('mobile-search-toggle');
+    const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
+    const mobileSearchClose = document.getElementById('mobile-search-close');
+    const mobileSearchInput = document.getElementById('mobile-search-input');
+
+    if (mobileSearchToggle && mobileSearchOverlay) {
+        mobileSearchToggle.addEventListener('click', () => {
+            mobileSearchOverlay.classList.add('active');
+            if (mobileSearchInput) {
+                setTimeout(() => mobileSearchInput.focus(), 100);
+            }
+        });
+    }
+
+    if (mobileSearchClose && mobileSearchOverlay) {
+        mobileSearchClose.addEventListener('click', () => {
+            mobileSearchOverlay.classList.remove('active');
+            if (mobileSearchInput) {
+                mobileSearchInput.value = '';
+                // Trigger event to clear search
+                mobileSearchInput.dispatchEvent(new Event('input'));
+            }
+        });
+    }
 
     // Soft-Router initialisieren
     const router = new Router();
