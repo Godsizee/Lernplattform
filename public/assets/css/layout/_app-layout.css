@@ -92,6 +92,13 @@ body.auth-mode .main-content {
     }
 }
 
+/* Hide Mobile Elements by Default on Desktop */
+.mobile-header,
+.mobile-search-overlay,
+.bottom-nav {
+    display: none !important;
+}
+
 /* ==========================================================================
    MOBILE-ONLY STYLES (App-Feeling)
    ========================================================================== */
@@ -135,7 +142,7 @@ body.auth-mode .main-content {
         left: 0;
         width: 100%;
         height: 60px;
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: space-between;
         padding: 0 1.25rem;
@@ -194,7 +201,7 @@ body.auth-mode .main-content {
         background: var(--color-background);
         z-index: 1001;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         padding: 1rem 1.25rem;
     }
@@ -302,7 +309,7 @@ body.auth-mode .main-content {
         left: 0;
         width: 100%;
         height: 72px;
-        display: grid;
+        display: grid !important;
         grid-template-columns: repeat(4, 1fr);
         background: var(--glass-bg);
         backdrop-filter: blur(25px);
