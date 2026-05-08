@@ -24,14 +24,16 @@ if (isset($isSoftRoute) && $isSoftRoute) {
                 <i class="ph ph-books"></i>
                 <span class="bottom-nav-text">Lernen</span>
             </a>
-            <a href="<?= BASE_URL ?>/editor" class="bottom-nav-item <?= $currentRoute === '/editor' ? 'active' : '' ?>">
-                <i class="ph ph-article"></i>
-                <span class="bottom-nav-text">Editor</span>
-            </a>
             <a href="<?= BASE_URL ?>/profile" class="bottom-nav-item <?= $currentRoute === '/profile' ? 'active' : '' ?>">
                 <i class="ph ph-user-circle"></i>
                 <span class="bottom-nav-text">Profil</span>
             </a>
+            <?php if (isset($user) && $user && $user['role'] === 'admin'): ?>
+            <a href="<?= BASE_URL ?>/admin" class="bottom-nav-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
+                <i class="ph ph-shield-star"></i>
+                <span class="bottom-nav-text">Admin</span>
+            </a>
+            <?php endif; ?>
         </nav>
         <?php endif; ?>
     </div> <!-- End app-layout -->
