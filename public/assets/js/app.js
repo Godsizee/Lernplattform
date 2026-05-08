@@ -40,6 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 mobileSearchInput.dispatchEvent(new Event('input'));
             }
         });
+
+        // Close search overlay when clicking on the empty backdrop
+        mobileSearchOverlay.addEventListener('click', (e) => {
+            if (e.target === mobileSearchOverlay) {
+                mobileSearchClose.click();
+            }
+        });
     }
 
     // Soft-Router initialisieren
